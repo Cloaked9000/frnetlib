@@ -17,7 +17,7 @@ public:
      *
      * @return A string containing all of the data added to the packet
      */
-    inline const std::string &construct_packet()
+    inline const std::string &construct_packet() const
     {
         return buffer;
     }

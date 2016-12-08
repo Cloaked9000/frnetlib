@@ -47,5 +47,20 @@ inline double ntohd(double val)
     return val;
 }
 
+//Windows and UNIX require some different headers.
+//We also need some compatibility defines for cross platform support.
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#else
+#define closesocket(x) close(x)
+#define INVALID_SOCKET 0
+#define SOCKET_ERROR -1
+#include <netdb.h>
+#include <unistd.h>
+#endif
+
 
 #endif //FRNETLIB_NETWORKENCODING_H
