@@ -3,3 +3,8 @@
 //
 
 #include "Packet.h"
+
+namespace fr
+{
+
+}

@@ -46,6 +46,13 @@ inline double ntohd(double val)
     memcpy(&val, &ret, sizeof(val));
     return val;
 }
+inline void *get_sin_addr(struct sockaddr *sa)
+{
+    if(sa->sa_family == AF_INET)
+        return &(((sockaddr_in*)sa)->sin_addr);
+    return &(((sockaddr_in6*)sa)->sin6_addr);
+}
+
 
 //Windows and UNIX require some different headers.
 //We also need some compatibility defines for cross platform support.

@@ -2,49 +2,163 @@
 // Created by fred on 06/12/16.
 //
 
+#include <iostream>
 #include "TcpSocket.h"
 
 namespace fr
 {
 
-    bool TcpSocket::send(const Packet &packet)
+    TcpSocket::TcpSocket() noexcept
+    : recv_buffer(new char[RECV_CHUNK_SIZE]),
+      is_connected(false)
+    {
+
+    }
+
+    TcpSocket::~TcpSocket() noexcept
+    {
+        close();
+    }
+
+    Socket::Status TcpSocket::send(const Packet &packet)
     {
         size_t send_index = 0;
         size_t sent = 0;
 
-        while(sent < packet.construct_packet().size())
+        while(sent < packet.get_buffer().size())
         {
-            ssize_t a = ::send(socket_descriptor, &packet.construct_packet()[send_index], packet.construct_packet().size(), 0);
-            if(a < 1)
-                return false;
-            sent += a;
+            ssize_t status = ::send(socket_descriptor, &packet.get_buffer()[send_index], packet.get_buffer().size(), 0);
+            if(status > 0)
+            {
+                sent += status;
+            }
+            else
+            {
+                if(status == -1)
+                {
+                    return Socket::Status::Error;
+                }
+                else
+                {
+                    is_connected = false;
+                    return Socket::Status::Disconnected;
+                }
+            }
         }
 
-        return true;
+        return Socket::Status::Success;
     }
 
-    bool TcpSocket::receive(Packet &packet)
+    Socket::Status TcpSocket::receive(Packet &packet)
     {
-        std::string recv_buffer;
+        Socket::Status status;
 
-        //Read packet length
+        //Try to read packet length
         uint32_t packet_length = 0;
+        status = read_recv(&packet_length, sizeof(packet_length));
+        if(status != Socket::Status::Success)
+            return status;
+        packet_length = ntohl(packet_length);
 
-        return false;
+        //Now we've got the length, read the rest of the data in
+        std::string data(packet_length, '\0');
+        read_recv(&data[0], packet_length);
+
+        //Set the packet to what we've read
+        packet.set_buffer(std::move(data));
+
+        return Socket::Status::Success;
     }
 
     void TcpSocket::close()
     {
-        ::close(socket_descriptor);
+        if(!is_connected)
+        {
+            ::close(socket_descriptor);
+            is_connected = false;
+        }
     }
 
-    ssize_t TcpSocket::read_recv()
+    Socket::Status TcpSocket::read_recv(void *dest, size_t size)
     {
-        return 0;
+        //See if there's enough data in the unprocessed buffer first
+        if(size < unprocessed_buffer.size())
+        {
+            memcpy(dest, &unprocessed_buffer[0], size);
+            unprocessed_buffer.erase(0, size);
+            return Socket::Status::Success;
+        }
+
+        //Else, keep calling recv until there's enough data in the buffer
+        while(unprocessed_buffer.size() < size)
+        {
+            //Read RECV_CHUNK_SIZE bytes into the recv buffer
+            ssize_t status = ::recv(socket_descriptor, recv_buffer.get(), RECV_CHUNK_SIZE, 0);
+            if(status > 0)
+            {
+                unprocessed_buffer += {recv_buffer.get(), (size_t)status};
+            }
+            else
+            {
+                if(status == -1)
+                {
+                    return Socket::Status::Error;
+                }
+                else
+                {
+                    is_connected = false;
+                    return Socket::Status::Disconnected;
+                }
+            }
+        }
+        return Socket::Status::Success;
     }
 
     void TcpSocket::set_descriptor(int descriptor)
     {
         socket_descriptor = descriptor;
+        is_connected = true;
     }
+
+    Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
+    {
+        addrinfo *info;
+        addrinfo hints;
+
+        memset(&hints, 0, sizeof(addrinfo));
+
+        hints.ai_family = AF_UNSPEC; //IPv6 or IPv4
+        hints.ai_socktype = SOCK_STREAM; //TCP
+        hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
+
+        if(getaddrinfo(address.c_str(), port.c_str(), &hints, &info) != 0)
+        {
+            return Socket::Status::Error;
+        }
+
+        addrinfo *c;
+        for(c = info; c != nullptr; c = c->ai_next)
+        {
+            socket_descriptor = ::socket(c->ai_family, c->ai_socktype, c->ai_protocol);
+            if(socket_descriptor == INVALID_SOCKET)
+            {
+                continue;
+            }
+
+            if(::connect(socket_descriptor, c->ai_addr, c->ai_addrlen) == INVALID_SOCKET)
+            {
+                continue;
+            }
+
+            break;
+        }
+
+        //We're done with this now, cleanup
+        freeaddrinfo(info);
+
+        if(c == nullptr)
+            return Socket::Status::Error;
+        is_connected = true;
+    }
+
 }

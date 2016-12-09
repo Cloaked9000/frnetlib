@@ -10,23 +10,23 @@ namespace fr
     const int yes = 1;
     const int no = 0;
 
-    TcpListener::TcpListener()
-    {
-        memset(&hints, 0, sizeof(addrinfo));
-        hints.ai_family = AF_UNSPEC; //IPv6 or IPv4. NOTE: Might want to make configurable.
-        hints.ai_socktype = SOCK_STREAM; //TCP
-        hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
-    }
-
     Socket::Status TcpListener::listen(const std::string &port)
     {
         addrinfo *info;
-        if(int status = getaddrinfo(NULL, port.c_str(), &hints, &info) != 0)
+        addrinfo hints;
+
+        memset(&hints, 0, sizeof(addrinfo));
+
+        hints.ai_family = AF_UNSPEC; //IPv6 or IPv4. NOTE: Might want to make configurable.
+        hints.ai_socktype = SOCK_STREAM; //TCP
+        hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
+
+        if(getaddrinfo(NULL, port.c_str(), &hints, &info) != 0)
         {
             return Socket::Status::Unknown;
         }
         //Try each of the results until we listen successfully
-        addrinfo *c;
+        addrinfo *c = nullptr;
         for(c = info; c != nullptr; c = c->ai_next)
         {
             //Attempt to connect
@@ -89,12 +89,5 @@ namespace fr
         client.set_remote_address(client_printable_addr);
 
         return Socket::Success;
-    }
-
-    void *TcpListener::get_sin_addr(struct sockaddr *sa)
-    {
-        if(sa->sa_family == AF_INET)
-            return &(((sockaddr_in*)sa)->sin_addr);
-        return &(((sockaddr_in6*)sa)->sin6_addr);
     }
 }

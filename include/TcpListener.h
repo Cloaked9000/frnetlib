@@ -16,8 +16,6 @@ namespace fr
 class TcpListener
 {
 public:
-    TcpListener();
-
     /*!
      * Listens to the given port for connections
      *
@@ -35,8 +33,6 @@ public:
     Socket::Status accept(TcpSocket &client);
 
 private:
-    void *get_sin_addr(struct sockaddr *sa);
-    addrinfo hints;
     int socket_descriptor;
 };
 

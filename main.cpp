@@ -1,19 +1,47 @@
 #include <iostream>
 #include <Packet.h>
+#include <TcpSocket.h>
+#include <TcpListener.h>
+#include <thread>
+
+void server()
+{
+    fr::TcpListener listener;
+    listener.listen("8081");
+
+    fr::TcpSocket socket;
+    listener.accept(socket);
+
+    while(socket.connected())
+    {
+        fr::Packet packet;
+        socket.receive(packet);
+
+        std::string message;
+        packet >> message;
+        std::cout << "Got: " << message << std::endl;
+    }
+}
+
+void client()
+{
+    fr::TcpSocket socket;
+    socket.connect("127.0.0.1", "8081");
+
+    fr::Packet packet;
+    packet << "Hello, World!";
+    socket.send(packet);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
 
 int main()
 {
-    Packet packet;
-    packet << (uint16_t)15000 << (uint16_t)200 << (uint32_t)9299221 << (uint64_t)9223372036854775807 << (float)1.22 << (double)192.212;
-    std::cout << packet.construct_packet() << std::endl;
+    std::thread t1(&server);
 
-    uint16_t result, result2;
-    uint32_t result3;
-    uint64_t result4;
-    float result5;
-    double result6;
-    packet >> result >> result2 >> result3 >> result4 >> result5 >> result6;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    client();
 
-    std::cout << result << ", " << result2 << ", " << result3 << ", " << result4 << ", " << result5 << ", " << result6 << std::endl;
+    t1.join();
     return 0;
 }
