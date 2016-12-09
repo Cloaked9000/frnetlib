@@ -62,7 +62,7 @@ inline void *get_sin_addr(struct sockaddr *sa)
 #include <windows.h>
 #include <ws2tcpip.h>
 #else
-#define closesocket(x) close(x)
+#define closesocket(x) ::close(x)
 #define INVALID_SOCKET 0
 #define SOCKET_ERROR -1
 #include <netdb.h>

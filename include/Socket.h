@@ -73,13 +73,23 @@ namespace fr
          *
          * @return The string address
          */
-        inline virtual const std::string &get_remote_address()
+        inline const std::string &get_remote_address()
         {
             return remote_address;
         }
 
+        /*!
+         * Gets the socket descriptor of the object
+         *
+         * @return The socket file descriptor
+         */
+        inline int32_t get_socket_descriptor() const
+        {
+            return socket_descriptor;
+        }
+
     protected:
-        int socket_descriptor;
+        int32_t socket_descriptor;
         std::string remote_address;
     };
 }

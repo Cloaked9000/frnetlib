@@ -18,6 +18,7 @@ public:
     TcpSocket() noexcept;
     virtual ~TcpSocket() noexcept;
     TcpSocket(TcpSocket &&) noexcept = default;
+    void operator=(const TcpSocket &other)=delete;
 
     /*!
      * Send a packet through the socket

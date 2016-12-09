@@ -13,7 +13,7 @@
 namespace fr
 {
 
-class TcpListener
+class TcpListener : public Socket
 {
 public:
     /*!
@@ -33,7 +33,11 @@ public:
     Socket::Status accept(TcpSocket &client);
 
 private:
-    int socket_descriptor;
+    //Stubs
+    virtual Status send(const Packet &packet){return Socket::Error;}
+    virtual Status receive(Packet &packet){return Socket::Error;}
+    virtual void close(){}
+    virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
 };
 
 }
