@@ -151,7 +151,7 @@ namespace fr
          */
         inline Packet&operator>>(std::string &var)
         {
-            uint32_t length;
+            uint32_t length = (uint32_t)var.length();
             *this >> length;
 
             var = buffer.substr(0, length);
