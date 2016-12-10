@@ -10,6 +10,7 @@
 
 void server()
 {
+    //Bind to port
     fr::TcpListener listener;
     if(listener.listen("8081") != fr::Socket::Success)
     {
@@ -17,15 +18,20 @@ void server()
         return;
     }
 
+    //Create a selector and a container for holding connected clients
     fr::SocketSelector selector;
     std::vector<std::unique_ptr<fr::HttpSocket>> clients;
 
+    //Add our connection listener to the selector
     selector.add(listener);
 
+    //Infinitely loop, waiting for connections or data
     while(selector.wait())
     {
+        //If the listener is ready, that means we've got a new connection
         if(selector.is_ready(listener))
         {
+            //Try and add them to our client container
             clients.emplace_back(new fr::HttpSocket());
             if(listener.accept(*clients.back()) != fr::Socket::Success)
             {
@@ -33,23 +39,30 @@ void server()
                 continue;
             }
 
+            //Add them to the selector if connected successfully
             selector.add(*clients.back());
             std::cout << "Got new connection from: " << clients.back()->get_remote_address() << std::endl;
         }
         else
         {
+            //Else it's one of the clients who's sent some data. Check each one
             for(auto iter = clients.begin(); iter != clients.end();)
             {
                 if(selector.is_ready(**iter))
                 {
+                    //This client has sent a HTTP request, so receive_request it
                     fr::HttpRequest request;
-                    if((*iter)->receive(request) == fr::Socket::Success)
+                    if((*iter)->receive_request(request) == fr::Socket::Success)
                     {
+                        //Print to the console what we've been requested for
                         std::cout << "Requested: " << request.get_uri() << std::endl;
+
+                        //Construct a response
                         request.clear();
                         request.set_body("<h1>Hello, World!</h1>");
 
-                        (*iter)->send(request);
+                        //Send the response, and close the connection
+                        (*iter)->send_response(request);
                         (*iter)->close();
                     }
                     else
@@ -70,19 +83,23 @@ void server()
 
 void client()
 {
-//    fr::TcpSocket socket;
-//    socket.connect("127.0.0.1", "8081");
-//
-//    fr::TcpSocket socket2;
-//    socket2.connect("127.0.0.1", "8081");
-//
-//    fr::Packet packet;
-//    packet << "Hello, World! - From socket 1";
-//    socket.send(packet);
-//
-//    packet.clear();
-//    packet << "Hello, world! - From socket 2";
-//    socket2.send(packet);
+    fr::HttpSocket socket;
+    if(socket.connect("127.0.0.1", "8081") != fr::Socket::Success)
+    {
+        std::cout << "Failed to connect to web server!" << std::endl;
+        return;
+    }
+
+    fr::HttpRequest request;
+    request.get("name") = "fred";
+
+    if(socket.send_request(request) != fr::Socket::Success)
+        std::cout << "Failed to send HTTP request to server!" << std::endl;
+
+    if(socket.receive_response(request) != fr::Socket::Success)
+        std::cout << "Failed to receive HTTP response from the server!" << std::endl;
+
+    std::cout << "Got page body: " << request.get_body() << std::endl;
     return;
 
 }
@@ -93,7 +110,9 @@ int main()
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     auto start = std::chrono::system_clock::now();
-    std::thread t2(&client);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    client();
 
     t1.join();
 

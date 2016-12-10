@@ -6,9 +6,11 @@
 
 namespace fr
 {
+    const static std::string request_type_strings[HttpRequest::RequestType::RequestTypeCount] = {"UNKNOWN", "GET", "POST"};
+
     HttpRequest::HttpRequest()
-    : status(Ok)
     {
+        clear();
     }
 
     void HttpRequest::parse_request(const std::string &request_data)
@@ -27,7 +29,7 @@ namespace fr
         if(lines.empty())
             return;
 
-        //Extract request type
+        //Extract request get_type
         if(lines[0].find("GET") != std::string::npos)
             request_type = RequestType::Get;
         else if(lines[0].find("POST") != std::string::npos)
@@ -110,7 +112,58 @@ namespace fr
         return;
     }
 
-    HttpRequest::RequestType HttpRequest::type() const
+    void HttpRequest::parse_response(const std::string &response_data)
+    {
+        //Warning: Horrible string parsing code
+        std::cout << "Parsing response: " << std::endl << response_data << std::endl;
+        //Clear old headers/data
+        clear();
+
+        //Make sure there's actual request data to read
+        if(response_data.empty())
+            return;
+
+        //Split by new lines
+        std::vector<std::string> lines = split_string(response_data);
+        if(lines.empty())
+            return;
+
+        //Extract request get_type
+        if(lines[0].find("GET") != std::string::npos)
+            request_type = RequestType::Get;
+        else if(lines[0].find("POST") != std::string::npos)
+            request_type = RequestType::Post;
+        else
+            request_type = RequestType::Unknown;
+
+        //Extract headers
+        size_t a;
+        for(a = 1; a < lines.size(); a++)
+        {
+            //New line indicates headers have ended
+            if(lines[a].empty() || lines[a].size() <= 2)
+                break;
+
+            //Find the colon separating the header name and header data
+            auto colon_iter = lines[a].find(":");
+            if(colon_iter == std::string::npos)
+                continue;
+
+            //Store the header
+            std::string header_name = lines[a].substr(0, colon_iter);
+            std::string header_content = lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3);
+            headers.emplace(header_name, header_content);
+        }
+
+        //Store request body
+        for(; a < lines.size(); a++)
+        {
+            body += lines[a] + "\n";
+        }
+        return;
+    }
+
+    HttpRequest::RequestType HttpRequest::get_type() const
     {
         return request_type;
     }
@@ -138,10 +191,10 @@ namespace fr
         return result;
     }
 
-    std::string HttpRequest::get_request() const
+    std::string HttpRequest::construct_request() const
     {
         //Add HTTP header
-        std::string request = "HTTP/1.1 " + std::to_string(status) + " \r\n";
+        std::string request = request_type_to_string(request_type) + " " + uri + " HTTP/1.1\r\n";
 
         //Add the headers to the request
         for(const auto &header : headers)
@@ -152,9 +205,7 @@ namespace fr
 
         //Add in required headers if they're missing
         if(headers.find("Connection") == headers.end())
-            request += "Connection: close\r\n";
-        if(headers.find("Content-type") == headers.end())
-            request += "Content-type: text/html\r\n";
+            request += "Connection: keep-alive\r\n";
 
         //Add in space
         request += "\r\n";
@@ -162,6 +213,32 @@ namespace fr
         //Add in the body
         request += body + "\r\n";
         return request;
+    }
+
+    std::string HttpRequest::construct_response() const
+    {
+        //Add HTTP header
+        std::string response = "HTTP/1.1 " + std::to_string(status) + " \r\n";
+
+        //Add the headers to the response
+        for(const auto &header : headers)
+        {
+            std::string data = header.first + ": " + header.second + "\r\n";
+            response += data;
+        }
+
+        //Add in required headers if they're missing
+        if(headers.find("Connection") == headers.end())
+            response += "Connection: close\r\n";
+        if(headers.find("Content-type") == headers.end())
+            response += "Content-type: text/html\r\n";
+
+        //Add in space
+        response += "\r\n";
+
+        //Add in the body
+        response += body + "\r\n";
+        return response;
     }
 
     void HttpRequest::set_body(const std::string &body_)
@@ -174,7 +251,9 @@ namespace fr
         headers.clear();
         body.clear();
         get_variables.clear();
+        uri = "/";
         status = Ok;
+        request_type = Get;
     }
 
     std::string &HttpRequest::get(const std::string &key)
@@ -210,5 +289,27 @@ namespace fr
     HttpRequest::RequestStatus HttpRequest::get_status()
     {
         return status;
+    }
+
+    void HttpRequest::set_uri(const std::string &str)
+    {
+        uri = str;
+    }
+
+    std::string HttpRequest::request_type_to_string(RequestType type) const
+    {
+        if(type >= RequestType::RequestTypeCount)
+            return request_type_strings[0];
+        return request_type_strings[type];
+    }
+
+    void HttpRequest::set_type(HttpRequest::RequestType type)
+    {
+        request_type = type;
+    }
+
+    const std::string &HttpRequest::get_body() const
+    {
+        return body;
     }
 }

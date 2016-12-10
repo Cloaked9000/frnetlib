@@ -179,7 +179,7 @@ namespace fr
                 continue;
             }
 
-            if(::connect(socket_descriptor, c->ai_addr, c->ai_addrlen) == INVALID_SOCKET)
+            if(::connect(socket_descriptor, c->ai_addr, c->ai_addrlen) == SOCKET_ERROR)
             {
                 continue;
             }
@@ -187,12 +187,14 @@ namespace fr
             break;
         }
 
+        if(c == nullptr)
+            return Socket::Status::Error;
+
         //We're done with this now, cleanup
         freeaddrinfo(info);
 
-        if(c == nullptr)
-            return Socket::Status::Error;
         is_connected = true;
+
         return Socket::Status::Success;
     }
 

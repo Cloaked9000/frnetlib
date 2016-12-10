@@ -19,6 +19,7 @@ namespace fr
             Unknown = 0,
             Get = 1,
             Post = 2,
+            RequestTypeCount = 3,
         };
         enum RequestStatus
         {
@@ -42,11 +43,25 @@ namespace fr
         void parse_request(const std::string &request_data);
 
         /*!
+         * Parses a browser response
+         *
+         * @param request_data The response data itself
+         */
+        void parse_response(const std::string &response_data);
+
+        /*!
          * Gets the request type (post, get etc)
          *
          * @return The request type
          */
-        RequestType type() const;
+        RequestType get_type() const;
+
+        /*!
+         * Sets the request type (post, get etc)
+         *
+         * @param type The type of request to set it to
+         */
+        void set_type(RequestType type);
 
         /*!
          * Access a header
@@ -61,7 +76,14 @@ namespace fr
          *
          * @return The HTTP request
          */
-        std::string get_request() const;
+        std::string construct_request() const;
+
+        /*!
+         * Constructs a HTTP web response from the object.
+         *
+         * @return The HTTP response.
+         */
+        std::string construct_response() const;
 
         /*!
          * Sets the request body
@@ -134,6 +156,20 @@ namespace fr
          */
         RequestStatus get_status();
 
+        /*!
+         * Sets the request URI.
+         *
+         * @param str What to set the URI to.
+         */
+        void set_uri(const std::string &str);
+
+        /*!
+         * Gets the body of the HTTP request
+         *
+         * @return The request body
+         */
+        const std::string &get_body() const;
+
     private:
         /*!
          * Splits a string by new line. Ignores escaped \n's
@@ -141,6 +177,8 @@ namespace fr
          * @return The split string
          */
         std::vector<std::string> split_string(const std::string &str);
+
+        std::string request_type_to_string(RequestType type) const;
 
         //Other request info
         std::unordered_map<std::string, std::string> headers;

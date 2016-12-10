@@ -19,15 +19,31 @@ namespace fr
          * @param request The request to send
          * @return The status of the operation.
          */
-        Socket::Status receive(HttpRequest &request);
+        Socket::Status receive_request(HttpRequest &request);
+
+        /*!
+         * Sends a HTTP response to the connected socket.
+         *
+         * @param request The response to send
+         * @return The status of the operation.
+         */
+        Socket::Status receive_response(HttpRequest &response);
 
         /*!
          * Sends a HTTP request to the connected socket.
          *
-         * @param request Where to store the received request.
+         * @param request The HTTP request to send.
          * @return The status of the operation.
          */
-        Socket::Status send(const HttpRequest &request);
+        Socket::Status send_request(const HttpRequest &request);
+
+        /*!
+         * Sends a HTTP response to the connected socket.
+         *
+         * @param request The HTTP response to send.
+         * @return The status of the operation.
+         */
+        Socket::Status send_response(const HttpRequest &request);
     };
 
 }
