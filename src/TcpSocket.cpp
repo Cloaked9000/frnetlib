@@ -193,6 +193,7 @@ namespace fr
         if(c == nullptr)
             return Socket::Status::Error;
         is_connected = true;
+        return Socket::Status::Success;
     }
 
 }

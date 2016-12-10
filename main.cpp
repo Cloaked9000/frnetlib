@@ -1,11 +1,12 @@
 #include <iostream>
-#include <Packet.h>
-#include <TcpSocket.h>
-#include <TcpListener.h>
-#include <SocketSelector.h>
+#include "include/Packet.h"
+#include "include/TcpSocket.h"
+#include "include/TcpListener.h"
+#include "include/SocketSelector.h"
 #include <thread>
 #include <atomic>
 #include <vector>
+#include <HttpSocket.h>
 
 void server()
 {
@@ -17,7 +18,7 @@ void server()
     }
 
     fr::SocketSelector selector;
-    std::vector<std::unique_ptr<fr::TcpSocket>> clients;
+    std::vector<std::unique_ptr<fr::HttpSocket>> clients;
 
     selector.add(listener);
 
@@ -25,7 +26,7 @@ void server()
     {
         if(selector.is_ready(listener))
         {
-            clients.emplace_back(new fr::TcpSocket());
+            clients.emplace_back(new fr::HttpSocket());
             if(listener.accept(*clients.back()) != fr::Socket::Success)
             {
                 clients.pop_back();
@@ -41,17 +42,14 @@ void server()
             {
                 if(selector.is_ready(**iter))
                 {
-                    std::string message(1024, '\0');
-                    size_t received;
-                    if((*iter)->receive_raw(&message[0], 1024, received) == fr::Socket::Success)
+                    fr::HttpRequest request;
+                    if((*iter)->receive(request) == fr::Socket::Success)
                     {
+                        std::cout << "Requested: " << request.get_uri() << std::endl;
+                        request.clear();
+                        request.set_body("<h1>Hello, World!</h1>");
 
-                        std::cout << (*iter)->get_remote_address() << " sent: " << message.substr(0, received) << std::endl;
-
-                        message.clear();
-                        message = "HTTP/1.1 " + std::to_string(200) + " \r\nConnection: close\r\nContent-type: text/html\r\n\r\n<h1>Hey</h1>\r\n";
-                        (*iter)->send_raw(&message[0], message.size());
-                        std::cout << "Sent" << std::endl;
+                        (*iter)->send(request);
                         (*iter)->close();
                     }
                     else
