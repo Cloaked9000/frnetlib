@@ -23,7 +23,6 @@ namespace fr
     Socket::Status TcpSocket::send(const Packet &packet)
     {
         //Get packet data
-        size_t sent = 0;
         std::string data = packet.get_buffer();
 
         //Prepend packet length
@@ -32,9 +31,15 @@ namespace fr
         memcpy(&data[0], &length, sizeof(uint32_t));
 
         //Send it
-        while(sent < packet.get_buffer().size())
+        return send_raw(data.c_str(), data.size());
+    }
+
+    Socket::Status TcpSocket::send_raw(const char *data, size_t size)
+    {
+        size_t sent = 0;
+        while(sent < size)
         {
-            ssize_t status = ::send(socket_descriptor, data.c_str() + sent, data.size() - sent, 0);
+            ssize_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
             if(status > 0)
             {
                 sent += status;
@@ -52,7 +57,6 @@ namespace fr
                 }
             }
         }
-
         return Socket::Status::Success;
     }
 
@@ -62,14 +66,14 @@ namespace fr
 
         //Try to read packet length
         uint32_t packet_length = 0;
-        status = read_recv(&packet_length, sizeof(packet_length));
+        status = receive_all(&packet_length, sizeof(packet_length));
         if(status != Socket::Status::Success)
             return status;
         packet_length = ntohl(packet_length);
 
         //Now we've got the length, read the rest of the data in
         std::string data(packet_length, 'c');
-        status = read_recv(&data[0], packet_length);
+        status = receive_all(&data[0], packet_length);
         if(status != Socket::Status::Success)
             return status;
 
@@ -81,17 +85,32 @@ namespace fr
 
     void TcpSocket::close()
     {
-        if(!is_connected)
+        if(is_connected)
         {
             ::close(socket_descriptor);
             is_connected = false;
         }
     }
 
-    Socket::Status TcpSocket::read_recv(void *dest, size_t size)
+    Socket::Status TcpSocket::receive_all(void *dest, size_t size)
     {
-        //Keep calling recv until there's enough data in the buffer if needed
-        while(unprocessed_buffer.size() < size)
+        size_t bytes_read = 0;
+        while(bytes_read < size)
+        {
+            size_t read = 0;
+            Socket::Status status = receive_raw((uintptr_t*)dest + bytes_read, size, read);
+            if(status == Socket::Status::Success)
+                bytes_read += read;
+            else
+                return status;
+        }
+        return Socket::Status::Success;
+    }
+
+    Socket::Status TcpSocket::receive_raw(void *data, size_t data_size, size_t &received)
+    {
+        received = 0;
+        if(unprocessed_buffer.size() < data_size)
         {
             //Read RECV_CHUNK_SIZE bytes into the recv buffer
             ssize_t status = ::recv(socket_descriptor, recv_buffer.get(), RECV_CHUNK_SIZE, 0);
@@ -99,6 +118,7 @@ namespace fr
             if(status > 0)
             {
                 unprocessed_buffer += {recv_buffer.get(), (size_t)status};
+                received += status;
             }
             else
             {
@@ -112,13 +132,21 @@ namespace fr
                     return Socket::Status::Disconnected;
                 }
             }
+
+            if(received > data_size)
+                received = data_size;
+        }
+        else
+        {
+            received = data_size;
         }
 
         //Copy data to where it needs to go
-        memcpy(dest, &unprocessed_buffer[0], size);
-        unprocessed_buffer.erase(0, size);
+        memcpy(data, &unprocessed_buffer[0], received);
+        unprocessed_buffer.erase(0, received);
         return Socket::Status::Success;
     }
+
 
     void TcpSocket::set_descriptor(int descriptor)
     {

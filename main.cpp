@@ -41,13 +41,18 @@ void server()
             {
                 if(selector.is_ready(**iter))
                 {
-                    fr::Packet packet;
-                    if((*iter)->receive(packet) == fr::Socket::Success)
+                    std::string message(1024, '\0');
+                    size_t received;
+                    if((*iter)->receive_raw(&message[0], 1024, received) == fr::Socket::Success)
                     {
-                        std::string message;
-                        packet >> message;
-                        std::cout << (*iter)->get_remote_address() << " sent: " << message << std::endl;
-                        iter++;
+
+                        std::cout << (*iter)->get_remote_address() << " sent: " << message.substr(0, received) << std::endl;
+
+                        message.clear();
+                        message = "HTTP/1.1 " + std::to_string(200) + " \r\nConnection: close\r\nContent-type: text/html\r\n\r\n<h1>Hey</h1>\r\n";
+                        (*iter)->send_raw(&message[0], message.size());
+                        std::cout << "Sent" << std::endl;
+                        (*iter)->close();
                     }
                     else
                     {
@@ -67,19 +72,19 @@ void server()
 
 void client()
 {
-    fr::TcpSocket socket;
-    socket.connect("127.0.0.1", "8081");
-
-    fr::TcpSocket socket2;
-    socket2.connect("127.0.0.1", "8081");
-
-    fr::Packet packet;
-    packet << "Hello, World! - From socket 1";
-    socket.send(packet);
-
-    packet.clear();
-    packet << "Hello, world! - From socket 2";
-    socket2.send(packet);
+//    fr::TcpSocket socket;
+//    socket.connect("127.0.0.1", "8081");
+//
+//    fr::TcpSocket socket2;
+//    socket2.connect("127.0.0.1", "8081");
+//
+//    fr::Packet packet;
+//    packet << "Hello, World! - From socket 1";
+//    socket.send(packet);
+//
+//    packet.clear();
+//    packet << "Hello, world! - From socket 2";
+//    socket2.send(packet);
     return;
 
 }

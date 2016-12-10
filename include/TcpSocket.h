@@ -67,15 +67,45 @@ public:
         return is_connected;
     }
 
+    /*!
+     * Attempts to send raw data down the socket, without
+     * any of frnetlib's framing. Useful for communicating through
+     * different protocols.
+     *
+     * @param data The data to send.
+     * @param size The number of bytes, from data to send. Be careful not to overflow.
+     * @return The status of the operation.
+     */
+    Status send_raw(const char *data, size_t size);
+
+
+    /*!
+     * Receives raw data from the socket, without any of
+     * frnetlib's framing. Useful for communicating through
+     * different protocols. This will attempt to read 'data_size'
+     * bytes, but might not succeed. It'll return how many bytes were actually
+     * read in 'received'.
+     *
+     * @param data Where to store the received data.
+     * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
+     * @param received Will be filled with the number of bytes actually received, might be less than you requested.
+     * @return The status of the operation, if the socket has disconnected etc.
+     */
+    Status receive_raw(void *data, size_t data_size, size_t &received);
+
 private:
     /*!
      * Reads size bytes into dest from the socket.
+     * Unlike receive_raw, this will keep trying
+     * to receive data until 'size' bytes have been
+     * read, or the client has disconnected/there was
+     * an error.
      *
      * @param dest Where to read the data into
      * @param size The number of bytes to read
      * @return Operation status.
      */
-    Status read_recv(void *dest, size_t size);
+    Status receive_all(void *dest, size_t size);
 
     std::string unprocessed_buffer;
     std::unique_ptr<char[]> recv_buffer;
