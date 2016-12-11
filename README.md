@@ -13,7 +13,7 @@ if(socket.connect("127.0.0.1", "8081") != fr::Socket::Success)
     //Failed to connect
 }
 ```
-Here, we create a new fr::TcpSocket and connect it to an address. Simple. fr::TcpSocket is the core class, used to send and receive data over TCP, either with frnetlib's own message framing, or raw data for communicating with other protocols. Unfortunately, UDP is not supported at this point. Sockets are blocking by default, and there is currently no way of disabling blocking.
+Here, we create a new fr::TcpSocket and connect it to an address. Simple. fr::TcpSocket is the core class, used to send and receive data over TCP, either with frnetlib's own message framing, or raw data for communicating with other protocols. Unfortunately, UDP is not supported at this point. Sockets are blocking by default.
 
 # Listening and accepting connections:
 
@@ -52,7 +52,7 @@ if(socket.send(packet) != fr::Socket::Success)
     //Failed to send packet
 }
 ```
-To send messages using frnetlib's framing, use fr::Packet. Data added to the packet, using the '<<' operator will automatically be packed and converted to network byte order if applicable. The data should be unpacked using the '>>' operator in the same order as it was packed. It is *important* to explicitly typecast non-strings as shown above, otherwise the compiler might interpret '10' as a uint16_t instead of a uint32_t like you might have wanted, scrambling the data. To send the packet, just call fr::TcpSocket::send.  
+To send messages using frnetlib's framing, use fr::Packet. Data added to the packet, using the '<<' operator will automatically be packed and converted to network byte order if applicable. The data should be unpacked using the '>>' operator in the same order as it was packed. It is *important* to explicitly typecast non-strings as shown above, otherwise the compiler might interpret '10' as a uint16_t instead of a uint32_t like you might have wanted, scrambling the data. To send the packet, just call fr::TcpSocket::send.
 
 # Receiving packets:
 
@@ -67,7 +67,7 @@ std::string str1, str2;
 float age;
 packet >> str1 >> age >> str2;
 ```
-Effectively the reverse of sending packets. We call fr::TcpSocket::receive, passing it a fr::Packet object, to receive a packet, and then extract the data in the same order that we packed it.
+Effectively the reverse of sending packets. We call fr::TcpSocket::receive, passing it a fr::Packet object, to receive a packet, and then extract the data in the same order that we packed it. fr::Socket::receive is blocking by default, but you can toggle this using fr::Socket::set_blocking(). If the socket is blocking when you call receive, it will wait until data has been received before returning. If the socket is non-blocking, then it will return immediately, even if the socket is not ready to receive data. If the socket is non-blocking and is not ready to receive data when you call receive, then it will return a fr::Socket::Status::WouldBlock value.
 
 # A simple HTTP server:
 

@@ -35,7 +35,7 @@ namespace fr
          * Send a packet through the socket
          *
          * @param packet The packet to send
-         * @return True on success, false on failure.
+         * @return A status enum value indicating if the operation succeeded or not. Success on success, Error on failure, Disconnected on disconnection etc.
          */
         virtual Status send(const Packet &packet)=0;
 
@@ -43,7 +43,7 @@ namespace fr
          * Receive a packet through the socket
          *
          * @param packet The packet to receive
-         * @return True on success, false on failure.
+         * @return A status enum value indicating if the operation succeeded or not. Success on success, Error on failure, Disconnected on disconnection, WouldBlock if the socket is non-blocking and the socket was not ready to receive, etc.
          */
         virtual Status receive(Packet &packet)=0;
 

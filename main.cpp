@@ -51,6 +51,7 @@ void server()
             for(auto iter = clients.begin(); iter != clients.end();)
             {
                 if(selector.is_ready(**iter))
+
                 {
                     //This client has sent a HTTP request, so receive_request it
                     fr::HttpRequest request;
@@ -92,15 +93,16 @@ void client()
         return;
     }
 
-    fr::HttpRequest request;
-    request.get("name") = "fred";
-
-    if(socket.send(request) != fr::Socket::Success)
-        std::cout << "Failed to send HTTP request to server!" << std::endl;
-
+    socket.set_blocking(false);
+    socket.set_blocking(true);
     fr::HttpResponse response;
-    if(socket.receive(response) != fr::Socket::Success)
+    fr::Socket::Status status = socket.receive(response);
+    if(status != fr::Socket::Success)
+    {
+        if(status == fr::Socket::WouldBlock)
+           std::cout << "WouldBlock" << std::endl;
         std::cout << "Failed to receive HTTP response from the server!" << std::endl;
+    }
 
     std::cout << "Got page body: " << response.get_body() << std::endl;
     return;
