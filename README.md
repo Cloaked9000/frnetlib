@@ -179,7 +179,8 @@ std::vector<std::unique_ptr<fr::TcpSocket>> clients;
 selector.add(listener);
 
 //Infinitely loop, waiting for connections or data
-while(selector.wait())
+while(selector.
+))
 {
     //If the listener is ready, that means we've got a new connection
     if(selector.is_ready(listener))
@@ -226,6 +227,6 @@ while(selector.wait())
 ```
 fr::SocketSelector can be used to monitor lots of blocking sockets at once (both fr::TcpSocket's and fr::HttpSocket's), without polling, to see when data is being received or a connection has closed. To add a socket, just call fr::SocketSelector::add, and to remove a socket, which must be done before the socket object is destroyed, call fr::SocketSelector::remove. You can add as many fr::Socket's as you want.It is also important to add your fr::TcpListener to the selector, otherwise you wont be able to accept new connections whilst blocking.
 
-Once added, you can call fr::SocketSelector::wait() to wait for socket events. You can not currently add a wait timeout, though this is planned and should be added soon. If any of the sockets added to the selector send data or disconnect, then it will return.
+Once added, you can call fr::SocketSelector::wait() to wait for socket events. You can also specify a timeout, forcing it to return even if there was no activity. If any of the sockets added to the selector send data or disconnect, then it will return true. If the specified timeout has expired, then it will return false.
 
 To find which socket actually did something, we need to call fr::SocketSelector::is_ready(), passing it the socket to check. It'll return true if it was this socket that sent data, false otherwise. First we check our selector, and accept a new connection if it was that. Otherwise, we check through all of the connected clients. If the fr::Socket::receive() call failed on the socket, then it must have disconnected, so we remove it from the client list, and remove it from the selector.
