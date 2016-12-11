@@ -44,17 +44,15 @@ namespace fr
             {
                 sent += status;
             }
-            else
+            else if(errno != EWOULDBLOCK && errno != EAGAIN) //Don't exit if the socket just couldn't block
             {
                 if(status == -1)
                 {
                     return Socket::Status::Error;
                 }
-                else
-                {
-                    is_connected = false;
-                    return Socket::Status::Disconnected;
-                }
+
+                is_connected = false;
+                return Socket::Status::Disconnected;
             }
         }
         return Socket::Status::Success;
@@ -122,15 +120,17 @@ namespace fr
             }
             else
             {
-                if(status == -1)
+                if(errno == EWOULDBLOCK || errno == EAGAIN)
+                {
+                    return Socket::Status::WouldBlock;
+                }
+                else if(status == -1)
                 {
                     return Socket::Status::Error;
                 }
-                else
-                {
-                    is_connected = false;
-                    return Socket::Status::Disconnected;
-                }
+
+                is_connected = false;
+                return Socket::Status::Disconnected;
             }
 
             if(received > data_size)

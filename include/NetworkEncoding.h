@@ -67,6 +67,7 @@ inline void *get_sin_addr(struct sockaddr *sa)
 #define SOCKET_ERROR -1
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 #endif
 
 
