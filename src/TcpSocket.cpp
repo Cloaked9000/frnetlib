@@ -156,6 +156,8 @@ namespace fr
 
     Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
     {
+        remote_address = address + ":" + port;
+
         addrinfo *info;
         addrinfo hints;
 

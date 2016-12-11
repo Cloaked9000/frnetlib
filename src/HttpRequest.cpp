@@ -105,27 +105,31 @@ namespace fr
         return;
     }
 
-    std::string HttpRequest::construct() const
+    std::string HttpRequest::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string request = request_type_to_string(request_type) + " " + uri + " HTTP/1.1\r\n";
+        std::string request = request_type_to_string(request_type) + " " + uri + " HTTP/1.1\n";
 
         //Add the headers to the request
         for(const auto &header : headers)
         {
-            std::string data = header.first + ": " + header.second + "\r\n";
+            std::string data = header.first + ": " + header.second + "\n";
             request += data;
         }
 
         //Add in required headers if they're missing
         if(headers.find("Connection") == headers.end())
-            request += "Connection: keep-alive\r\n";
+            request += "Connection: keep-alive\n";
+        if(headers.find("Host") == headers.end())
+            request += "Host: " + host + "\n";
 
         //Add in space
-        request += "\r\n";
+        request += "\n";
 
         //Add in the body
-        request += body + "\r\n";
+        request += body + "\n";
+
+        std::cout << "constructed: " << std::endl << request << std::endl;
         return request;
     }
 }

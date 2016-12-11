@@ -31,7 +31,7 @@ namespace fr
          *
          * @return The constructed HTTP request.
          */
-        std::string construct() const override;
+        std::string construct(const std::string &host) const override;
     };
 }
 

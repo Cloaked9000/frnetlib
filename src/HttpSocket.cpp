@@ -28,7 +28,7 @@ namespace fr
 
     Socket::Status HttpSocket::send(const Http &request)
     {
-        std::string data = request.construct();
+        std::string data = request.construct(remote_address);
         return send_raw(&data[0], data.size());
     }
 }

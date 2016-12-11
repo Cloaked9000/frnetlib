@@ -9,6 +9,7 @@ namespace fr
 {
     void HttpResponse::parse(const std::string &response_data)
     {
+        std::cout << "Parsing: " << response_data << std::endl;
         //Clear old headers/data
         clear();
 
@@ -56,7 +57,7 @@ namespace fr
         return;
     }
 
-    std::string HttpResponse::construct() const
+    std::string HttpResponse::construct(const std::string &host) const
     {
         //Add HTTP header
         std::string response = "HTTP/1.1 " + std::to_string(status) + " \r\n";

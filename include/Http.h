@@ -43,9 +43,10 @@ namespace fr
         /*!
          * Constructs a HTTP request/response to send.
          *
+         * @param host The host that we're connected to.
          * @return The HTTP request
          */
-        virtual std::string construct() const=0;
+        virtual std::string construct(const std::string &host) const=0;
 
         /*!
          * Gets the request type (post, get etc)
