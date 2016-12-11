@@ -5,6 +5,7 @@
 #ifndef FRNETLIB_SOCKETSELECTOR_H
 #define FRNETLIB_SOCKETSELECTOR_H
 
+#include <chrono>
 #include "NetworkEncoding.h"
 #include "Socket.h"
 #include "TcpListener.h"
@@ -19,9 +20,10 @@ namespace fr
         /*!
          * Waits for a socket to become ready.
          *
+         * @param timeout The amount of time wait should block for before timing out.
          * @return True if a socket is ready. False if it timed out.
          */
-        bool wait();
+        bool wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
         /*!
          * Adds a socket to the selector. Note that SocketSelector

@@ -25,18 +25,19 @@ namespace fr
             max_descriptor = socket.get_socket_descriptor();
     }
 
-    bool SocketSelector::wait()
+    bool SocketSelector::wait(std::chrono::milliseconds timeout)
     {
-        listen_read = listen_set;
-        if(select(max_descriptor + 1, &listen_read, NULL, NULL, NULL) == SOCKET_ERROR)
-        {
-            //Check that we've not just timed out
-            if(errno == EAGAIN || errno == EWOULDBLOCK)
-                return true;
+        timeval wait_time;
+        wait_time.tv_sec = 0;
+        wait_time.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
 
-            //Oops
+        listen_read = listen_set;
+        int select_result = select(max_descriptor + 1, &listen_read, NULL, NULL, timeout == std::chrono::milliseconds(0) ? NULL : &wait_time);
+
+        if(select_result == 0) //If it's timed out
+            return false;
+        else if(select_result == SOCKET_ERROR) //Else if error
             throw std::logic_error("select() returned -1");
-        }
 
         return true;
     }
