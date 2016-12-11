@@ -6,7 +6,7 @@
 #define FRNETLIB_HTTPSOCKET_H
 
 #include "TcpSocket.h"
-#include "HttpRequest.h"
+#include "Http.h"
 
 namespace fr
 {
@@ -14,20 +14,12 @@ namespace fr
     {
     public:
         /*!
-         * Sends a HTTP request to the connected socket.
+         * Receives a HTTP request from the connected socket
          *
-         * @param request The request to send
+         * @param request Where to store the received request.
          * @return The status of the operation.
          */
-        Socket::Status receive_request(HttpRequest &request);
-
-        /*!
-         * Sends a HTTP response to the connected socket.
-         *
-         * @param request The response to send
-         * @return The status of the operation.
-         */
-        Socket::Status receive_response(HttpRequest &response);
+        Socket::Status receive(Http &request);
 
         /*!
          * Sends a HTTP request to the connected socket.
@@ -35,15 +27,7 @@ namespace fr
          * @param request The HTTP request to send.
          * @return The status of the operation.
          */
-        Socket::Status send_request(const HttpRequest &request);
-
-        /*!
-         * Sends a HTTP response to the connected socket.
-         *
-         * @param request The HTTP response to send.
-         * @return The status of the operation.
-         */
-        Socket::Status send_response(const HttpRequest &request);
+        Socket::Status send(const Http &request);
     };
 
 }

@@ -6,7 +6,9 @@
 #include <thread>
 #include <atomic>
 #include <vector>
-#include <HttpSocket.h>
+#include "HttpSocket.h"
+#include "HttpRequest.h"
+#include "HttpResponse.h"
 
 void server()
 {
@@ -52,17 +54,17 @@ void server()
                 {
                     //This client has sent a HTTP request, so receive_request it
                     fr::HttpRequest request;
-                    if((*iter)->receive_request(request) == fr::Socket::Success)
+                    if((*iter)->receive(request) == fr::Socket::Success)
                     {
                         //Print to the console what we've been requested for
                         std::cout << "Requested: " << request.get_uri() << std::endl;
 
                         //Construct a response
-                        request.clear();
-                        request.set_body("<h1>Hello, World!</h1>");
+                        fr::HttpResponse response;
+                        response.set_body("<h1>Hello, World!</h1>");
 
                         //Send the response, and close the connection
-                        (*iter)->send_response(request);
+                        (*iter)->send(response);
                         (*iter)->close();
                     }
                     else
@@ -93,13 +95,14 @@ void client()
     fr::HttpRequest request;
     request.get("name") = "fred";
 
-    if(socket.send_request(request) != fr::Socket::Success)
+    if(socket.send(request) != fr::Socket::Success)
         std::cout << "Failed to send HTTP request to server!" << std::endl;
 
-    if(socket.receive_response(request) != fr::Socket::Success)
+    fr::HttpResponse response;
+    if(socket.receive(response) != fr::Socket::Success)
         std::cout << "Failed to receive HTTP response from the server!" << std::endl;
 
-    std::cout << "Got page body: " << request.get_body() << std::endl;
+    std::cout << "Got page body: " << response.get_body() << std::endl;
     return;
 
 }
