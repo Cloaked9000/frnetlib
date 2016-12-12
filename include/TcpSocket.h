@@ -55,7 +55,7 @@ public:
      *
      * @param descriptor The socket descriptor.
      */
-    void set_descriptor(int descriptor);
+    virtual void set_descriptor(int descriptor);
 
     /*!
      * Checks to see if we're connected to a socket or not
@@ -76,7 +76,7 @@ public:
      * @param size The number of bytes, from data to send. Be careful not to overflow.
      * @return The status of the operation.
      */
-    Status send_raw(const char *data, size_t size);
+    virtual Status send_raw(const char *data, size_t size);
 
 
     /*!
@@ -91,7 +91,7 @@ public:
      * @param received Will be filled with the number of bytes actually received, might be less than you requested.
      * @return The status of the operation, if the socket has disconnected etc.
      */
-    Status receive_raw(void *data, size_t data_size, size_t &received);
+    virtual Status receive_raw(void *data, size_t data_size, size_t &received);
 
 private:
     /*!
