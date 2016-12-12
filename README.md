@@ -179,8 +179,7 @@ std::vector<std::unique_ptr<fr::TcpSocket>> clients;
 selector.add(listener);
 
 //Infinitely loop, waiting for connections or data
-while(selector.
-))
+while(selector.wait()))
 {
     //If the listener is ready, that means we've got a new connection
     if(selector.is_ready(listener))
