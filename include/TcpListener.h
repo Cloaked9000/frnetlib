@@ -16,13 +16,17 @@ namespace fr
 class TcpListener : public Socket
 {
 public:
+    TcpListener() noexcept = default;
+    virtual ~TcpListener() noexcept = default;
+    TcpListener(TcpListener &&o) noexcept = default;
+
     /*!
      * Listens to the given port for connections
      *
      * @param port The port to bind to
      * @return If the operation was successful
      */
-    Socket::Status listen(const std::string &port);
+    virtual Socket::Status listen(const std::string &port);
 
     /*!
      * Accepts a new connection.
@@ -30,7 +34,7 @@ public:
      * @param client Where to store the connection information
      * @return True on success. False on failure.
      */
-    Socket::Status accept(TcpSocket &client);
+    virtual Socket::Status accept(TcpSocket &client);
 
 private:
     //Stubs

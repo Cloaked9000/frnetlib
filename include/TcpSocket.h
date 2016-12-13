@@ -93,7 +93,7 @@ public:
      */
     virtual Status receive_raw(void *data, size_t data_size, size_t &received);
 
-private:
+protected:
     /*!
      * Reads size bytes into dest from the socket.
      * Unlike receive_raw, this will keep trying

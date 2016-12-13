@@ -23,6 +23,9 @@ namespace fr
             Disconnected = 4,
             Error = 5,
             WouldBlock = 6,
+            ConnectionFailed = 7,
+            HandshakeFailed = 8,
+            VerificationFailed = 9,
         };
 
         Socket()
