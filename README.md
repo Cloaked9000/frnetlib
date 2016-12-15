@@ -75,8 +75,8 @@ Effectively the reverse of sending packets. We call fr::TcpSocket::receive, pass
 #include <HttpRequest.h>
 #include <HttpResponse.h>
 
-fr::HttpSocket client;
-fr::TcpListener listener;
+fr::HttpSocket<fr::TcpSocket> client; //fr::TcpSocket for HTTP. fr::SSLSocket for HTTPS.
+fr::TcpListener listener;             //Use an fr::SSLListener if HTTPS.
 
 //Bind to a port
 if(listener.listen("8081") != fr::Socket::Success)
