@@ -5,7 +5,7 @@
 #ifndef FRNETLIB_SSLLISTENER_H
 #define FRNETLIB_SSLLISTENER_H
 
-//#define SSL_ENABLED
+#define SSL_ENABLED
 
 #ifdef SSL_ENABLED
 
@@ -50,7 +50,6 @@ namespace fr
         mbedtls_net_context listen_fd;
         mbedtls_entropy_context entropy;
         mbedtls_ctr_drbg_context ctr_drbg;
-        mbedtls_ssl_context ssl;
         mbedtls_ssl_config conf;
         mbedtls_x509_crt srvcert;
         mbedtls_pk_context pkey;

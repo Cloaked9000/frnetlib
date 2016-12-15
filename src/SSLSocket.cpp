@@ -3,6 +3,7 @@
 //
 
 #include "SSLSocket.h"
+#include <memory>
 #ifdef SSL_ENABLED
 
 namespace fr
@@ -13,8 +14,6 @@ namespace fr
         const char *pers = "ssl_client1";
 
         //Initialise mbedtls structures
-        mbedtls_net_init(&ssl_socket_descriptor);
-        mbedtls_ssl_init(&ssl);
         mbedtls_ssl_config_init(&conf);
         mbedtls_x509_crt_init(&cacert);
         mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -41,9 +40,7 @@ namespace fr
         close();
 
         //Cleanup mbedsql stuff
-        mbedtls_net_free(&ssl_socket_descriptor);
         mbedtls_x509_crt_free(&cacert);
-        mbedtls_ssl_free(&ssl);
         mbedtls_ssl_config_free(&conf);
         mbedtls_ctr_drbg_free(&ctr_drbg);
         mbedtls_entropy_free(&entropy);
@@ -53,7 +50,10 @@ namespace fr
     {
         if(is_connected)
         {
-            mbedtls_ssl_close_notify(&ssl);
+            if(ssl)
+                mbedtls_ssl_close_notify(ssl.get());
+            if(ssl_socket_descriptor)
+                mbedtls_net_free(ssl_socket_descriptor.get());
             is_connected = false;
         }
     }
@@ -61,7 +61,7 @@ namespace fr
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
     {
         int error = 0;
-        while((error = mbedtls_ssl_write(&ssl, (const unsigned char *)data, size)) <= 0)
+        while((error = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data, size)) <= 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
@@ -74,26 +74,23 @@ namespace fr
 
     Socket::Status SSLSocket::receive_raw(void *data, size_t data_size, size_t &received)
     {
-        int read = 0;
+        int read = MBEDTLS_ERR_SSL_WANT_READ;
         received = 0;
         if(unprocessed_buffer.size() < data_size)
         {
-            read = mbedtls_ssl_read(&ssl, (unsigned char *)recv_buffer.get(), RECV_CHUNK_SIZE);
-
-            if(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
+            while(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                received = 0;
-                return Socket::Status::Success;
+                read = mbedtls_ssl_read(ssl.get(), (unsigned char *)recv_buffer.get(), RECV_CHUNK_SIZE);
             }
-            else if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
+
+            if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
             {
-                std::cout << "disconnected" << std::endl;
                 return Socket::Status::Disconnected;
             }
             else if(read <= 0)
             {
-                std::cout << "read <= 0" << std::endl;
-                return Socket::Status::Error;
+                //No data. But no error occurred.
+                return Socket::Status::Success;
             }
 
             received += read;
@@ -114,18 +111,17 @@ namespace fr
 
     }
 
-    void SSLSocket::set_descriptor(int descriptor)
-    {
-        is_connected = true;
-        socket_descriptor = descriptor;
-        ssl_socket_descriptor.fd = descriptor;
-    }
-
     Socket::Status SSLSocket::connect(const std::string &address, const std::string &port)
     {
-        //Initialise the connection using mbedtls
+        //Initialise mbedtls stuff
+        ssl = std::unique_ptr<mbedtls_ssl_context>(new mbedtls_ssl_context);
+        ssl_socket_descriptor = std::unique_ptr<mbedtls_net_context>(new mbedtls_net_context);
+        mbedtls_ssl_init(ssl.get());
+        mbedtls_net_init(ssl_socket_descriptor.get());
+
+        //Initialise the connection using mbedtlsl
         int error = 0;
-        if((error = mbedtls_net_connect(&ssl_socket_descriptor, address.c_str(), port.c_str(), MBEDTLS_NET_PROTO_TCP)) != 0)
+        if((error = mbedtls_net_connect(ssl_socket_descriptor.get(), address.c_str(), port.c_str(), MBEDTLS_NET_PROTO_TCP)) != 0)
         {
             return Socket::Status::ConnectionFailed;
         }
@@ -140,20 +136,20 @@ namespace fr
         mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
         mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-        if((error = mbedtls_ssl_setup(&ssl, &conf)) != 0)
+        if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {
             return Socket::Status::Error;
         }
 
-        if((error = mbedtls_ssl_set_hostname(&ssl, address.c_str())) != 0)
+        if((error = mbedtls_ssl_set_hostname(ssl.get(), address.c_str())) != 0)
         {
             return Socket::Status::Error;
         }
 
-        mbedtls_ssl_set_bio(&ssl, &ssl_socket_descriptor, mbedtls_net_send, mbedtls_net_recv, NULL);
+        mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
 
         //Do SSL handshake
-        while((error = mbedtls_ssl_handshake(&ssl)) != 0)
+        while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
@@ -163,7 +159,7 @@ namespace fr
         }
 
         //Verify server certificate
-        if((flags = mbedtls_ssl_get_verify_result(&ssl)) != 0)
+        if((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0)
         {
             char verify_buffer[512];
             mbedtls_x509_crt_verify_info( verify_buffer, sizeof( verify_buffer ), "  ! ", flags );
@@ -176,6 +172,17 @@ namespace fr
         is_connected = true;
         remote_address = address + ":" + port;
         return Socket::Status::Success;
+    }
+
+    void SSLSocket::set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context)
+    {
+        ssl = std::move(context);
+    }
+
+    void SSLSocket::set_net_context(std::unique_ptr<mbedtls_net_context> context)
+    {
+        is_connected = true;
+        ssl_socket_descriptor = std::move(context);
     }
 }
 

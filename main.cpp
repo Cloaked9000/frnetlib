@@ -18,24 +18,35 @@ int main()
 //        return 1;
 //    }
 //
-//    fr::SSLSocket socket;
-//    if(listener.accept(socket) != fr::Socket::Success)
+//    while(true)
 //    {
-//        std::cout << "Failed to accept client" << std::endl;
-//        return 2;
+//        fr::HttpSocket<fr::SSLSocket> http_socket;
+//        if(listener.accept(http_socket) != fr::Socket::Success)
+//        {
+//            std::cout << "Failed to accept client" << std::endl;
+//            continue;
+//        }
+//
+//        fr::HttpRequest request;
+//        if(http_socket.receive(request) != fr::Socket::Success)
+//        {
+//            std::cout << "Failed to receive data" << std::endl;
+//            continue;
+//        }
+//        else
+//        {
+//            std::cout << "Read successfully" << std::endl;
+//        }
+//
+//        std::cout << "Got: " << request.get_body() << std::endl;
+//
+//        fr::HttpResponse response;
+//        response.set_body("<h1>Hello, SSL World!</h1>");
+//        http_socket.send(response);
+//        http_socket.close();
 //    }
-//
-//    std::string buf(1024, '\0');
-//    size_t received = 0;
-//    if(socket.receive_raw(&buf[0], buf.size(), received) != fr::Socket::Success)
-//    {
-//        std::cout << "Failed to receive data" << std::endl;
-//        return 3;
-//    }
-//
-//    std::cout << "Got: " << buf.substr(0, received) << std::endl;
-//
-//
+
+
 //    fr::SSLSocket socket;
 //    if(socket.connect("lloydsenpai.xyz", "443") != fr::Socket::Success)
 //        return 1;

@@ -5,7 +5,7 @@
 #ifndef FRNETLIB_SSL_SOCKET_H
 #define FRNETLIB_SSL_SOCKET_H
 
-//#define SSL_ENABLED
+#define SSL_ENABLED
 
 #ifdef SSL_ENABLED
 
@@ -95,13 +95,6 @@ namespace fr
         Status receive_raw(void *data, size_t data_size, size_t &received) override;
 
         /*!
-         * Sets the socket file descriptor.
-         *
-         * @param descriptor The socket descriptor.
-         */
-        void set_descriptor(int descriptor) override;
-
-        /*!
          * Close the connection.
          */
         void close() override;
@@ -115,11 +108,14 @@ namespace fr
          */
         Socket::Status connect(const std::string &address, const std::string &port) override;
 
+        void set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context);
+        void set_net_context(std::unique_ptr<mbedtls_net_context> context);
+
     private:
-        mbedtls_net_context ssl_socket_descriptor;
+        std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
         mbedtls_entropy_context entropy;
         mbedtls_ctr_drbg_context ctr_drbg;
-        mbedtls_ssl_context ssl;
+        std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
         mbedtls_x509_crt cacert;
         uint32_t flags;

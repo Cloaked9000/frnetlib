@@ -129,7 +129,6 @@ namespace fr
         //Add in the body
         request += body + "\n";
 
-        std::cout << "constructed: " << std::endl << request << std::endl;
         return request;
     }
 }

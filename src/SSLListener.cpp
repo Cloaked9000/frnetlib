@@ -3,6 +3,7 @@
 //
 
 #include "SSLListener.h"
+#ifdef SSL_ENABLED
 
 namespace fr
 {
@@ -10,7 +11,6 @@ namespace fr
     {
         //Initialise SSL objects required
         mbedtls_net_init(&listen_fd);
-        mbedtls_ssl_init(&ssl);
         mbedtls_ssl_config_init(&conf);
         mbedtls_x509_crt_init(&srvcert);
         mbedtls_pk_init(&pkey);
@@ -65,12 +65,6 @@ namespace fr
             return;
         }
 
-        if((error = mbedtls_ssl_setup( &ssl, &conf ) ) != 0)
-        {
-            std::cout << "Failed to apply SSL setings: " << error << std::endl;
-            return;
-        }
-
     }
 
     SSLListener::~SSLListener()
@@ -78,7 +72,6 @@ namespace fr
         mbedtls_net_free(&listen_fd);
         mbedtls_x509_crt_free(&srvcert);
         mbedtls_pk_free(&pkey);
-        mbedtls_ssl_free(&ssl);
         mbedtls_ssl_config_free(&conf);
         mbedtls_ctr_drbg_free(&ctr_drbg);
         mbedtls_entropy_free( &entropy);
@@ -87,7 +80,7 @@ namespace fr
     Socket::Status fr::SSLListener::listen(const std::string &port)
     {
         //Bind to port
-        if(mbedtls_net_bind( &listen_fd, NULL, port.c_str(), MBEDTLS_NET_PROTO_TCP) != 0)
+        if(mbedtls_net_bind(&listen_fd, NULL, port.c_str(), MBEDTLS_NET_PROTO_TCP) != 0)
         {
             return Socket::BindFailed;
         }
@@ -97,32 +90,42 @@ namespace fr
     Socket::Status SSLListener::accept(SSLSocket &client)
     {
         int error = 0;
+        std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
+        mbedtls_ssl_init(ssl.get());
+        if((error = mbedtls_ssl_setup(ssl.get(), &conf ) ) != 0)
+        {
+            std::cout << "Failed to apply SSL setings: " << error << std::endl;
+            return Socket::Error;
+        }
+
 
         //Accept a connection
-        mbedtls_net_context client_fd;
-        mbedtls_net_init(&client_fd);
+        std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
+        mbedtls_net_init(client_fd.get());
 
-        if((error = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL)) != 0)
+        if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), NULL, 0, NULL)) != 0)
         {
             std::cout << "Accept error: " << error << std::endl;
             return Socket::Error;
         }
 
-        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
+        mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
 
         //SSL Handshake
-        while((error = mbedtls_ssl_handshake(&ssl)) != 0)
+        while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                std::cout << "Handshake failed: " << error << std::end
+                std::cout << "Handshake failed: " << error << std::endl;
                 return Socket::Status::HandshakeFailed;
             }
         }
 
         //Set socket details
-        client.set_descriptor(client_fd.fd);
+        client.set_net_context(std::move(client_fd));
+        client.set_ssl_context(std::move(ssl));
         return Socket::Success;
     }
 
 }
+#endif //SSL_ENABLED
