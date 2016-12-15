@@ -26,7 +26,7 @@ namespace fr
     class SSLListener : public Socket
     {
     public:
-        SSLListener() noexcept;
+        SSLListener(const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept;
         virtual ~SSLListener() noexcept;
         SSLListener(SSLListener &&o) noexcept = default;
 

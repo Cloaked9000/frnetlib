@@ -7,7 +7,7 @@
 
 namespace fr
 {
-    SSLListener::SSLListener() noexcept
+    SSLListener::SSLListener(const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept
     {
         //Initialise SSL objects required
         mbedtls_net_init(&listen_fd);
@@ -20,21 +20,21 @@ namespace fr
         int error = 0;
 
         //Load certificates and private key todo: Switch from inbuilt test certificates
-        error = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *)mbedtls_test_srv_crt, mbedtls_test_srv_crt_len);
+        error = mbedtls_x509_crt_parse_file(&srvcert, crt_path.c_str());
         if(error != 0)
         {
             std::cout << "Failed to initialise SSL listener. CRT Parse returned: " << error << std::endl;
             return;
         }
 
-        error = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *)mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+        error = mbedtls_x509_crt_parse_file(&srvcert, pem_path.c_str());
         if(error != 0)
         {
             std::cout << "Failed to initialise SSL listener. PEM Parse returned: " << error << std::endl;
             return;
         }
 
-        error = mbedtls_pk_parse_key(&pkey, (const unsigned char *)mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
+        error = mbedtls_pk_parse_keyfile(&pkey, private_key_path.c_str(), 0);
         if(error != 0)
         {
             std::cout << "Failed to initialise SSL listener. Private Key Parse returned: " << error << std::endl;
