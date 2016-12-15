@@ -143,7 +143,6 @@ namespace fr
         freeaddrinfo(info);
 
         is_connected = true;
-
         return Socket::Status::Success;
     }
 

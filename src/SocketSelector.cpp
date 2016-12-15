@@ -37,7 +37,7 @@ namespace fr
         if(select_result == 0) //If it's timed out
             return false;
         else if(select_result == SOCKET_ERROR) //Else if error
-            throw std::logic_error("select() returned -1");
+            throw std::logic_error("select() returned -1. Errno: " + std::to_string(errno));
 
         return true;
     }

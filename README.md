@@ -163,66 +163,72 @@ You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse
 ```c++
 #include <SocketSelector.h>
 
-//Bind to port
-fr::TcpListener listener;
-if(listener.listen("8081") != fr::Socket::Success)
-{
-    std::cout << "Failed to listen to port" << std::endl;
-    return;
-}
-
-//Create a selector and a container for holding connected clients
-fr::SocketSelector selector;
-std::vector<std::unique_ptr<fr::TcpSocket>> clients;
-
-//Add our connection listener to the selector
-selector.add(listener);
-
-//Infinitely loop, waiting for connections or data
-while(selector.wait()))
-{
-    //If the listener is ready, that means we've got a new connection
-    if(selector.is_ready(listener))
+    //Bind to port
+    fr::TcpListener listener;
+    if(listener.listen("8080") != fr::Socket::Success)
     {
-        //Accept the new connection
-        std::unique_ptr<fr::TcpSocket> new_client = std::unique_ptr<fr::TcpSocket>(new fr::TcpSocket());
-        if(listener.accept(*new_client) == fr::Socket::Success)
-        {
-            //Add them to the selector, and our socket list
-            selector.add(*new_client);
-            clients.emplace_back(std::move(new_client));
-        }
+        //Error
     }
-    else
+
+    //Create socket selector and add listener
+    fr::SocketSelector selector;
+    selector.add(listener);
+
+    //Create vector to store open connections
+    std::vector<std::unique_ptr<fr::Socket>> connections;
+
+    //Infinitely loop. No timeout is specified so it will not return false.
+    while(selector.wait())
     {
-        //Iterate over our clients to find which one has sent data
-        for(auto iter = clients.begin(); iter != clients.end();)
+        //Check if it was the selector who sent data
+        if(selector.is_ready(listener))
         {
-            fr::TcpSocket &socket = **iter;
-            if(selector.is_ready(socket))
+            std::unique_ptr<fr::HttpSocket<fr::TcpSocket>> socket(new fr::HttpSocket<fr::TcpSocket>);
+            if(listener.accept(*socket) == fr::Socket::Success)
             {
-                fr::Packet packet;
-                if(socket.receive(packet) == fr::Socket::Success)
+                selector.add(*socket);
+                connections.emplace_back(std::move(socket));
+            }
+        }
+
+        //Else it must have been one of the clients
+        else
+        {
+            //Find which client send the data
+            for(auto iter = connections.begin(); iter != connections.end();)
+            {
+                //Eww
+                fr::HttpSocket<fr::TcpSocket> &client = (fr::HttpSocket<fr::TcpSocket>&)**iter;
+
+                //Check if it's this client
+                if(selector.is_ready(client))
                 {
-                    //Do something with packet
-                    //...
-                    
-                    iter++;
+                    //It is, so receive their HTTP request
+                    fr::HttpRequest request;
+                    if(client.receive(request) == fr::Socket::Success)
+                    {
+                        //Send back a HTTP response containing 'Hello, World!'
+                        fr::HttpResponse response;
+                        response.set_body("<h1>Hello, World!</h1>");
+                        client.send(response);
+
+                        //Remove them from the selector and close the connection
+                        selector.remove(client);
+                        client.close();
+                        iter = connections.erase(iter);
+                    }
+                    else
+                    {
+                        iter++;
+                    }
                 }
                 else
                 {
-                    //Client has disconnected. Remove them.
-                    selector.remove(socket);
-                    iter = clients.erase(iter);
+                    iter++;
                 }
-            }
-            else
-            {
-                iter++;
             }
         }
     }
-}
 ```
 fr::SocketSelector can be used to monitor lots of blocking sockets at once (both fr::TcpSocket's and fr::HttpSocket's), without polling, to see when data is being received or a connection has closed. To add a socket, just call fr::SocketSelector::add, and to remove a socket, which must be done before the socket object is destroyed, call fr::SocketSelector::remove. You can add as many fr::Socket's as you want.It is also important to add your fr::TcpListener to the selector, otherwise you wont be able to accept new connections whilst blocking.
 

@@ -42,6 +42,10 @@ private:
     //Stubs
     virtual void close(){}
     virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
+    virtual void set_blocking(bool val){}
+    virtual fr::Socket::Status send_raw(const char*, size_t){return Socket::Error;}
+    virtual fr::Socket::Status receive_raw(void*, size_t, size_t&){return Socket::Error;}
+    virtual int32_t get_socket_descriptor() const {return socket_descriptor;}
 };
 
 }
