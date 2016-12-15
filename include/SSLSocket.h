@@ -66,11 +66,14 @@ const std::string certs =
 
 namespace fr
 {
-    class SSLSocket : public TcpSocket
+    class SSLSocket : public Socket
     {
     public:
-        SSLSocket();
-        ~SSLSocket();
+        SSLSocket() noexcept;
+
+        ~SSLSocket() noexcept;
+
+        SSLSocket(SSLSocket &&) noexcept = default;
 
         /*!
          * Effectively just fr::TcpSocket::send_raw() with encryption
@@ -80,7 +83,7 @@ namespace fr
          * @param size The number of bytes, from data to send. Be careful not to overflow.
          * @return The status of the operation.
          */
-        Status send_raw(const char *data, size_t size) override;
+        Socket::Status send_raw(const char *data, size_t size) override;
 
 
         /*!
@@ -92,7 +95,7 @@ namespace fr
          * @param received Will be filled with the number of bytes actually received, might be less than you requested.
          * @return The status of the operation, if the socket has disconnected etc.
          */
-        Status receive_raw(void *data, size_t data_size, size_t &received) override;
+        Socket::Status receive_raw(void *data, size_t data_size, size_t &received) override;
 
         /*!
          * Close the connection.
@@ -108,10 +111,44 @@ namespace fr
          */
         Socket::Status connect(const std::string &address, const std::string &port) override;
 
+        /*!
+         * Set the SSL context
+         *
+         * @param context The SSL context to use
+         */
         void set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context);
+
+        /*!
+         * Set the NET context
+         *
+         * @param context The NET context to use
+         */
         void set_net_context(std::unique_ptr<mbedtls_net_context> context);
 
+        /*!
+         * Gets the underlying socket descriptor.
+         *
+         * @return The socket's descriptor.
+         */
+        virtual int32_t get_socket_descriptor() const override
+        {
+            return ssl_socket_descriptor->fd;
+        }
+
+        /*!
+         * Sets if the socket should block or not.
+         *
+         * @param should_block True to block, false otherwise.
+         */
+        virtual void set_blocking(bool should_block) override
+        {
+            abort();
+        }
+
     private:
+        std::string unprocessed_buffer;
+        std::unique_ptr<char[]> recv_buffer;
+
         std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
         mbedtls_entropy_context entropy;
         mbedtls_ctr_drbg_context ctr_drbg;

@@ -8,7 +8,8 @@
 
 namespace fr
 {
-    SSLSocket::SSLSocket()
+    SSLSocket::SSLSocket() noexcept
+    : recv_buffer(new char[RECV_CHUNK_SIZE])
     {
         int error = 0;
         const char *pers = "ssl_client1";
@@ -34,7 +35,7 @@ namespace fr
         }
     }
 
-    SSLSocket::~SSLSocket()
+    SSLSocket::~SSLSocket() noexcept
     {
         //Close connection if active
         close();

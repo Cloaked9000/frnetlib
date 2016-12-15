@@ -28,27 +28,8 @@ namespace fr
             VerificationFailed = 9,
         };
 
-        Socket()
-        : is_blocking(true)
-        {
-
-        }
-
-        /*!
-         * Send a packet through the socket
-         *
-         * @param packet The packet to send
-         * @return A status enum value indicating if the operation succeeded or not. Success on success, Error on failure, Disconnected on disconnection etc.
-         */
-        virtual Status send(const Packet &packet)=0;
-
-        /*!
-         * Receive a packet through the socket
-         *
-         * @param packet The packet to receive
-         * @return A status enum value indicating if the operation succeeded or not. Success on success, Error on failure, Disconnected on disconnection, WouldBlock if the socket is non-blocking and the socket was not ready to receive, etc.
-         */
-        virtual Status receive(Packet &packet)=0;
+        Socket() noexcept;
+        virtual ~Socket() noexcept = default;
 
         /*!
          * Close the connection.
@@ -65,16 +46,6 @@ namespace fr
         virtual Socket::Status connect(const std::string &address, const std::string &port)=0;
 
         /*!
-         * Sets the socket's printable remote address
-         *
-         * @param addr The string address
-         */
-        inline virtual void set_remote_address(const std::string &addr)
-        {
-            remote_address = addr;
-        }
-
-        /*!
          * Gets the socket's printable remote address
          *
          * @return The string address
@@ -85,42 +56,88 @@ namespace fr
         }
 
         /*!
-         * Gets the socket descriptor of the object
-         *
-         * @return The socket file descriptor
-         */
-        inline int32_t get_socket_descriptor() const
-        {
-            return socket_descriptor;
-        }
-
-        /*!
          * Sets the socket to blocking or non-blocking.
          *
          * @param should_block True for blocking (default argument), false otherwise.
          */
-        inline virtual void set_blocking(bool should_block = true)
+        virtual void set_blocking(bool should_block = true) = 0;
+
+        /*!
+         * Attempts to send raw data down the socket, without
+         * any of frnetlib's framing. Useful for communicating through
+         * different protocols.
+         *
+         * @param data The data to send.
+         * @param size The number of bytes, from data to send. Be careful not to overflow.
+         * @return The status of the operation.
+         */
+        virtual Status send_raw(const char *data, size_t size) = 0;
+
+
+        /*!
+         * Receives raw data from the socket, without any of
+         * frnetlib's framing. Useful for communicating through
+         * different protocols. This will attempt to read 'data_size'
+         * bytes, but might not succeed. It'll return how many bytes were actually
+         * read in 'received'.
+         *
+         * @param data Where to store the received data.
+         * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
+         * @param received Will be filled with the number of bytes actually received, might be less than you requested.
+         * @return The status of the operation, if the socket has disconnected etc.
+         */
+        virtual Status receive_raw(void *data, size_t data_size, size_t &received) = 0;
+
+        /*!
+         * Send a packet through the socket
+         *
+         * @param packet The packet to send
+         * @return True on success, false on failure.
+         */
+        Status send(const Packet &packet);
+
+        /*!
+         * Receive a packet through the socket
+         *
+         * @param packet The packet to receive
+         * @return True on success, false on failure.
+         */
+        Status receive(Packet &packet);
+
+        /*!
+         * Reads size bytes into dest from the socket.
+         * Unlike receive_raw, this will keep trying
+         * to receive data until 'size' bytes have been
+         * read, or the client has disconnected/there was
+         * an error.
+         *
+         * @param dest Where to read the data into
+         * @param size The number of bytes to read
+         * @return Operation status.
+         */
+        Status receive_all(void *dest, size_t size);
+
+        /*!
+         * Checks to see if we're connected to a socket or not
+         *
+         * @return True if it's connected. False otherwise.
+         */
+        inline bool connected() const
         {
-            //Don't update it if we're already in that mode
-            if(should_block == is_blocking)
-                return;
-
-            //Different API calls needed for both windows and unix
-            #ifdef WIN32
-                u_long non_blocking = should_block ? 0 : 1;
-                ioctlsocket(socket_descriptor, FIONBIO, &non_blocking);
-            #else
-                int flags = fcntl(socket_descriptor, F_GETFL, 0);
-                fcntl(socket_descriptor, F_SETFL, is_blocking ? flags ^ O_NONBLOCK : flags ^= O_NONBLOCK);
-            #endif
-
-            is_blocking = should_block;
+            return is_connected;
         }
 
+        /*!
+         * Gets the socket descriptor.
+         *
+         * @return The socket descriptor.
+         */
+        virtual int32_t get_socket_descriptor() const = 0;
+
     protected:
-        int32_t socket_descriptor;
         std::string remote_address;
         bool is_blocking;
+        bool is_connected;
     };
 }
 

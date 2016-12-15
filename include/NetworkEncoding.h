@@ -6,6 +6,7 @@
 #define FRNETLIB_NETWORKENCODING_H
 
 #include <netinet/in.h>
+#include <fcntl.h>
 #include <cstring>
 
 #define htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
@@ -51,6 +52,22 @@ inline void *get_sin_addr(struct sockaddr *sa)
     if(sa->sa_family == AF_INET)
         return &(((sockaddr_in*)sa)->sin_addr);
     return &(((sockaddr_in6*)sa)->sin6_addr);
+}
+
+inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking_already, bool should_block)
+{
+    //Don't update it if we're already in that mode
+    if(should_block == is_blocking_already)
+        return;
+
+    //Different API calls needed for both windows and unix
+    #ifdef WIN32
+        u_long non_blocking = should_block ? 0 : 1;
+                            ioctlsocket(socket_descriptor, FIONBIO, &non_blocking);
+    #else
+        int flags = fcntl(socket_descriptor, F_GETFL, 0);
+        fcntl(socket_descriptor, F_SETFL, is_blocking_already ? flags ^ O_NONBLOCK : flags ^= O_NONBLOCK);
+    #endif
 }
 
 

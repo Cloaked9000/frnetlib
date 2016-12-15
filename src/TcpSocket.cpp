@@ -9,8 +9,7 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-    : recv_buffer(new char[RECV_CHUNK_SIZE]),
-      is_connected(false)
+    : recv_buffer(new char[RECV_CHUNK_SIZE])
     {
 
     }
@@ -18,20 +17,6 @@ namespace fr
     TcpSocket::~TcpSocket() noexcept
     {
         close();
-    }
-
-    Socket::Status TcpSocket::send(const Packet &packet)
-    {
-        //Get packet data
-        std::string data = packet.get_buffer();
-
-        //Prepend packet length
-        uint32_t length = htonl((uint32_t)data.size());
-        data.insert(0, "1234");
-        memcpy(&data[0], &length, sizeof(uint32_t));
-
-        //Send it
-        return send_raw(data.c_str(), data.size());
     }
 
     Socket::Status TcpSocket::send_raw(const char *data, size_t size)
@@ -58,29 +43,6 @@ namespace fr
         return Socket::Status::Success;
     }
 
-    Socket::Status TcpSocket::receive(Packet &packet)
-    {
-        Socket::Status status;
-
-        //Try to read packet length
-        uint32_t packet_length = 0;
-        status = receive_all(&packet_length, sizeof(packet_length));
-        if(status != Socket::Status::Success)
-            return status;
-        packet_length = ntohl(packet_length);
-
-        //Now we've got the length, read the rest of the data in
-        std::string data(packet_length, 'c');
-        status = receive_all(&data[0], packet_length);
-        if(status != Socket::Status::Success)
-            return status;
-
-        //Set the packet to what we've read
-        packet.set_buffer(std::move(data));
-
-        return Socket::Status::Success;
-    }
-
     void TcpSocket::close()
     {
         if(is_connected)
@@ -88,21 +50,6 @@ namespace fr
             ::close(socket_descriptor);
             is_connected = false;
         }
-    }
-
-    Socket::Status TcpSocket::receive_all(void *dest, size_t size)
-    {
-        size_t bytes_read = 0;
-        while(bytes_read < size)
-        {
-            size_t read = 0;
-            Socket::Status status = receive_raw((uintptr_t*)dest + bytes_read, size, read);
-            if(status == Socket::Status::Success)
-                bytes_read += read;
-            else
-                return status;
-        }
-        return Socket::Status::Success;
     }
 
     Socket::Status TcpSocket::receive_raw(void *data, size_t data_size, size_t &received)
@@ -198,6 +145,17 @@ namespace fr
         is_connected = true;
 
         return Socket::Status::Success;
+    }
+
+    void TcpSocket::set_blocking(bool should_block)
+    {
+        set_unix_socket_blocking(socket_descriptor, is_blocking, should_block);
+        is_blocking = should_block;
+    }
+
+    int32_t TcpSocket::get_socket_descriptor() const
+    {
+        return socket_descriptor;
     }
 
 }

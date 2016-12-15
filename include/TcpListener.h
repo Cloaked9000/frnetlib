@@ -37,9 +37,9 @@ public:
     virtual Socket::Status accept(TcpSocket &client);
 
 private:
+    int32_t socket_descriptor;
+
     //Stubs
-    virtual Status send(const Packet &packet){return Socket::Error;}
-    virtual Status receive(Packet &packet){return Socket::Error;}
     virtual void close(){}
     virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
 };

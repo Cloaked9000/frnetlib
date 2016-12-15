@@ -21,22 +21,6 @@ public:
     void operator=(const TcpSocket &other)=delete;
 
     /*!
-     * Send a packet through the socket
-     *
-     * @param packet The packet to send
-     * @return True on success, false on failure.
-     */
-    virtual Status send(const Packet &packet);
-
-    /*!
-     * Receive a packet through the socket
-     *
-     * @param packet The packet to receive
-     * @return True on success, false on failure.
-     */
-    virtual Status receive(Packet &packet);
-
-    /*!
      * Close the connection.
      */
     virtual void close();
@@ -58,16 +42,6 @@ public:
     virtual void set_descriptor(int descriptor);
 
     /*!
-     * Checks to see if we're connected to a socket or not
-     *
-     * @return True if it's connected. False otherwise.
-     */
-    inline bool connected() const
-    {
-        return is_connected;
-    }
-
-    /*!
      * Attempts to send raw data down the socket, without
      * any of frnetlib's framing. Useful for communicating through
      * different protocols.
@@ -76,7 +50,7 @@ public:
      * @param size The number of bytes, from data to send. Be careful not to overflow.
      * @return The status of the operation.
      */
-    virtual Status send_raw(const char *data, size_t size);
+    virtual Status send_raw(const char *data, size_t size) override;
 
 
     /*!
@@ -91,25 +65,36 @@ public:
      * @param received Will be filled with the number of bytes actually received, might be less than you requested.
      * @return The status of the operation, if the socket has disconnected etc.
      */
-    virtual Status receive_raw(void *data, size_t data_size, size_t &received);
+    virtual Status receive_raw(void *data, size_t data_size, size_t &received) override;
+
+    /*!
+     * Sets the connections remote address.
+     *
+     * @param addr The remote address to use
+     */
+    void set_remote_address(const std::string &addr)
+    {
+        remote_address = addr;
+    }
+
+    /*!
+     * Sets if the socket should be blocking or non-blocking.
+     *
+     * @param should_block True to block, false otherwise.
+     */
+    virtual void set_blocking(bool should_block) override;
+
+    /*!
+     * Gets the unerlying socket descriptor
+     *
+     * @return The socket descriptor
+     */
+    int32_t get_socket_descriptor() const override;
 
 protected:
-    /*!
-     * Reads size bytes into dest from the socket.
-     * Unlike receive_raw, this will keep trying
-     * to receive data until 'size' bytes have been
-     * read, or the client has disconnected/there was
-     * an error.
-     *
-     * @param dest Where to read the data into
-     * @param size The number of bytes to read
-     * @return Operation status.
-     */
-    Status receive_all(void *dest, size_t size);
-
     std::string unprocessed_buffer;
     std::unique_ptr<char[]> recv_buffer;
-    bool is_connected;
+    int32_t socket_descriptor;
 };
 
 }

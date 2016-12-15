@@ -27,14 +27,14 @@ namespace fr
             return;
         }
 
-        error = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
+        error = mbedtls_x509_crt_parse(&srvcert, (const unsigned char *)mbedtls_test_cas_pem, mbedtls_test_cas_pem_len);
         if(error != 0)
         {
             std::cout << "Failed to initialise SSL listener. PEM Parse returned: " << error << std::endl;
             return;
         }
 
-        error =  mbedtls_pk_parse_key(&pkey, (const unsigned char *) mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
+        error = mbedtls_pk_parse_key(&pkey, (const unsigned char *)mbedtls_test_srv_key, mbedtls_test_srv_key_len, NULL, 0);
         if(error != 0)
         {
             std::cout << "Failed to initialise SSL listener. Private Key Parse returned: " << error << std::endl;
@@ -44,7 +44,8 @@ namespace fr
         //Seed random number generator
         if((error = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, NULL, 0)) != 0)
         {
-            std::cout << "Failed to initialise SSL listener. Failed to seed random number generator: " << error << std::endl;
+            std::cout << "Failed to initialise SSL listener. Failed to seed random number generator: " << error
+                      << std::endl;
             return;
         }
 
@@ -64,7 +65,6 @@ namespace fr
             std::cout << "Failed to set certificate: " << error << std::endl;
             return;
         }
-
     }
 
     SSLListener::~SSLListener()
@@ -128,4 +128,4 @@ namespace fr
     }
 
 }
-#endif //SSL_ENABLED
+#endif

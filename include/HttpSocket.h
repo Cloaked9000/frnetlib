@@ -46,7 +46,7 @@ namespace fr
          */
         Socket::Status send(const Http &request)
         {
-            std::string data = request.construct(SocketType::remote_address);
+            std::string data = request.construct(SocketType::get_remote_address());
             return SocketType::send_raw(&data[0], data.size());
         }
     };

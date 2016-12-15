@@ -46,6 +46,18 @@ namespace fr
          */
         virtual Socket::Status accept(SSLSocket &client);
 
+        /*!
+         * Enables or disables blocking on the socket.
+         *
+         * @param should_block True to block, false otherwise.
+         */
+        virtual void set_blocking(bool should_block) override {abort();}; //Not implemented
+
+        virtual int32_t get_socket_descriptor() const override
+        {
+            return listen_fd.fd;
+        }
+
     private:
         mbedtls_net_context listen_fd;
         mbedtls_entropy_context entropy;
@@ -55,10 +67,10 @@ namespace fr
         mbedtls_pk_context pkey;
 
         //Stubs
-        virtual Status send(const Packet &packet){return Socket::Error;}
-        virtual Status receive(Packet &packet){return Socket::Error;}
         virtual void close(){}
         virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
+        virtual Status send_raw(const char *data, size_t size) {return Socket::Error;}
+        virtual Status receive_raw(void *data, size_t data_size, size_t &received) {return Socket::Error;}
     };
 
 }

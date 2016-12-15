@@ -11,40 +11,40 @@
 
 int main()
 {
-//    fr::SSLListener listener;
-//    if(listener.listen("9091") != fr::Socket::Success)
-//    {
-//        std::cout << "Failed to bind to port" << std::endl;
-//        return 1;
-//    }
-//
-//    while(true)
-//    {
-//        fr::HttpSocket<fr::SSLSocket> http_socket;
-//        if(listener.accept(http_socket) != fr::Socket::Success)
-//        {
-//            std::cout << "Failed to accept client" << std::endl;
-//            continue;
-//        }
-//
-//        fr::HttpRequest request;
-//        if(http_socket.receive(request) != fr::Socket::Success)
-//        {
-//            std::cout << "Failed to receive data" << std::endl;
-//            continue;
-//        }
-//        else
-//        {
-//            std::cout << "Read successfully" << std::endl;
-//        }
-//
-//        std::cout << "Got: " << request.get_body() << std::endl;
-//
-//        fr::HttpResponse response;
-//        response.set_body("<h1>Hello, SSL World!</h1>");
-//        http_socket.send(response);
-//        http_socket.close();
-//    }
+    fr::SSLListener listener;
+    if(listener.listen("9091") != fr::Socket::Success)
+    {
+        std::cout << "Failed to bind to port" << std::endl;
+        return 1;
+    }
+
+    while(true)
+    {
+        fr::HttpSocket<fr::SSLSocket> http_socket;
+        if(listener.accept(http_socket) != fr::Socket::Success)
+        {
+            std::cout << "Failed to accept client" << std::endl;
+            continue;
+        }
+
+        fr::HttpRequest request;
+        if(http_socket.receive(request) != fr::Socket::Success)
+        {
+            std::cout << "Failed to receive data" << std::endl;
+            continue;
+        }
+        else
+        {
+            std::cout << "Read successfully" << std::endl;
+        }
+
+        std::cout << "Got: " << request.get_body() << std::endl;
+
+        fr::HttpResponse response;
+        response.set_body("<h1>Hello, SSL World!</h1>");
+        http_socket.send(response);
+        http_socket.close();
+    }
 
 
 //    fr::SSLSocket socket;
