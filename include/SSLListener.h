@@ -26,7 +26,7 @@ namespace fr
     class SSLListener : public Socket
     {
     public:
-        SSLListener(const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept;
+        SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept;
         virtual ~SSLListener() noexcept;
         SSLListener(SSLListener &&o) noexcept = default;
 
@@ -60,11 +60,11 @@ namespace fr
 
     private:
         mbedtls_net_context listen_fd;
-        mbedtls_entropy_context entropy;
-        mbedtls_ctr_drbg_context ctr_drbg;
         mbedtls_ssl_config conf;
         mbedtls_x509_crt srvcert;
         mbedtls_pk_context pkey;
+
+        std::shared_ptr<SSLContext> ssl_context;
 
         //Stubs
         virtual void close(){}

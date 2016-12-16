@@ -2,24 +2,24 @@
 // Created by fred on 13/12/16.
 //
 
+#include <chrono>
 #include "SSLListener.h"
 #ifdef SSL_ENABLED
 
 namespace fr
 {
-    SSLListener::SSLListener(const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept
+    SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept
+    : ssl_context(ssl_context_)
     {
         //Initialise SSL objects required
         mbedtls_net_init(&listen_fd);
         mbedtls_ssl_config_init(&conf);
         mbedtls_x509_crt_init(&srvcert);
         mbedtls_pk_init(&pkey);
-        mbedtls_entropy_init(&entropy);
-        mbedtls_ctr_drbg_init(&ctr_drbg);
 
         int error = 0;
 
-        //Load certificates and private key todo: Switch from inbuilt test certificates
+        //Load certificates and private key
         error = mbedtls_x509_crt_parse_file(&srvcert, crt_path.c_str());
         if(error != 0)
         {
@@ -41,14 +41,6 @@ namespace fr
             return;
         }
 
-        //Seed random number generator
-        if((error = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, NULL, 0)) != 0)
-        {
-            std::cout << "Failed to initialise SSL listener. Failed to seed random number generator: " << error
-                      << std::endl;
-            return;
-        }
-
         //Setup data structures
         if((error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
         {
@@ -57,7 +49,7 @@ namespace fr
         }
 
         //Apply them
-        mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+        mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ssl_context->ctr_drbg);
         mbedtls_ssl_conf_ca_chain(&conf, srvcert.next, NULL);
 
         if((error = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey)) != 0)
@@ -73,8 +65,6 @@ namespace fr
         mbedtls_x509_crt_free(&srvcert);
         mbedtls_pk_free(&pkey);
         mbedtls_ssl_config_free(&conf);
-        mbedtls_ctr_drbg_free(&ctr_drbg);
-        mbedtls_entropy_free( &entropy);
     }
 
     Socket::Status fr::SSLListener::listen(const std::string &port)
@@ -98,7 +88,6 @@ namespace fr
             return Socket::Error;
         }
 
-
         //Accept a connection
         std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
         mbedtls_net_init(client_fd.get());
@@ -111,12 +100,12 @@ namespace fr
 
         mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
 
+        auto start = std::chrono::system_clock::now();
         //SSL Handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                std::cout << "Handshake failed: " << error << std::endl;
                 return Socket::Status::HandshakeFailed;
             }
         }

@@ -108,7 +108,7 @@ namespace fr
     std::string HttpRequest::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string request = request_type_to_string(request_type) + " " + uri + " HTTP/1.1\n";
+        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri + " HTTP/1.1\n";
 
         //Add the headers to the request
         for(const auto &header : headers)

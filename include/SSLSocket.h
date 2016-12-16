@@ -10,6 +10,7 @@
 #ifdef SSL_ENABLED
 
 #include "TcpSocket.h"
+#include "SSLContext.h"
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/debug.h>
 #include <mbedtls/ssl.h>
@@ -69,7 +70,7 @@ namespace fr
     class SSLSocket : public Socket
     {
     public:
-        SSLSocket() noexcept;
+        SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
 
         ~SSLSocket() noexcept;
 
@@ -148,13 +149,11 @@ namespace fr
     private:
         std::string unprocessed_buffer;
         std::unique_ptr<char[]> recv_buffer;
+        std::shared_ptr<SSLContext> ssl_context;
 
         std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
-        mbedtls_entropy_context entropy;
-        mbedtls_ctr_drbg_context ctr_drbg;
         std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
-        mbedtls_x509_crt cacert;
         uint32_t flags;
     };
 }

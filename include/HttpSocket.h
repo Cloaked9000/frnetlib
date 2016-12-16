@@ -7,6 +7,7 @@
 
 #include "TcpSocket.h"
 #include "Http.h"
+#include "SSLContext.h"
 
 namespace fr
 {
@@ -14,6 +15,13 @@ namespace fr
     class HttpSocket : public SocketType
     {
     public:
+        HttpSocket() noexcept =default;
+
+        //Forward constructor arguments to SocketType if needed
+        template<typename T>
+        HttpSocket(T &&var)
+        : SocketType(var){}
+
         /*!
          * Receives a HTTP request from the connected socket
          *
@@ -23,7 +31,7 @@ namespace fr
         Socket::Status receive(Http &request)
         {
             //Create buffer to receive_request the request
-            std::string buffer(2048, '\0');
+            std::string buffer(RECV_CHUNK_SIZE, '\0');
 
             //Receive the request
             size_t received;

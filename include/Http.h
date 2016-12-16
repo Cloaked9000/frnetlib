@@ -139,7 +139,7 @@ namespace fr
          *
          * @return The status
          */
-        RequestStatus get_status();
+        RequestStatus get_status() const;
 
         /*!
          * Sets the request URI.

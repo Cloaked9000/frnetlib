@@ -8,31 +8,13 @@
 
 namespace fr
 {
-    SSLSocket::SSLSocket() noexcept
-    : recv_buffer(new char[RECV_CHUNK_SIZE])
+    SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
+    : recv_buffer(new char[RECV_CHUNK_SIZE]),
+      ssl_context(ssl_context_)
     {
-        int error = 0;
-        const char *pers = "ssl_client1";
-
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
-        mbedtls_x509_crt_init(&cacert);
-        mbedtls_ctr_drbg_init(&ctr_drbg);
 
-        //Seed random number generator
-        mbedtls_entropy_init(&entropy);
-        if((error = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0)
-        {
-            std::cout << "Failed to initialise random number generator. Returned error: " << error << std::endl;
-            return;
-        }
-
-        //Load root CA certificate
-        if((error = mbedtls_x509_crt_parse(&cacert, (const unsigned char *)certs.c_str(), certs.size() + 1) < 0))
-        {
-            std::cout << "Failed to parse root CA certificate. Parse returned: " << error << std::endl;
-            return;
-        }
     }
 
     SSLSocket::~SSLSocket() noexcept
@@ -41,10 +23,7 @@ namespace fr
         close();
 
         //Cleanup mbedsql stuff
-        mbedtls_x509_crt_free(&cacert);
         mbedtls_ssl_config_free(&conf);
-        mbedtls_ctr_drbg_free(&ctr_drbg);
-        mbedtls_entropy_free(&entropy);
     }
 
     void SSLSocket::close()
@@ -134,8 +113,8 @@ namespace fr
         }
 
         mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
-        mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+        mbedtls_ssl_conf_ca_chain(&conf, &ssl_context->cacert, NULL);
+        mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ssl_context->ctr_drbg);
 
         if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {

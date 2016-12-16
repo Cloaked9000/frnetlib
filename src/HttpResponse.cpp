@@ -9,7 +9,6 @@ namespace fr
 {
     void HttpResponse::parse(const std::string &response_data)
     {
-        std::cout << "Parsing: " << response_data << std::endl;
         //Clear old headers/data
         clear();
 

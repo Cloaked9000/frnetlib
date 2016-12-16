@@ -54,7 +54,7 @@ namespace fr
         get_variables.clear();
         uri = "/";
         status = Ok;
-        request_type = Get;
+        request_type = Unknown;
     }
 
     std::string &Http::get(const std::string &key)
@@ -87,7 +87,7 @@ namespace fr
         status = status_;
     }
 
-    Http::RequestStatus Http::get_status()
+    Http::RequestStatus Http::get_status() const
     {
         return status;
     }
