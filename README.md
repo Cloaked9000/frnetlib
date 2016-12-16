@@ -39,6 +39,27 @@ if(listener.accept(client) != fr::Socket::Success)
 ```
 Here we create a new fr::TcpListener, which is used to listen for incomming connections and accept them. Calling fr::TcpListener::listen(port) will bind the listener to a port, allowing you to receive connections on that port. Next a new fr::TcpSocket is created, which is where the accepted connection is stored, to send data through the new connection, we do so though 'client' from now on. fr::TcpListener's can accept as many new connections as you want. You don't need a new one for each client. 
 
+# Using SSL
+
+```c++
+#include <SSLSocket.h>
+#include <SSLContext.h>
+#include <SSLListener.h>
+
+std::shared_ptr<fr::SSLContext> ssl_context(new fr::SSLContext("certs.crt")); //Creates a new 'SSL' context. 'certs.txt' should be a list of your trusted public keys.
+
+fr::SSLListener listener(ssl_context, "crt_path", "pem_path", "private_key_path"); //This is the SSL equivilent to fr::TcpListener
+
+fr::SSLSocket socket(ssl_context); //This is the SSL equivilent to fr::TcpSocket
+
+fr::HttpSocket<fr::SSLSocket> socket(ssl_context); //This is the SSL equivilent for a HTTP socket.
+
+```
+As you've probably noticed, everything unencrypted has it's equivilent encrypted counter part, usually just by replacing 'TCP' with 'SSL' and providing an SSLContext object.
+fr::SSLContext stores SSL information which needn't be duplicated across each socket and listener, such as the random number generator, and public key list. It is *important* to build mbedtls with thread protection enabled, if your program is multithreaded. This SSLContext object can then be passed to any SSL sockets or listeners which you may create.
+
+SSLListener accepts a lot more arguments than its unencrypted counterpart, TcpListener, and it needs the filepaths to your SSL certificates and keys to properly authenticate with clients. 
+
 # Sending packets:
 
 ```c++

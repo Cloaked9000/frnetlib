@@ -5,8 +5,7 @@
 #ifndef FRNETLIB_SSLCONTEXT_H
 #define FRNETLIB_SSLCONTEXT_H
 
-#define USE_SSL
-#ifdef USE_SSL
+#ifdef SSL_ENABLED
 
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/ctr_drbg.h>
@@ -56,7 +55,7 @@ namespace fr
 
     };
 }
-#endif // USE_SSSL
+#endif // SSL_ENABLED
 
 
 #endif //FRNETLIB_SSLCONTEXT_H

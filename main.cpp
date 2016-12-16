@@ -8,6 +8,8 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "SSLSocket.h"
+#include "SSLContext.h"
+#include "SSLListener.h"
 
 int main()
 {

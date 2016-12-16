@@ -5,8 +5,6 @@
 #ifndef FRNETLIB_SSLLISTENER_H
 #define FRNETLIB_SSLLISTENER_H
 
-#define SSL_ENABLED
-
 #ifdef SSL_ENABLED
 
 #include <mbedtls/net_sockets.h>
