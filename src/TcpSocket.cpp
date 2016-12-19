@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "TcpSocket.h"
+#include "frnetlib/TcpSocket.h"
 
 namespace fr
 {
@@ -16,7 +16,7 @@ namespace fr
 
     TcpSocket::~TcpSocket() noexcept
     {
-        close();
+        close_socket();
     }
 
     Socket::Status TcpSocket::send_raw(const char *data, size_t size)
@@ -43,11 +43,11 @@ namespace fr
         return Socket::Status::Success;
     }
 
-    void TcpSocket::close()
+    void TcpSocket::close_socket()
     {
         if(is_connected)
         {
-            ::close(socket_descriptor);
+            ::closesocket(socket_descriptor);
             is_connected = false;
         }
     }

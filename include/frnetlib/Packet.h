@@ -5,7 +5,6 @@
 #ifndef FRNETLIB_PACKET_H
 #define FRNETLIB_PACKET_H
 #include <string>
-#include <netinet/in.h>
 #include <cstring>
 #include <iostream>
 #include "NetworkEncoding.h"

@@ -2,7 +2,7 @@
 // Created by fred on 10/12/16.
 //
 
-#include "HttpRequest.h"
+#include "frnetlib/HttpRequest.h"
 
 namespace fr
 {

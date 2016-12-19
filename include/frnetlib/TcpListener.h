@@ -5,7 +5,6 @@
 #ifndef FRNETLIB_TCPLISTENER_H
 #define FRNETLIB_TCPLISTENER_H
 #include <string>
-#include <netdb.h>
 #include "TcpSocket.h"
 #include "Socket.h"
 #include "NetworkEncoding.h"
@@ -40,7 +39,7 @@ private:
     int32_t socket_descriptor;
 
     //Stubs
-    virtual void close(){}
+    virtual void close_socket(){}
     virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
     virtual void set_blocking(bool val){}
     virtual fr::Socket::Status send_raw(const char*, size_t){return Socket::Error;}

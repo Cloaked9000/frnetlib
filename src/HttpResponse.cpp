@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "HttpResponse.h"
+#include "frnetlib/HttpResponse.h"
 
 namespace fr
 {
@@ -70,7 +70,7 @@ namespace fr
 
         //Add in required headers if they're missing
         if(headers.find("Connection") == headers.end())
-            response += "Connection: close\r\n";
+            response += "Connection: close_socket\r\n";
         if(headers.find("Content-type") == headers.end())
             response += "Content-type: text/html\r\n";
 

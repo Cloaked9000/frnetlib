@@ -2,7 +2,7 @@
 // Created by fred on 09/12/16.
 //
 
-#include "SocketSelector.h"
+#include "frnetlib/SocketSelector.h"
 
 namespace fr
 {

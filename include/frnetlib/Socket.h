@@ -30,11 +30,12 @@ namespace fr
 
         Socket() noexcept;
         virtual ~Socket() noexcept = default;
+        Socket(Socket &&) noexcept = default;
 
         /*!
          * Close the connection.
          */
-        virtual void close()=0;
+        virtual void close_socket()=0;
 
         /*!
          * Connects the socket to an address.
@@ -138,6 +139,11 @@ namespace fr
         std::string remote_address;
         bool is_blocking;
         bool is_connected;
+
+        #ifdef _WIN32
+                static WSADATA wsaData;
+                static uint32_t instance_count;
+        #endif // _WIN32
     };
 }
 

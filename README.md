@@ -235,7 +235,7 @@ You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse
 
                         //Remove them from the selector and close the connection
                         selector.remove(client);
-                        client.close();
+                        client.close_socket();
                         iter = connections.erase(iter);
                     }
                     else

@@ -23,7 +23,7 @@ public:
     /*!
      * Close the connection.
      */
-    virtual void close();
+    virtual void close_socket();
 
     /*!
      * Connects the socket to an address.

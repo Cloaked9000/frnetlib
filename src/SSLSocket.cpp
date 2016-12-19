@@ -2,7 +2,7 @@
 // Created by fred on 12/12/16.
 //
 
-#include "SSLSocket.h"
+#include "frnetlib/SSLSocket.h"
 #include <memory>
 #ifdef SSL_ENABLED
 
@@ -20,13 +20,13 @@ namespace fr
     SSLSocket::~SSLSocket() noexcept
     {
         //Close connection if active
-        close();
+        close_socket();
 
         //Cleanup mbedsql stuff
         mbedtls_ssl_config_free(&conf);
     }
 
-    void SSLSocket::close()
+    void SSLSocket::close_socket()
     {
         if(is_connected)
         {

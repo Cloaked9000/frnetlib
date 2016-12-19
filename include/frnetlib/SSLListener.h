@@ -65,7 +65,7 @@ namespace fr
         std::shared_ptr<SSLContext> ssl_context;
 
         //Stubs
-        virtual void close(){}
+        virtual void close_socket(){}
         virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
         virtual Status send_raw(const char *data, size_t size) {return Socket::Error;}
         virtual Status receive_raw(void *data, size_t data_size, size_t &received) {return Socket::Error;}

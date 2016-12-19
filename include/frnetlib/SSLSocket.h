@@ -53,7 +53,7 @@ namespace fr
         /*!
          * Close the connection.
          */
-        void close() override;
+        void close_socket() override;
 
         /*!
          * Connects the socket to an address.
