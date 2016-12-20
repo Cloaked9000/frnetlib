@@ -157,4 +157,9 @@ namespace fr
         return socket_descriptor;
     }
 
+    void TcpSocket::shutdown()
+    {
+        ::shutdown(socket_descriptor, 0);
+    }
+
 }
