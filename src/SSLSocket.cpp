@@ -65,6 +65,7 @@ namespace fr
 
             if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
             {
+                is_connected = false;
                 return Socket::Status::Disconnected;
             }
             else if(read <= 0)

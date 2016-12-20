@@ -31,6 +31,9 @@ namespace fr
 
     Socket::Status Socket::send(const Packet &packet)
     {
+        if(!is_connected)
+            return Socket::Disconnected;
+
         //Get packet data
         std::string data = packet.get_buffer();
 
@@ -45,6 +48,9 @@ namespace fr
 
     Socket::Status Socket::receive(Packet &packet)
     {
+        if(!is_connected)
+            return Socket::Disconnected;
+
         Socket::Status status;
 
         //Try to read packet length
@@ -68,6 +74,9 @@ namespace fr
 
     Socket::Status Socket::receive_all(void *dest, size_t size)
     {
+        if(!is_connected)
+            return Socket::Disconnected;
+
         size_t bytes_read = 0;
         while(bytes_read < size)
         {
