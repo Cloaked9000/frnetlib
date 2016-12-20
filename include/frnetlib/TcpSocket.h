@@ -91,16 +91,6 @@ public:
      */
     int32_t get_socket_descriptor() const override;
 
-    /*!
-     * Calls the shutdown syscall on the socket.
-     * So you can receive data but not send.
-     *
-     * This can be called on a blocking socket to force
-     * it to immediately return (you might want to do this if
-     * you're exiting and need the blocking socket to return).
-     */
-    void shutdown();
-
 protected:
     std::string unprocessed_buffer;
     std::unique_ptr<char[]> recv_buffer;

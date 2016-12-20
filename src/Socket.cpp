@@ -80,4 +80,9 @@ namespace fr
         }
         return Socket::Status::Success;
     }
+
+    void Socket::shutdown()
+    {
+        ::shutdown(get_socket_descriptor(), 0);
+    }
 }
