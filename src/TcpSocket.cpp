@@ -52,10 +52,10 @@ namespace fr
         }
     }
 
-    Socket::Status TcpSocket::receive_raw(void *data, size_t data_size, size_t &received)
+    Socket::Status TcpSocket::receive_raw(void *data, size_t buffer_size, size_t &received)
     {
         received = 0;
-        if(unprocessed_buffer.size() < data_size)
+        if(unprocessed_buffer.size() < buffer_size)
         {
             //Read RECV_CHUNK_SIZE bytes into the recv buffer
             ssize_t status = ::recv(socket_descriptor, recv_buffer.get(), RECV_CHUNK_SIZE, 0);
@@ -80,12 +80,12 @@ namespace fr
                 return Socket::Status::Disconnected;
             }
 
-            if(received > data_size)
-                received = data_size;
+            if(received > buffer_size)
+                received = buffer_size;
         }
         else
         {
-            received = data_size;
+            received = buffer_size;
         }
 
         //Copy data to where it needs to go

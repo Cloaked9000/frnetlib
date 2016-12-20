@@ -72,21 +72,23 @@ namespace fr
         return Socket::Status::Success;
     }
 
-    Socket::Status Socket::receive_all(void *dest, size_t size)
+    Socket::Status Socket::receive_all(void *dest, size_t buffer_size)
     {
         if(!is_connected)
             return Socket::Disconnected;
 
+        ssize_t bytes_remaining = buffer_size;
         size_t bytes_read = 0;
-        while(bytes_read < size)
+        while(bytes_remaining > 0)
         {
-            size_t read = 0;
-            Socket::Status status = receive_raw((uintptr_t*)dest + bytes_read, size, read);
-            if(status == Socket::Status::Success)
-                bytes_read += read;
-            else
+            size_t received = 0;
+            Status status = receive_raw((uintptr_t*)dest + bytes_read, (size_t)bytes_remaining, received);
+            if(status != fr::Socket::Success)
                 return status;
+            bytes_remaining -= received;
+            bytes_read += received;
         }
+
         return Socket::Status::Success;
     }
 

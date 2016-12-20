@@ -14,6 +14,28 @@ namespace fr
     class Packet
     {
     public:
+        Packet() noexcept = default;
+
+        //Nasty constructor to allow things like Packet{1, 2, 3, "bob"}.
+        template <typename T, typename ...Args>
+        Packet(T const &part, Args &&...args)
+        {
+            add(part, std::forward<Args>(args)...);
+        }
+
+        template<typename T, typename ...Args>
+        void add(T const& part, Args &&...args)
+        {
+            *this << part;
+            add(std::forward<Args>(args)...);
+        }
+
+        template<typename T>
+        void add(T const part)
+        {
+            *this << part;
+        }
+
         /*!
          * Gets the data added to the packet
          *
@@ -22,6 +44,26 @@ namespace fr
         inline const std::string &get_buffer() const
         {
             return buffer;
+        }
+
+        /*
+         * Adds a boolean variable to the packet
+         */
+        inline Packet &operator<<(bool var)
+        {
+            buffer.resize(buffer.size() + sizeof(var));
+            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            return *this;
+        }
+
+        /*
+         * Extracts a boolean variable from the packet
+         */
+        inline Packet &operator>>(bool &var)
+        {
+            memcpy(&var, &buffer[0], sizeof(var));
+            buffer.erase(0, sizeof(var));
+            return *this;
         }
 
         /*

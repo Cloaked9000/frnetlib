@@ -113,10 +113,10 @@ namespace fr
          * an error.
          *
          * @param dest Where to read the data into
-         * @param size The number of bytes to read
+         * @param buffer_size The number of bytes to read
          * @return Operation status.
          */
-        Status receive_all(void *dest, size_t size);
+        Status receive_all(void *dest, size_t buffer_size);
 
         /*!
          * Checks to see if we're connected to a socket or not

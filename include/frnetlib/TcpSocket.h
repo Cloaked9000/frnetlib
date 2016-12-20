@@ -61,11 +61,11 @@ public:
      * read in 'received'.
      *
      * @param data Where to store the received data.
-     * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
+     * @param buffer_size The number of bytes to try and receive. Be sure that it's not larger than data.
      * @param received Will be filled with the number of bytes actually received, might be less than you requested.
      * @return The status of the operation, if the socket has disconnected etc.
      */
-    virtual Status receive_raw(void *data, size_t data_size, size_t &received) override;
+    virtual Status receive_raw(void *data, size_t buffer_size, size_t &received) override;
 
     /*!
      * Sets the connections remote address.

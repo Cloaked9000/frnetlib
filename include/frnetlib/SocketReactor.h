@@ -16,6 +16,7 @@ namespace fr
     class SocketReactor
     {
     public:
+        SocketReactor() noexcept = default;
         SocketReactor(const SocketReactor&)=delete;
         SocketReactor(SocketReactor&&) noexcept = default;
 
@@ -45,7 +46,7 @@ namespace fr
         bool wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
     private:
-        std::vector<std::pair<fr::Socket&, std::function<void()>>> callbacks;
+        std::vector<std::pair<const fr::Socket*, std::function<void()>>> callbacks;
         fr::SocketSelector socket_selector;
 
     };
