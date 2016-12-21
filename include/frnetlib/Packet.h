@@ -188,6 +188,15 @@ namespace fr
         }
 
         /*
+         * Adds a char array
+         */
+        inline Packet &operator<<(const char *var)
+        {
+            *this << std::string(var);
+            return *this;
+        }
+
+        /*
          * Removes a string variable from the packet
          */
         inline Packet&operator>>(std::string &var)

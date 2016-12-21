@@ -82,7 +82,8 @@ namespace fr
         while(bytes_remaining > 0)
         {
             size_t received = 0;
-            Status status = receive_raw((uintptr_t*)dest + bytes_read, (size_t)bytes_remaining, received);
+            char *arr = (char*)dest;
+            Status status = receive_raw(&arr[bytes_read], (size_t)bytes_remaining, received);
             if(status != fr::Socket::Success)
                 return status;
             bytes_remaining -= received;
