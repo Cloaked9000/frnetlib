@@ -159,4 +159,9 @@ namespace fr
     {
         return socket_descriptor;
     }
+
+    bool TcpSocket::has_data() const
+    {
+        return !unprocessed_buffer.empty();
+    }
 }

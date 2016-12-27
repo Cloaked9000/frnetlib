@@ -146,6 +146,14 @@ namespace fr
          */
         void shutdown();
 
+        /*!
+         * Checks to see if there's data still in the socket's
+         * recv buffer.
+         *
+         * @return True if there is data in the buffer, false otherwise.
+         */
+        virtual bool has_data() const = 0;
+
     protected:
         std::string remote_address;
         bool is_blocking;

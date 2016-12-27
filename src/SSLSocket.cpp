@@ -168,6 +168,11 @@ namespace fr
         is_connected = true;
         ssl_socket_descriptor = std::move(context);
     }
+
+    bool SSLSocket::has_data() const
+    {
+        return !unprocessed_buffer.empty();
+    }
 }
 
 #endif
