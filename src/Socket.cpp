@@ -2,6 +2,7 @@
 // Created by fred on 06/12/16.
 //
 
+#include <netinet/tcp.h>
 #include "frnetlib/Socket.h"
 
 namespace fr
@@ -96,5 +97,12 @@ namespace fr
     void Socket::shutdown()
     {
         ::shutdown(get_socket_descriptor(), 0);
+    }
+
+    void Socket::reconfigure_socket()
+    {
+        //todo: Perhaps allow for these settings to be modified
+        int one = 1;
+        setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, &one, sizeof(one));
     }
 }

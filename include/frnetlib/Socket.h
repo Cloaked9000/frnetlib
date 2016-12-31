@@ -155,6 +155,12 @@ namespace fr
         virtual bool has_data() const = 0;
 
     protected:
+        /*!
+         * Applies requested socket options to the socket.
+         * Should be called when a new socket is created.
+         */
+        void reconfigure_socket();
+
         std::string remote_address;
         bool is_blocking;
         bool is_connected;

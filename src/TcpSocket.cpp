@@ -100,14 +100,13 @@ namespace fr
 
     void TcpSocket::set_descriptor(int descriptor)
     {
+        reconfigure_socket();
         socket_descriptor = descriptor;
         is_connected = true;
     }
 
     Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
     {
-        remote_address = address + ":" + port;
-
         addrinfo *info;
         addrinfo hints;
 
@@ -145,7 +144,11 @@ namespace fr
         //We're done with this now, cleanup
         freeaddrinfo(info);
 
+        //Update state now we've got a valid socket descriptor
         is_connected = true;
+        remote_address = address + ":" + port;
+        reconfigure_socket();
+
         return Socket::Status::Success;
     }
 

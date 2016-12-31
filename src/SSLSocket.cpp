@@ -152,9 +152,11 @@ namespace fr
             return Socket::Status::VerificationFailed;
         }
 
-        //Update members
+        //Update state
         is_connected = true;
         remote_address = address + ":" + port;
+        reconfigure_socket();
+
         return Socket::Status::Success;
     }
 
@@ -167,6 +169,7 @@ namespace fr
     {
         is_connected = true;
         ssl_socket_descriptor = std::move(context);
+        reconfigure_socket();
     }
 
     bool SSLSocket::has_data() const
