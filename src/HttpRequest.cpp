@@ -42,11 +42,11 @@ namespace fr
         {
             if(uri_end == std::string::npos) //If no GET arguments
             {
-                uri = lines[0].substr(uri_start + 1, lines[0].size() - 1);
+                uri = url_decode(lines[0].substr(uri_start + 1, lines[0].size() - 1));
             }
             else //There's get arguments
             {
-                uri = lines[0].substr(uri_start + 1, uri_end - uri_start - 1);
+                uri = url_decode(lines[0].substr(uri_start + 1, uri_end - uri_start - 1));
                 std::string get_lines = lines[0].substr(uri_end + 1, lines[0].size());
                 std::string name_buffer, value_buffer;
 
@@ -55,7 +55,7 @@ namespace fr
                 {
                     if(get_lines[a] == '&')
                     {
-                        get_variables.emplace(name_buffer, value_buffer);
+                        get_variables.emplace(name_buffer, url_decode(value_buffer));
                         name_buffer.clear();
                         value_buffer.clear();
                         state = false;
@@ -74,7 +74,7 @@ namespace fr
                         name_buffer += get_lines[a];
                     }
                 }
-                get_variables.emplace(name_buffer, value_buffer);
+                get_variables.emplace(name_buffer, url_decode(value_buffer));
             }
         }
 
@@ -93,14 +93,29 @@ namespace fr
 
             //Store the header
             std::string header_name = lines[a].substr(0, colon_iter);
-            std::string header_content = lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3);
+            std::string header_content = url_decode(lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3));
             headers.emplace(header_name, header_content);
         }
 
-        //Store request body
-        for(; a < lines.size(); a++)
+        //Extract POST data if it's a post request
+        if(request_type == Post)
         {
-            body += lines[a] + "\n";
+            for(; a < lines.size(); a++)
+            {
+                size_t equals_pos = lines[a].find("=");
+                if(equals_pos != std::string::npos)
+                {
+                    headers[lines[a].substr(0, equals_pos)] = url_decode(lines[a].substr(equals_pos + 1, (lines[a].size() - equals_pos) + 1));
+                }
+            }
+        }
+        else
+        {
+            //Store request body
+            for(; a < lines.size(); a++)
+            {
+                body += lines[a] + "\n";
+            }
         }
         return;
     }
@@ -108,12 +123,12 @@ namespace fr
     std::string HttpRequest::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri + " HTTP/1.1\n";
+        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri + " HTTP/1.1\r\n";
 
         //Add the headers to the request
         for(const auto &header : headers)
         {
-            std::string data = header.first + ": " + header.second + "\n";
+            std::string data = header.first + ": " + header.second + "\r\n";
             request += data;
         }
 
@@ -121,13 +136,15 @@ namespace fr
         if(headers.find("Connection") == headers.end())
             request += "Connection: keep-alive\n";
         if(headers.find("Host") == headers.end())
-            request += "Host: " + host + "\n";
+            request += "Host: " + host + "\r\n";
+        if(!body.empty())
+            request += "Content-Length: " + std::to_string(body.size()) + "\r\n";
 
         //Add in space
-        request += "\n";
+        request += "\r\n";
 
         //Add in the body
-        request += body + "\n";
+        request += body + "\r\n";
 
         return request;
     }

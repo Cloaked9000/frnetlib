@@ -155,6 +155,22 @@ namespace fr
          */
         const std::string &get_body() const;
 
+        /*!
+         * URL Encodes a given string
+         *
+         * @param str The string to URL encode
+         * @return The URL encoded string
+         */
+        static std::string url_encode(const std::string &str);
+
+        /*!
+         * Decodes a URL encoded string.
+         *
+         * @param str The string to decode
+         * @return The decoded string
+         */
+        static std::string url_decode(const std::string &str);
+
     protected:
         /*!
          * Splits a string by new line. Ignores escaped \n's
@@ -163,7 +179,25 @@ namespace fr
          */
         std::vector<std::string> split_string(const std::string &str);
 
+        /*!
+         * Converts a 'RequestType' enum value to
+         * a printable string.
+         *
+         * @param type The RequestType to convert
+         * @return The printable version of the enum value
+         */
         std::string request_type_to_string(RequestType type) const;
+
+        /*!
+         * Converts hexadecimal to an integer.
+         *
+         * @param hex The hex value to convert
+         * @return The decimal equivilent of the hexadecimal value.
+         */
+        static inline int dectohex(const std::string &hex)
+        {
+            return (int)strtol(&hex[0], 0, 16);
+        }
 
         //Other request info
         std::unordered_map<std::string, std::string> headers;

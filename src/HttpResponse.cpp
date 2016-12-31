@@ -44,7 +44,7 @@ namespace fr
 
             //Store the header
             std::string header_name = lines[a].substr(0, colon_iter);
-            std::string header_content = lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3);
+            std::string header_content = url_decode(lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3));
             headers.emplace(header_name, header_content);
         }
 
@@ -64,7 +64,7 @@ namespace fr
         //Add the headers to the response
         for(const auto &header : headers)
         {
-            std::string data = header.first + ": " + header.second + "\r\n";
+            std::string data = header.first + ": " + url_encode(header.second) + "\r\n";
             response += data;
         }
 

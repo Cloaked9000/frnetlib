@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <sstream>
 #include "frnetlib/Http.h"
 
 namespace fr
@@ -39,6 +40,7 @@ namespace fr
             }
             last_character = str[a];
         }
+        result.emplace_back(str.substr(line_start, str.size() - line_start));
         return result;
     }
 
@@ -112,5 +114,43 @@ namespace fr
     const std::string &Http::get_body() const
     {
         return body;
+    }
+
+    std::string Http::url_encode(const std::string &str)
+    {
+        std::stringstream encoded;
+        encoded << std::hex;
+        for(const auto &c : str)
+        {
+            if(isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+                encoded << c;
+            else if(c == ' ')
+                encoded << '+';
+            else
+                encoded << "%" << std::uppercase << (int)c << std::nouppercase;
+        }
+        return encoded.str();
+    }
+
+    std::string Http::url_decode(const std::string &str)
+    {
+        std::string result;
+        for(size_t a = 0; a < str.size(); a++)
+        {
+            if(str[a] == '%' && a < str.size() - 1)
+            {
+                result += (char)dectohex(str.substr(a + 1, 2));
+                a += 2;
+            }
+            else if(str[a] == '+')
+            {
+                result += " ";
+            }
+            else
+            {
+                result += str[a];
+            }
+        }
+        return result;
     }
 }
