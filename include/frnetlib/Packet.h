@@ -133,6 +133,72 @@ namespace fr
         }
 
         /*
+         * Adds a 16bit variable to the packet
+         */
+        inline Packet &operator<<(int16_t var)
+        {
+            buffer.resize(buffer.size() + sizeof(var));
+            var = htons((uint16_t)var);
+            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            return *this;
+        }
+
+        /*
+         * Extracts a 16bit variable from the packet
+         */
+        inline Packet &operator>>(int16_t &var)
+        {
+            memcpy(&var, &buffer[0], sizeof(var));
+            buffer.erase(0, sizeof(var));
+            var = ntohs((uint16_t)var);
+            return *this;
+        }
+
+        /*
+         * Adds a 32bit variable to the packet
+         */
+        inline Packet &operator<<(int32_t var)
+        {
+            buffer.resize(buffer.size() + sizeof(var));
+            var = htonl((uint32_t)var);
+            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            return *this;
+        }
+
+        /*
+         * Extracts a 32bit variable from the packet
+         */
+        inline Packet &operator>>(int32_t &var)
+        {
+            memcpy(&var, &buffer[0], sizeof(var));
+            buffer.erase(0, sizeof(var));
+            var = ntohl((uint32_t)var);
+            return *this;
+        }
+
+        /*
+         * Adds a 64bit variable to the packet
+         */
+        inline Packet &operator<<(int64_t var)
+        {
+            buffer.resize(buffer.size() + sizeof(var));
+            var = htonll((uint64_t)var);
+            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            return *this;
+        }
+
+        /*
+         * Extracts a 64bit variable from the packet
+         */
+        inline Packet &operator>>(int64_t &var)
+        {
+            memcpy(&var, &buffer[0], sizeof(var));
+            buffer.erase(0, sizeof(var));
+            var = ntohll((uint64_t)var);
+            return *this;
+        }
+
+        /*
          * Adds a float variable to the packet
          */
         inline Packet &operator<<(float var)
