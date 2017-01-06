@@ -2,6 +2,7 @@
 // Created by fred on 09/12/16.
 //
 
+#include <thread>
 #include "frnetlib/SocketSelector.h"
 
 namespace fr
@@ -27,6 +28,16 @@ namespace fr
 
     bool SocketSelector::wait(std::chrono::milliseconds timeout)
     {
+        //Windows will crash if we pass an empty set. Do a check.
+#ifdef _WIN32
+        if(listen_set.fd_count == 0)
+        {
+            //It's empty. Emulate UNIX behaviour by sleeping for timeout.
+            std::this_thread::sleep_for(timeout);
+            return false;
+        }
+#endif
+
         timeval wait_time;
         wait_time.tv_sec = 0;
         wait_time.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
