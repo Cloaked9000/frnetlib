@@ -15,6 +15,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
+#DEFINE SOL_TCP SOL_SOCKET
 #else
 #define closesocket(x) close(x)
 #define INVALID_SOCKET 0
@@ -23,6 +24,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #endif
 
 

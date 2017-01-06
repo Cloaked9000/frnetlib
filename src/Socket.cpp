@@ -2,7 +2,7 @@
 // Created by fred on 06/12/16.
 //
 
-#include <netinet/tcp.h>
+#include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 
 namespace fr
