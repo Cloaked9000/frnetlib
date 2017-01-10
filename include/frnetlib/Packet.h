@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <vector>
 #include "NetworkEncoding.h"
 
 namespace fr
@@ -44,6 +45,46 @@ namespace fr
         inline const std::string &get_buffer() const
         {
             return buffer;
+        }
+
+
+        /*
+         * Adds a vector to a packet
+         */
+        template<typename T>
+        inline Packet &operator<<(const std::vector<T> &vec)
+        {
+            //First store its length
+            *this << vec.size();
+
+            //Now each of the elements
+            for(const auto &iter : vec)
+            {
+                *this << iter;
+            }
+
+            return *this;
+        }
+
+        /*
+         * Extracts a vector from the packet
+         */
+        template<typename T>
+        inline Packet &operator>>(std::vector<T> &vec)
+        {
+            size_t length;
+
+            //First extract the length
+            *this >> length;
+            vec.resize(length);
+
+            //Now take each of the elements out of the packet
+            for(size_t a = 0; a < length; a++)
+            {
+                *this >> vec[a];
+            }
+
+            return *this;
         }
 
         /*
