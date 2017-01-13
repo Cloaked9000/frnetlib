@@ -11,7 +11,7 @@
 
 namespace fr
 {
-#define RECV_CHUNK_SIZE 2048 //How much data to try and recv at once
+#define RECV_CHUNK_SIZE 4096 //How much data to try and recv at once
 
 class TcpSocket : public Socket
 {
