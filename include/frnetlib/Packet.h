@@ -330,11 +330,11 @@ namespace fr
          */
         inline Packet&operator>>(std::string &var)
         {
-            uint32_t length = (uint32_t)var.length();
+            uint32_t length;
             *this >> length;
 
             var = buffer.substr(buffer_offset, length);
-            buffer_offset += sizeof(length);
+            buffer_offset += length;
 
             return *this;
         }
