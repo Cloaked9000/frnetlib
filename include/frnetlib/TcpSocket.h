@@ -107,8 +107,6 @@ protected:
     std::string unprocessed_buffer;
     std::unique_ptr<char[]> recv_buffer;
     int32_t socket_descriptor;
-    std::mutex outbound_mutex;
-    std::mutex inbound_mutex;
 };
 
 }

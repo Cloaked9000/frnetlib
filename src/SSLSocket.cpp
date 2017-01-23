@@ -40,7 +40,6 @@ namespace fr
 
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
     {
-        std::lock_guard<std::mutex> guard(outbound_mutex);
         int error = 0;
         while((error = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data, size)) <= 0)
         {
@@ -55,8 +54,6 @@ namespace fr
 
     Socket::Status SSLSocket::receive_raw(void *data, size_t data_size, size_t &received)
     {
-        std::lock_guard<std::mutex> guard(inbound_mutex);
-
         int read = MBEDTLS_ERR_SSL_WANT_READ;
         received = 0;
         if(unprocessed_buffer.size() < data_size)

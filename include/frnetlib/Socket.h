@@ -6,6 +6,7 @@
 #define FRNETLIB_SOCKET_H
 
 
+#include <mutex>
 #include "NetworkEncoding.h"
 #include "Packet.h"
 
@@ -164,6 +165,9 @@ namespace fr
         std::string remote_address;
         bool is_blocking;
         bool is_connected;
+
+        std::mutex outbound_mutex;
+        std::mutex inbound_mutex;
 
         #ifdef _WIN32
                 static WSADATA wsaData;

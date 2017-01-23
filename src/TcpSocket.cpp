@@ -22,7 +22,6 @@ namespace fr
     Socket::Status TcpSocket::send_raw(const char *data, size_t size)
     {
         std::lock_guard<std::mutex> guard(outbound_mutex);
-
         size_t sent = 0;
         while(sent < size)
         {
@@ -56,7 +55,6 @@ namespace fr
 
     Socket::Status TcpSocket::receive_raw(void *data, size_t buffer_size, size_t &received)
     {
-        std::lock_guard<std::mutex> guard(inbound_mutex);
         received = 0;
         if(unprocessed_buffer.size() < buffer_size)
         {
