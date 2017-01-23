@@ -15,7 +15,11 @@ namespace fr
     class Packet
     {
     public:
-        Packet() noexcept = default;
+        Packet() noexcept
+        : buffer_offset(0)
+        {
+
+        }
 
         //Nasty constructor to allow things like Packet{1, 2, 3, "bob"}.
         template <typename T, typename ...Args>
@@ -25,14 +29,14 @@ namespace fr
         }
 
         template<typename T, typename ...Args>
-        void add(T const& part, Args &&...args)
+        inline void add(T const& part, Args &&...args)
         {
             *this << part;
             add(std::forward<Args>(args)...);
         }
 
         template<typename T>
-        void add(T const part)
+        inline void add(T const part)
         {
             *this << part;
         }
@@ -102,8 +106,10 @@ namespace fr
          */
         inline Packet &operator>>(bool &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             return *this;
         }
 
@@ -123,8 +129,10 @@ namespace fr
          */
         inline Packet &operator>>(uint16_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohs(var);
             return *this;
         }
@@ -134,8 +142,8 @@ namespace fr
          */
         inline Packet &operator<<(uint32_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htonl(var);
+            buffer.resize(buffer.size() + sizeof(var));
             memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
             return *this;
         }
@@ -145,8 +153,10 @@ namespace fr
          */
         inline Packet &operator>>(uint32_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohl(var);
             return *this;
         }
@@ -167,8 +177,10 @@ namespace fr
          */
         inline Packet &operator>>(uint64_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohll(var);
             return *this;
         }
@@ -189,8 +201,10 @@ namespace fr
          */
         inline Packet &operator>>(int16_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohs((uint16_t)var);
             return *this;
         }
@@ -211,8 +225,10 @@ namespace fr
          */
         inline Packet &operator>>(int32_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohl((uint32_t)var);
             return *this;
         }
@@ -233,8 +249,10 @@ namespace fr
          */
         inline Packet &operator>>(int64_t &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohll((uint64_t)var);
             return *this;
         }
@@ -255,8 +273,10 @@ namespace fr
          */
         inline Packet &operator>>(float &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);
             var = ntohf(var);
             return *this;
         }
@@ -277,8 +297,10 @@ namespace fr
          */
         inline Packet &operator>>(double &var)
         {
-            memcpy(&var, &buffer[0], sizeof(var));
-            buffer.erase(0, sizeof(var));
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_offset], sizeof(var));
+            buffer_offset += sizeof(var);;
             var = ntohd(var);
             return *this;
         }
@@ -308,11 +330,11 @@ namespace fr
          */
         inline Packet&operator>>(std::string &var)
         {
-            uint32_t length = (uint32_t)var.length();
+            uint32_t length;
             *this >> length;
 
-            var = buffer.substr(0, length);
-            buffer.erase(0, length);
+            var = buffer.substr(buffer_offset, length);
+            buffer_offset += length;
 
             return *this;
         }
@@ -333,10 +355,34 @@ namespace fr
         inline void clear()
         {
             buffer.clear();
+            buffer_offset = 0;
+        }
+
+        /*!
+         * Resets the buffer read cursor back to the beginning
+         * of the packet.
+         */
+        inline void reset_read_cursor()
+        {
+            buffer_offset = 0;
         }
 
     private:
+        /*!
+         * Checks that there's enough data in the buffer to extract
+         * a given number of bytes to prevent buffer overflows.
+         * Throws an exception if there is not enough space.
+         *
+         * @param required_space The number of bytes needed
+         */
+        inline void assert_data_remaining(size_t required_space)
+        {
+            if(buffer_offset + required_space > buffer.size())
+                throw std::out_of_range("Not enough bytes remaining in packet to extract requested");
+        }
+
         std::string buffer; //Packet data buffer
+        size_t buffer_offset; //Current read position
     };
 }
 
