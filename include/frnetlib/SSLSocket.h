@@ -105,9 +105,6 @@ namespace fr
         std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
         uint32_t flags;
-
-        std::mutex outbound_mutex;
-        std::mutex inbound_mutex;
     };
 }
 

@@ -81,6 +81,7 @@ namespace fr
 
         ssize_t bytes_remaining = buffer_size;
         size_t bytes_read = 0;
+        std::lock_guard<std::mutex> guard(inbound_mutex);
         while(bytes_remaining > 0)
         {
             size_t received = 0;

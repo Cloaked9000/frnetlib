@@ -21,7 +21,6 @@ namespace fr
     Socket::Status TcpSocket::send_raw(const char *data, size_t size)
     {
         std::lock_guard<std::mutex> guard(outbound_mutex);
-
         size_t sent = 0;
         while(sent < size)
         {

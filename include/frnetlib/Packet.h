@@ -105,6 +105,28 @@ namespace fr
         }
 
         /*
+         * Adds an 8bit variable to the packet
+         */
+        inline Packet &operator<<(uint8_t var)
+        {
+            buffer.resize(buffer.size() + sizeof(var));
+            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            return *this;
+        }
+
+        /*
+         * Extracts an 8bit variable from the packet
+         */
+        inline Packet &operator>>(uint8_t &var)
+        {
+            assert_data_remaining(sizeof(var));
+
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
+            return *this;
+        }
+
+        /*
          * Adds a 16bit variable to the packet
          */
         inline Packet &operator<<(uint16_t var)
