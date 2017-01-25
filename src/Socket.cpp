@@ -2,6 +2,7 @@
 // Created by fred on 06/12/16.
 //
 
+#include <mutex>
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 
@@ -30,20 +31,21 @@ namespace fr
         #endif // _WIN32
     }
 
-    Socket::Status Socket::send(const Packet &packet)
+    Socket::Status Socket::send(Packet &packet)
     {
         if(!is_connected)
             return Socket::Disconnected;
 
-        //Get packet data
-        std::string data = packet.get_buffer();
+        std::string &data = packet.get_buffer();
+        return send_raw(data.c_str(), data.size());
+    }
 
-        //Prepend packet length
-        uint32_t length = htonl((uint32_t)data.size());
-        data.insert(0, "1234");
-        memcpy(&data[0], &length, sizeof(uint32_t));
+    Socket::Status Socket::send(Packet &&packet)
+    {
+        if(!is_connected)
+            return Socket::Disconnected;
 
-        //Send it
+        std::string &data = packet.get_buffer();
         return send_raw(data.c_str(), data.size());
     }
 
@@ -53,6 +55,7 @@ namespace fr
             return Socket::Disconnected;
 
         Socket::Status status;
+        std::lock_guard<std::mutex> guard(inbound_mutex);
 
         //Try to read packet length
         uint32_t packet_length = 0;
@@ -62,13 +65,11 @@ namespace fr
         packet_length = ntohl(packet_length);
 
         //Now we've got the length, read the rest of the data in
-        std::string data(packet_length, 'c');
-        status = receive_all(&data[0], packet_length);
+        packet.buffer.resize(packet_length + PACKET_HEADER_LENGTH);
+        status = receive_all(&packet.buffer[PACKET_HEADER_LENGTH], packet_length);
         if(status != Socket::Status::Success)
             return status;
 
-        //Set the packet to what we've read
-        packet.set_buffer(std::move(data));
 
         return Socket::Status::Success;
     }

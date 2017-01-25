@@ -9,7 +9,6 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-    : recv_buffer(new char[RECV_CHUNK_SIZE])
     {
 
     }
@@ -56,44 +55,33 @@ namespace fr
 
     Socket::Status TcpSocket::receive_raw(void *data, size_t buffer_size, size_t &received)
     {
-        std::lock_guard<std::mutex> guard(inbound_mutex);
         received = 0;
-        if(unprocessed_buffer.size() < buffer_size)
+
+        //Read RECV_CHUNK_SIZE bytes into the recv buffer
+        ssize_t status = ::recv(socket_descriptor, data, buffer_size, 0);
+
+        if(status > 0)
         {
-            //Read RECV_CHUNK_SIZE bytes into the recv buffer
-            ssize_t status = ::recv(socket_descriptor, recv_buffer.get(), RECV_CHUNK_SIZE, 0);
-
-            if(status > 0)
-            {
-                unprocessed_buffer += {recv_buffer.get(), (size_t)status};
-                received += status;
-            }
-            else
-            {
-                if(errno == EWOULDBLOCK || errno == EAGAIN)
-                {
-                    return Socket::Status::WouldBlock;
-                }
-                else if(status == -1)
-                {
-                    return Socket::Status::Error;
-                }
-
-                is_connected = false;
-                return Socket::Status::Disconnected;
-            }
-
-            if(received > buffer_size)
-                received = buffer_size;
+            received += status;
         }
         else
         {
-            received = buffer_size;
+            if(errno == EWOULDBLOCK || errno == EAGAIN)
+            {
+                return Socket::Status::WouldBlock;
+            }
+            else if(status == -1)
+            {
+                return Socket::Status::Error;
+            }
+
+            is_connected = false;
+            return Socket::Status::Disconnected;
         }
 
-        //Copy data to where it needs to go
-        memcpy(data, &unprocessed_buffer[0], received);
-        unprocessed_buffer.erase(0, received);
+        if(received > buffer_size)
+            received = buffer_size;
+
         return Socket::Status::Success;
     }
 
@@ -161,10 +149,5 @@ namespace fr
     int32_t TcpSocket::get_socket_descriptor() const
     {
         return socket_descriptor;
-    }
-
-    bool TcpSocket::has_data() const
-    {
-        return !unprocessed_buffer.empty();
     }
 }

@@ -98,17 +98,7 @@ namespace fr
             abort();
         }
 
-        /*!
-         * Checks to see if there's data still in the socket's
-         * recv buffer.
-         *
-         * @return True if there is data in the buffer, false otherwise.
-         */
-        virtual bool has_data() const override;
-
     private:
-        std::string unprocessed_buffer;
-        std::unique_ptr<char[]> recv_buffer;
         std::shared_ptr<SSLContext> ssl_context;
 
         std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;

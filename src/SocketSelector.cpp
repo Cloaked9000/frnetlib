@@ -3,6 +3,7 @@
 //
 
 #include <thread>
+#include <mutex>
 #include "frnetlib/SocketSelector.h"
 
 namespace fr

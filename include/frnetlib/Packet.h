@@ -12,11 +12,13 @@
 
 namespace fr
 {
+#define PACKET_HEADER_LENGTH sizeof(uint32_t)
     class Packet
     {
     public:
         Packet() noexcept
-        : buffer_offset(0)
+        : buffer_read_index(PACKET_HEADER_LENGTH),
+          buffer(PACKET_HEADER_LENGTH, '0')
         {
 
         }
@@ -40,17 +42,6 @@ namespace fr
         {
             *this << part;
         }
-
-        /*!
-         * Gets the data added to the packet
-         *
-         * @return A string containing all of the data added to the packet
-         */
-        inline const std::string &get_buffer() const
-        {
-            return buffer;
-        }
-
 
         /*
          * Adds a vector to a packet
@@ -108,8 +99,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             return *this;
         }
 
@@ -131,8 +122,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohs(var);
             return *this;
         }
@@ -155,8 +146,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohl(var);
             return *this;
         }
@@ -179,8 +170,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohll(var);
             return *this;
         }
@@ -203,8 +194,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohs((uint16_t)var);
             return *this;
         }
@@ -227,8 +218,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohl((uint32_t)var);
             return *this;
         }
@@ -251,8 +242,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohll((uint64_t)var);
             return *this;
         }
@@ -275,8 +266,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);
             var = ntohf(var);
             return *this;
         }
@@ -299,8 +290,8 @@ namespace fr
         {
             assert_data_remaining(sizeof(var));
 
-            memcpy(&var, &buffer[buffer_offset], sizeof(var));
-            buffer_offset += sizeof(var);;
+            memcpy(&var, &buffer[buffer_read_index], sizeof(var));
+            buffer_read_index += sizeof(var);;
             var = ntohd(var);
             return *this;
         }
@@ -333,8 +324,8 @@ namespace fr
             uint32_t length;
             *this >> length;
 
-            var = buffer.substr(buffer_offset, length);
-            buffer_offset += length;
+            var = buffer.substr(buffer_read_index, length);
+            buffer_read_index += length;
 
             return *this;
         }
@@ -354,20 +345,50 @@ namespace fr
          */
         inline void clear()
         {
-            buffer.clear();
-            buffer_offset = 0;
+            buffer.erase(PACKET_HEADER_LENGTH, buffer.size() - PACKET_HEADER_LENGTH);
+            buffer_read_index = PACKET_HEADER_LENGTH;
         }
 
         /*!
-         * Resets the buffer read cursor back to the beginning
-         * of the packet.
+         * Resets the read cursor back to 0, or a specified position.
+         *
+         * @param pos The buffer index to continue reading from.
          */
-        inline void reset_read_cursor()
+        inline void reset_read_cursor(size_t pos = 0)
         {
-            buffer_offset = 0;
+            buffer_read_index = PACKET_HEADER_LENGTH + pos;
+        }
+
+        /*!
+         * Reserves space in the internal packet buffer,
+         * for if you know how much data you expect to receive
+         * or send.
+         *
+         * @param bytes The number of bytes to reserve
+         */
+        inline void reserve(size_t bytes)
+        {
+            buffer.reserve(PACKET_HEADER_LENGTH + bytes);
         }
 
     private:
+        friend class Socket;
+
+        /*!
+         * Gets the data added to the packet
+         *
+         * @return A string containing all of the data added to the packet
+         */
+        inline std::string &get_buffer()
+        {
+            //Update packet length first
+            uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
+            memcpy(&buffer[0], &length, sizeof(uint32_t));
+
+            //Then a reference to the buffer
+            return buffer;
+        }
+
         /*!
          * Checks that there's enough data in the buffer to extract
          * a given number of bytes to prevent buffer overflows.
@@ -377,12 +398,13 @@ namespace fr
          */
         inline void assert_data_remaining(size_t required_space)
         {
-            if(buffer_offset + required_space > buffer.size())
+            if(buffer_read_index + required_space > buffer.size())
                 throw std::out_of_range("Not enough bytes remaining in packet to extract requested");
         }
 
+
         std::string buffer; //Packet data buffer
-        size_t buffer_offset; //Current read position
+        size_t buffer_read_index; //Current read position
     };
 }
 

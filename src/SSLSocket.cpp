@@ -9,8 +9,7 @@
 namespace fr
 {
     SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
-    : recv_buffer(new char[RECV_CHUNK_SIZE]),
-      ssl_context(ssl_context_)
+    :  ssl_context(ssl_context_)
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
@@ -55,42 +54,26 @@ namespace fr
 
     Socket::Status SSLSocket::receive_raw(void *data, size_t data_size, size_t &received)
     {
-        std::lock_guard<std::mutex> guard(inbound_mutex);
-
         int read = MBEDTLS_ERR_SSL_WANT_READ;
         received = 0;
-        if(unprocessed_buffer.size() < data_size)
+
+        while(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
         {
-            while(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
-            {
-                read = mbedtls_ssl_read(ssl.get(), (unsigned char *)recv_buffer.get(), RECV_CHUNK_SIZE);
-            }
-
-            if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
-            {
-                is_connected = false;
-                return Socket::Status::Disconnected;
-            }
-            else if(read <= 0)
-            {
-                //No data. But no error occurred.
-                return Socket::Status::Success;
-            }
-
-            received += read;
-            unprocessed_buffer += {recv_buffer.get(), (size_t)read};
-
-            if(received > data_size)
-                received = data_size;
-        }
-        else
-        {
-            received = data_size;
+            read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
         }
 
-        //Copy data to where it needs to go
-        memcpy(data, &unprocessed_buffer[0], received);
-        unprocessed_buffer.erase(0, received);
+        if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
+        {
+            is_connected = false;
+            return Socket::Status::Disconnected;
+        }
+        else if(read <= 0)
+        {
+            //No data. But no error occurred.
+            return Socket::Status::Success;
+        }
+
+        received += read;
         return Socket::Status::Success;
 
     }
@@ -170,11 +153,6 @@ namespace fr
         is_connected = true;
         ssl_socket_descriptor = std::move(context);
         reconfigure_socket();
-    }
-
-    bool SSLSocket::has_data() const
-    {
-        return !unprocessed_buffer.empty();
     }
 }
 

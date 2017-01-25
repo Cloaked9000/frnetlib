@@ -45,7 +45,6 @@ private:
     virtual fr::Socket::Status send_raw(const char*, size_t){return Socket::Error;}
     virtual fr::Socket::Status receive_raw(void*, size_t, size_t&){return Socket::Error;}
     virtual int32_t get_socket_descriptor() const {return socket_descriptor;}
-    virtual bool has_data() const override {return false;};
 };
 
 }

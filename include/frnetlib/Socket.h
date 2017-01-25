@@ -5,7 +5,7 @@
 #ifndef FRNETLIB_SOCKET_H
 #define FRNETLIB_SOCKET_H
 
-
+#include <mutex>
 #include "NetworkEncoding.h"
 #include "Packet.h"
 
@@ -95,7 +95,8 @@ namespace fr
          * @param packet The packet to send
          * @return True on success, false on failure.
          */
-        Status send(const Packet &packet);
+        Status send(Packet &packet);
+        Status send(Packet &&packet);
 
         /*!
          * Receive a packet through the socket
@@ -146,13 +147,6 @@ namespace fr
          */
         void shutdown();
 
-        /*!
-         * Checks to see if there's data still in the socket's
-         * recv buffer.
-         *
-         * @return True if there is data in the buffer, false otherwise.
-         */
-        virtual bool has_data() const = 0;
 
     protected:
         /*!
@@ -164,6 +158,8 @@ namespace fr
         std::string remote_address;
         bool is_blocking;
         bool is_connected;
+        std::mutex outbound_mutex;
+        std::mutex inbound_mutex;
 
         #ifdef _WIN32
                 static WSADATA wsaData;

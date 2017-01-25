@@ -19,9 +19,7 @@ public:
     TcpSocket() noexcept;
     virtual ~TcpSocket() noexcept;
     TcpSocket(TcpSocket &&other) noexcept
-    : unprocessed_buffer(std::move(other.unprocessed_buffer)),
-      recv_buffer(std::move(other.recv_buffer)),
-      socket_descriptor(other.socket_descriptor){}
+    : socket_descriptor(other.socket_descriptor){}
     void operator=(const TcpSocket &other)=delete;
 
     /*!
@@ -95,20 +93,8 @@ public:
      */
     int32_t get_socket_descriptor() const override;
 
-    /*!
-     * Checks to see if there's data still in the socket's
-     * recv buffer.
-     *
-     * @return True if there is data in the buffer, false otherwise.
-     */
-    virtual bool has_data() const override;
-
 protected:
-    std::string unprocessed_buffer;
-    std::unique_ptr<char[]> recv_buffer;
     int32_t socket_descriptor;
-    std::mutex outbound_mutex;
-    std::mutex inbound_mutex;
 };
 
 }

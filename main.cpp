@@ -3,6 +3,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <chrono>
 #include "frnetlib/Packet.h"
 #include "frnetlib/TcpSocket.h"
 #include "frnetlib/TcpListener.h"
@@ -17,65 +18,50 @@
 void server()
 {
     fr::TcpListener listener;
-    fr::TcpSocket client;
+    listener.listen("9092");
 
-    listener.listen("8081");
-    listener.accept(client);
+    fr::TcpSocket socket;
+    listener.accept(socket);
 
-    uint32_t packet_no = 0;
-
+    uint64_t packet_count = 0;
+    auto last_print_time = std::chrono::system_clock::now();
     while(true)
     {
         fr::Packet packet;
-        client.receive(packet);
+        if(socket.receive(packet) != fr::Socket::Success)
+            break;
 
 
-        uint32_t num = 0;
-        packet >> num;
+        std::string s1;
+        packet >> s1;
 
-        if(num != ++packet_no)
+        packet_count++;
+        if(last_print_time + std::chrono::seconds(1) < std::chrono::system_clock::now())
         {
-            std::cout << "Packet mismatch. Expected " << packet_no + 1 << ". Got " << num << std::endl;
-            return;
+            std::cout << "Packets per second: " << packet_count << std::endl;
+            packet_count = 0;
+            last_print_time = std::chrono::system_clock::now();
         }
     }
-}
 
-void client()
-{
-    fr::TcpSocket server;
-    server.connect("127.0.0.1", "8081");
-
-    uint32_t packet_no = 0;
-    std::mutex m1;
-
-    auto lam = [&]()
-    {
-        while(true)
-        {
-            m1.lock();
-            fr::Packet packet;
-            packet << ++packet_no;
-            m1.unlock();
-
-            server.send(packet);
-        }
-    };
-
-    std::thread t1(lam);
-    std::thread t2(lam);
-    std::thread t3(lam);
-    std::thread t4(lam);
-    t1.join();
 }
 
 int main()
 {
-    std::thread s1(server);
+    std::thread server_thread(server);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::thread c1(client);
 
-    s1.join();
-    c1.join();
-    return 0;
+    fr::TcpSocket socket;
+    socket.connect("127.0.0.1", "9092");
+
+    std::string a(32384, 'c');
+    fr::Packet packet;
+    while(true)
+    {
+        packet << a;
+        if(socket.send(packet) != fr::Socket::Success)
+            break;
+        packet.clear();
+    }
+    server_thread.join();
 }
