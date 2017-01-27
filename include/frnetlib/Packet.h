@@ -84,6 +84,29 @@ namespace fr
         }
 
         /*
+         * For packing pairs
+         */
+        template<typename A, typename B>
+        inline Packet &operator<<(const std::pair<A, B> &var)
+        {
+            *this << var.first;
+            *this << var.second;
+            return *this;
+        }
+
+        /*
+         * For extracting pairs
+         */
+        template<typename A, typename B>
+        inline Packet &operator>>(std::pair<A, B> &var)
+        {
+            *this >> var.first;
+            *this >> var.second;
+            return *this;
+        }
+
+
+        /*
          * Adds a boolean variable to the packet
          */
         inline Packet &operator<<(bool var)
@@ -270,6 +293,39 @@ namespace fr
             var = ntohll((uint64_t)var);
             return *this;
         }
+
+        /*
+         * Adds an enum, or enum class to the packet.
+         *
+         * Underlying type must not be larger than 32bits.
+         * The enum's underlying type should be specified like so:
+         *
+         * enum Enum : type{};
+         */
+        template<typename T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
+        inline Packet &operator<<(T var)
+        {
+            *this << (uint32_t)static_cast<typename std::underlying_type<T>::type>(var);
+            return *this;
+        }
+
+        /*
+         * Extracts en enum, or enum class from the packet.
+         *
+         * Underlying type must not be larger than 32bits.
+         * The enum's underlying type should be specified like so:
+         *
+         * enum Enum : type{};
+         */
+        template<typename T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
+        inline Packet &operator>>(T &var)
+        {
+            uint32_t val;
+            *this >> val;
+            var = static_cast<T>(val);
+            return *this;
+        }
+
 
         /*
          * Adds a float variable to the packet
