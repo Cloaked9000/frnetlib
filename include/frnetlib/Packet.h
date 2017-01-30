@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include "NetworkEncoding.h"
 
