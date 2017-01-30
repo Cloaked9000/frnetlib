@@ -6,7 +6,7 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_mo
 
 #User options
 option(USE_SSL "Use SSL" ON)
-set(FRNETLIB_BUILD_SHARED_LIBS true CACHE BOOL "Build shared library.")
+set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 
 if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
