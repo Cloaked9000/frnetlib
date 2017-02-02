@@ -16,7 +16,6 @@ namespace fr
     class SocketReactor
     {
     public:
-        SocketReactor() noexcept = default;
         SocketReactor(const SocketReactor&)=delete;
         SocketReactor(SocketReactor&&) noexcept = default;
 
