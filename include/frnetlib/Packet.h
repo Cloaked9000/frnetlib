@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include "NetworkEncoding.h"
+#include "Packetable.h"
 
 namespace fr
 {
@@ -406,6 +407,33 @@ namespace fr
             var = buffer.substr(buffer_read_index, length);
             buffer_read_index += length;
 
+            return *this;
+        }
+
+        /*!
+         * Should be called to pack an object that inherits
+         * fr::Packetable to the packet.
+         *
+         * @param object The class to pack
+         * @return The current packet object for chaining
+         */
+        inline Packet &operator<<(const fr::Packetable &object)
+        {
+            object.pack(*this);
+            return *this;
+        }
+
+
+        /*!
+         * Should be called to unpack an object that inherits
+         * fr::Packetable.
+         *
+         * @param object The object to unpack into
+         * @return The current packet object for chaining
+         */
+        inline Packet &operator>>(fr::Packetable &object)
+        {
+            object.unpack(*this);
             return *this;
         }
 
