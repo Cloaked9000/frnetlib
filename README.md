@@ -256,3 +256,29 @@ fr::SocketSelector can be used to monitor lots of blocking sockets at once (both
 Once added, you can call fr::SocketSelector::wait() to wait for socket events. You can also specify a timeout, forcing it to return even if there was no activity. If any of the sockets added to the selector send data or disconnect, then it will return true. If the specified timeout has expired, then it will return false.
 
 To find which socket actually did something, we need to call fr::SocketSelector::is_ready(), passing it the socket to check. It'll return true if it was this socket that sent data, false otherwise. First we check our selector, and accept a new connection if it was that. Otherwise, we check through all of the connected clients. If the fr::Socket::receive() call failed on the socket, then it must have disconnected, so we remove it from the client list, and remove it from the selector.
+
+# Sending custom objects:
+```c++
+class MyClass : public fr::Packetable
+{
+    int member_a, member_b;
+
+    virtual void pack(fr::Packet &o) const override
+    {
+        o << member_a << member_b;
+    }
+
+    virtual void unpack(fr::Packet &o) override
+    {
+        o >> member_a >> member_b;
+    }
+};
+```
+You can add support for adding your own classes to fr::Packets, by inheriting fr::Packetable and implementing the 'pack' and 'unpack' functions. Your 'pack' function should add your class members to the provided packet object, and your 'unpack' function should take them back out. This allows for code like this:
+
+```c++
+MyClass my_class;
+fr::Packet packet;
+packet << my_class;
+packet >> my_class;
+```
