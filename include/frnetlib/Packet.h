@@ -46,6 +46,32 @@ namespace fr
             *this << part;
         }
 
+        /*!
+         * Adds raw data to packet
+         *
+         * @param data The data to add
+         * @param datasz The length of data
+         */
+        inline void add_raw(const char *data, size_t datasz)
+        {
+            buffer.resize(buffer.size() + datasz);
+            memcpy(&buffer[buffer.size() - datasz], data, datasz);
+        }
+
+        /*!
+         * Extracts raw data from a packet
+         *
+         * @param data Where to store the extracted data
+         * @param datasz The number of bytes to extract
+         */
+        inline void extract_raw(char *data, size_t datasz)
+        {
+            assert_data_remaining(datasz);
+
+            memcpy(data, &buffer[buffer_read_index], datasz);
+            buffer_read_index += datasz;
+        }
+
         /*
          * Adds a vector to a packet
          */
