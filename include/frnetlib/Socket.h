@@ -163,8 +163,8 @@ namespace fr
 
         #ifdef _WIN32
                 static WSADATA wsaData;
-                static uint32_t instance_count;
         #endif // _WIN32
+        static uint32_t instance_count;
     };
 }
 

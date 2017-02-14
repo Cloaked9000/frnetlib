@@ -3,6 +3,7 @@
 //
 
 #include <mutex>
+#include <csignal>
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 
@@ -10,25 +11,28 @@ namespace fr
 {
     #ifdef _WIN32
         WSADATA Socket::wsaData = WSADATA();
-        uint32_t Socket::instance_count = 0;
     #endif // _WIN32
+    uint32_t Socket::instance_count = 0;
 
     Socket::Socket() noexcept
     : is_blocking(true),
       is_connected(false)
     {
-        #ifdef _WIN32
             if(instance_count == 0)
             {
+                //Disable SIGPIPE
+                signal(SIGPIPE, SIG_IGN);
+
+                #ifdef _WIN32
                 int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
                 if(wsa_result != 0)
                 {
                     std::cout << "Failed to initialise WSA." << std::endl;
                     return;
                 }
+                #endif // _WIN32
             }
 			instance_count++;
-        #endif // _WIN32
     }
 
     Socket::Status Socket::send(Packet &packet)

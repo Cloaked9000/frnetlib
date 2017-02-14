@@ -44,7 +44,8 @@ namespace fr
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                return Socket::Status::Error;
+                is_connected = false;
+                return Socket::Status::Disconnected;
             }
         }
 
