@@ -20,16 +20,16 @@ namespace fr
     {
             if(instance_count == 0)
             {
-                //Disable SIGPIPE
-                signal(SIGPIPE, SIG_IGN);
-
                 #ifdef _WIN32
-                int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-                if(wsa_result != 0)
-                {
-                    std::cout << "Failed to initialise WSA." << std::endl;
-                    return;
-                }
+                    int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+                    if(wsa_result != 0)
+                    {
+                        std::cout << "Failed to initialise WSA." << std::endl;
+                        return;
+                    }
+                #else
+                    //Disable SIGPIPE
+                    signal(SIGPIPE, SIG_IGN);
                 #endif // _WIN32
             }
 			instance_count++;
