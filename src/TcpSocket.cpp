@@ -31,12 +31,7 @@ namespace fr
             }
             else if(errno != EWOULDBLOCK && errno != EAGAIN) //Don't exit if the socket just couldn't block
             {
-                if(status == -1)
-                {
-                    return Socket::Status::Error;
-                }
-
-                is_connected = false;
+                close_socket();
                 return Socket::Status::Disconnected;
             }
         }
@@ -69,12 +64,8 @@ namespace fr
             {
                 return Socket::Status::WouldBlock;
             }
-            else if(status == -1)
-            {
-                return Socket::Status::Error;
-            }
 
-            is_connected = false;
+            close_socket();
             return Socket::Status::Disconnected;
         }
 
