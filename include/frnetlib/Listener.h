@@ -10,6 +10,7 @@ namespace fr
 {
     class Listener
     {
+    public:
         /*!
          * Listens to the given port for connections
          *
