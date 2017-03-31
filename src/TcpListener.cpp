@@ -93,4 +93,9 @@ namespace fr
 
         return Socket::Success;
     }
+
+    void TcpListener::shutdown()
+    {
+        ::shutdown(socket_descriptor, 0);
+    }
 }

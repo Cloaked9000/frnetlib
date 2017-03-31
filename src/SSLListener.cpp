@@ -3,6 +3,7 @@
 //
 
 #include <chrono>
+#include <mbedtls/net_sockets.h>
 #include "frnetlib/SSLListener.h"
 #ifdef SSL_ENABLED
 
@@ -118,6 +119,11 @@ namespace fr
         client.set_net_context(std::move(client_fd));
         client.set_ssl_context(std::move(ssl));
         return Socket::Success;
+    }
+
+    void SSLListener::shutdown()
+    {
+        ::shutdown(listen_fd.fd, 0);
     }
 
 }

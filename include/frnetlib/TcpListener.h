@@ -36,6 +36,16 @@ public:
      */
     virtual Socket::Status accept(Socket &client) override;
 
+    /*!
+     * Calls the shutdown syscall on the socket.
+     * So you can receive data but not send.
+     *
+     * This can be called on a blocking socket to force
+     * it to immediately return (you might want to do this if
+     * you're exiting and need the blocking socket to return).
+     */
+    virtual void shutdown() override;
+
 private:
     int32_t socket_descriptor;
 };
