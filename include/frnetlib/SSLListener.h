@@ -15,13 +15,13 @@
 #include <mbedtls/error.h>
 #include <mbedtls/certs.h>
 
-#include "TcpListener.h"
 #include "SSLSocket.h"
+#include "Listener.h"
 
 
 namespace fr
 {
-    class SSLListener : public Socket
+    class SSLListener : public Listener
     {
     public:
         SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept;
@@ -34,7 +34,7 @@ namespace fr
          * @param port The port to bind to
          * @return If the operation was successful
          */
-        virtual Socket::Status listen(const std::string &port);
+        virtual Socket::Status listen(const std::string &port) override;
 
         /*!
          * Accepts a new connection.
@@ -42,19 +42,7 @@ namespace fr
          * @param client Where to store the connection information
          * @return True on success. False on failure.
          */
-        virtual Socket::Status accept(SSLSocket &client);
-
-        /*!
-         * Enables or disables blocking on the socket.
-         *
-         * @param should_block True to block, false otherwise.
-         */
-        virtual void set_blocking(bool should_block) override {abort();}; //Not implemented
-
-        virtual int32_t get_socket_descriptor() const override
-        {
-            return listen_fd.fd;
-        }
+        virtual Socket::Status accept(Socket &client) override;
 
     private:
         mbedtls_net_context listen_fd;
@@ -63,12 +51,6 @@ namespace fr
         mbedtls_pk_context pkey;
 
         std::shared_ptr<SSLContext> ssl_context;
-
-        //Stubs
-        virtual void close_socket(){}
-        virtual Socket::Status connect(const std::string &address, const std::string &port){return Socket::Error;}
-        virtual Status send_raw(const char *data, size_t size) {return Socket::Error;}
-        virtual Status receive_raw(void *data, size_t data_size, size_t &received) {return Socket::Error;}
     };
 
 }

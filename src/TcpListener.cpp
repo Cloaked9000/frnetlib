@@ -66,8 +66,11 @@ namespace fr
         return Socket::Success;
     }
 
-    Socket::Status TcpListener::accept(TcpSocket &client)
+    Socket::Status TcpListener::accept(Socket &client_)
     {
+        //Cast to TcpSocket. Will throw bad cast on failure.
+        TcpSocket &client = dynamic_cast<TcpSocket&>(client_);
+
         //Prepare to wait for the client
         sockaddr_storage client_addr;
         int client_descriptor;

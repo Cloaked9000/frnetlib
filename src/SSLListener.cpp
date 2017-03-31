@@ -77,8 +77,12 @@ namespace fr
         return Socket::Success;
     }
 
-    Socket::Status SSLListener::accept(SSLSocket &client)
+    Socket::Status SSLListener::accept(Socket &client_)
     {
+        //Cast to SSLSocket. Will throw bad cast on failure.
+        SSLSocket &client = dynamic_cast<SSLSocket&>(client_);
+
+        //Initialise mbedtls
         int error = 0;
         std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
         mbedtls_ssl_init(ssl.get());
