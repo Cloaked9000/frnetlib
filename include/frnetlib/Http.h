@@ -84,8 +84,9 @@ namespace fr
          * into the object.
          *
          * @param data The request/response to parse
+         * @return True if more data is needed, false if finished.
          */
-        virtual void parse(const std::string &data)=0;
+        virtual bool parse(const std::string &data)=0;
 
         /*!
          * Constructs a HTTP request/response to send.

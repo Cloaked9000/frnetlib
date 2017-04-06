@@ -15,12 +15,12 @@ namespace fr
     class HttpSocket : public SocketType
     {
     public:
-        HttpSocket() noexcept =default;
+        //Constructor
+        HttpSocket();
 
         //Forward constructor arguments to SocketType if needed
         template<typename T>
-        HttpSocket(T &&var)
-        : SocketType(var){}
+        HttpSocket(T &&var);
 
         /*!
          * Receives a HTTP request from the connected socket
@@ -28,23 +28,7 @@ namespace fr
          * @param request Where to store the received request.
          * @return The status of the operation.
          */
-        Socket::Status receive(Http &request)
-        {
-            //Create buffer to receive_request the request
-            std::string buffer(RECV_CHUNK_SIZE, '\0');
-
-            //Receive the request
-            size_t received;
-            Socket::Status status = SocketType::receive_raw(&buffer[0], buffer.size(), received);
-            if(status != Socket::Success)
-                return status;
-            buffer.resize(received);
-
-            //Parse it
-            request.parse(buffer);
-
-            return Socket::Success;
-        }
+        Socket::Status receive(Http &request);
 
         /*!
          * Sends a HTTP request to the connected socket.
@@ -52,11 +36,11 @@ namespace fr
          * @param request The HTTP request to send.
          * @return The status of the operation.
          */
-        Socket::Status send(const Http &request)
-        {
-            std::string data = request.construct(SocketType::get_remote_address());
-            return SocketType::send_raw(&data[0], data.size());
-        }
+        Socket::Status send(const Http &request);
+
+    private:
+        //Create buffer to receive_request the request
+        std::string recv_buffer;
     };
 
 }

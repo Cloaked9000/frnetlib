@@ -6,7 +6,7 @@
 
 namespace fr
 {
-    void HttpRequest::parse(const std::string &request_data)
+    bool HttpRequest::parse(const std::string &request_data)
     {
         //Warning: Horrible string parsing code
 
@@ -15,12 +15,12 @@ namespace fr
 
         //Make sure there's actual request data to read
         if(request_data.empty())
-            return;
+            return false;
 
         //Split by new lines
         std::vector<std::string> lines = split_string(request_data);
         if(lines.empty())
-            return;
+            return false;
 
         //Extract request get_type
         if(lines[0].find("GET") != std::string::npos)
@@ -117,7 +117,7 @@ namespace fr
                 body += lines[a] + "\n";
             }
         }
-        return;
+        return false;
     }
 
     std::string HttpRequest::construct(const std::string &host) const

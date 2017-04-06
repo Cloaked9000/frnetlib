@@ -7,19 +7,19 @@
 
 namespace fr
 {
-    void HttpResponse::parse(const std::string &response_data)
+    bool HttpResponse::parse(const std::string &response_data)
     {
         //Clear old headers/data
         clear();
 
         //Make sure there's actual request data to read
         if(response_data.empty())
-            return;
+            return false;
 
         //Split by new lines
         std::vector<std::string> lines = split_string(response_data);
         if(lines.empty())
-            return;
+            return false;
 
         //Extract request get_type
         if(lines[0].find("GET") != std::string::npos)
@@ -53,7 +53,7 @@ namespace fr
         {
             body += lines[a] + "\n";
         }
-        return;
+        return false;
     }
 
     std::string HttpResponse::construct(const std::string &host) const

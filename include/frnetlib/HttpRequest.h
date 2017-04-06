@@ -23,8 +23,9 @@ namespace fr
          * Parse a HTTP response.
          *
          * @param data The HTTP response to parse
+         * @return True if more data is needed, false if finished.
          */
-        void parse(const std::string &data) override;
+        bool parse(const std::string &data) override;
 
         /*!
          * Constructs a Http Request, ready to send.
