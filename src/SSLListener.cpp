@@ -105,7 +105,6 @@ namespace fr
 
         mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
 
-        auto start = std::chrono::system_clock::now();
         //SSL Handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
