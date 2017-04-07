@@ -5,9 +5,7 @@
 #ifndef FRNETLIB_HTTPSOCKET_H
 #define FRNETLIB_HTTPSOCKET_H
 
-#include "TcpSocket.h"
 #include "Http.h"
-#include "SSLContext.h"
 
 namespace fr
 {
@@ -15,28 +13,42 @@ namespace fr
     class HttpSocket : public SocketType
     {
     public:
-        //Constructor
-        HttpSocket();
+        HttpSocket()
+        : recv_buffer(HTTP_RECV_BUFFER_SIZE, '\0')
+        {
 
-        //Forward constructor arguments to SocketType if needed
+        }
+
         template<typename T>
-        HttpSocket(T &&var);
+        HttpSocket(T &&var)
+        : recv_buffer(HTTP_RECV_BUFFER_SIZE, '\0'),
+          SocketType(var)
+        {
 
-        /*!
-         * Receives a HTTP request from the connected socket
-         *
-         * @param request Where to store the received request.
-         * @return The status of the operation.
-         */
-        Socket::Status receive(Http &request);
+        }
 
-        /*!
-         * Sends a HTTP request to the connected socket.
-         *
-         * @param request The HTTP request to send.
-         * @return The status of the operation.
-         */
-        Socket::Status send(const Http &request);
+        Socket::Status receive(Http &request)
+        {
+            size_t received = 0;
+            do
+            {
+                //Receive the request
+                Socket::Status status = SocketType::receive_raw(&recv_buffer[0], recv_buffer.size(), received);
+                if(status != Socket::Success)
+                    return status;
+                recv_buffer.resize(received);
+
+                //Parse it
+            } while(request.parse(recv_buffer.substr(0, received)));
+
+            return Socket::Success;
+        }
+
+        Socket::Status send(const Http &request)
+        {
+            std::string data = request.construct(SocketType::get_remote_address());
+            return SocketType::send_raw(&data[0], data.size());
+        }
 
     private:
         //Create buffer to receive_request the request

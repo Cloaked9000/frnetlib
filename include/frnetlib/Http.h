@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#define HTTP_RECV_BUFFER_SIZE 8192
 
 namespace fr
 {
