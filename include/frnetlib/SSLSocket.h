@@ -24,7 +24,7 @@ namespace fr
     public:
         SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
 
-        ~SSLSocket() noexcept;
+        virtual ~SSLSocket() noexcept;
 
         SSLSocket(SSLSocket &&) noexcept = default;
 

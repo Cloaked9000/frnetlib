@@ -18,6 +18,7 @@ namespace fr
         //Constructors
         HttpResponse() = default;
         HttpResponse(HttpResponse &&other) = default;
+        virtual ~HttpResponse() = default;
 
         /*!
          * Parse a HTTP response.
@@ -33,6 +34,18 @@ namespace fr
          * @return The constructed HTTP response.
          */
         std::string construct(const std::string &host) const override;
+
+    private:
+        /*!
+         * Parses the request header.
+         *
+         * @param header_end_pos The position in 'body' of the end of the header
+         */
+        void parse_header(ssize_t header_end_pos);
+
+        //State
+        bool header_ended;
+        size_t content_length;
     };
 }
 

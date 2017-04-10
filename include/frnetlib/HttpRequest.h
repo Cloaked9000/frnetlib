@@ -16,8 +16,9 @@ namespace fr
     {
     public:
         //Constructors
-        HttpRequest() = default;
+        HttpRequest();
         HttpRequest(HttpRequest &&other) = default;
+        virtual ~HttpRequest() = default;
 
         /*!
          * Parse a HTTP response.
@@ -33,6 +34,39 @@ namespace fr
          * @return The constructed HTTP request.
          */
         std::string construct(const std::string &host) const override;
+
+    private:
+        /*!
+         * Parses the request header.
+         *
+         * @param header_end_pos The position in 'body' of the end of the header
+         */
+        void parse_header(ssize_t header_end_pos);
+
+        /*!
+         * Parses the POST data from the body
+         */
+        void parse_post_body();
+
+        /*!
+         * Parses the header type (GET/POST) from the given string.
+         *
+         * @param str The first header line
+         */
+        void parse_header_type(const std::string &str);
+
+        /*!
+         * Parses the header URI
+         *
+         * @param str The first header line
+         */
+        void parse_header_uri(const std::string &str);
+
+        //State
+        bool header_ended;
+        ssize_t last_parsed_character;
+        size_t content_length;
+
     };
 }
 

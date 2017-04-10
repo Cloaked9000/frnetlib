@@ -79,6 +79,7 @@ namespace fr
         };
 
         Http();
+        virtual ~Http() = default;
 
         /*!
          * Parse a raw request or response from a string
@@ -110,14 +111,6 @@ namespace fr
          * @param type The type of request to set it to
          */
         void set_type(RequestType type);
-
-        /*!
-         * Access a header
-         *
-         * @param key The name of the header data to access/create
-         * @return The header data.
-         */
-        std::string &operator[](const std::string &key);
 
         /*!
          * Sets the request body
@@ -154,6 +147,18 @@ namespace fr
         std::string &post(const std::string &key);
 
         /*!
+        * Returns a reference to a header.
+        * Can be used to either set/get the value.
+        * If the key does not exist, then it will be
+        * created and an empty value will be returned.
+        *
+        * @param key The name of the header
+        * @return A reference to the header
+        */
+        std::string &header(const std::string &key);
+
+
+        /*!
          * Checks to see if a given GET variable exists
          *
          * @param key The name of the GET variable
@@ -168,6 +173,15 @@ namespace fr
          * @return True if it does. False otherwise.
          */
         bool post_exists(const std::string &key) const;
+
+        /*!
+         * Checks to see if a given header exists.
+         * Note: 'key' should be lower case.
+         *
+         * @param key The name of the header
+         * @return True if it does. False otherwise.
+         */
+        bool header_exists(const std::string &key) const;
 
         /*!
          * Returns the requested URI
@@ -248,9 +262,22 @@ namespace fr
             return (int)strtol(&hex[0], 0, 16);
         }
 
+        /*!
+         * Converts a parameter list to a vector pair.
+         * i.e: ?bob=10&fish=hey
+         * to: <bob, 10>, <fish, hey>
+         *
+         * @param str The string to parse
+         * @return The vector containing the results pairs
+         */
+        std::vector<std::pair<std::string, std::string>> parse_argument_list(const std::string &str);
+
+        void parse_header_line(const std::string &str);
+
         //Other request info
-        std::unordered_map<std::string, std::string> headers;
-        std::unordered_map<std::string, std::string> get_variables;
+        std::unordered_map<std::string, std::string> header_data;
+        std::unordered_map<std::string, std::string> post_data;
+        std::unordered_map<std::string, std::string> get_data;
         std::string body;
         RequestType request_type;
         std::string uri;

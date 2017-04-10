@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include "frnetlib/Http.h"
 
 namespace fr
@@ -18,11 +19,6 @@ namespace fr
     Http::RequestType Http::get_type() const
     {
         return request_type;
-    }
-
-    std::string &Http::operator[](const std::string &key)
-    {
-        return headers[key];
     }
 
     std::vector<std::string> Http::split_string(const std::string &str)
@@ -51,9 +47,10 @@ namespace fr
 
     void Http::clear()
     {
-        headers.clear();
+        post_data.clear();
+        get_data.clear();
+        post_data.clear();
         body.clear();
-        get_variables.clear();
         uri = "/";
         status = Ok;
         request_type = Unknown;
@@ -61,22 +58,22 @@ namespace fr
 
     std::string &Http::get(const std::string &key)
     {
-        return get_variables[key];
+        return get_data[key];
     }
 
     std::string &Http::post(const std::string &key)
     {
-        return headers[key];
+        return post_data[key];
     }
 
     bool Http::get_exists(const std::string &key) const
     {
-        return get_variables.find(key) != get_variables.end();
+        return get_data.find(key) != get_data.end();
     }
 
     bool Http::post_exists(const std::string &key) const
     {
-        return headers.find(key) != headers.end();
+        return post_data.find(key) != post_data.end();
     }
 
     const std::string &Http::get_uri() const
@@ -152,5 +149,67 @@ namespace fr
             }
         }
         return result;
+    }
+
+    std::string &Http::header(const std::string &key)
+    {
+        return header_data[key];
+    }
+
+    bool Http::header_exists(const std::string &key) const
+    {
+        return header_data.find(key) != header_data.end();
+    }
+
+    std::vector<std::pair<std::string, std::string>> Http::parse_argument_list(const std::string &str)
+    {
+        std::vector<std::pair<std::string, std::string>> list;
+        if(str.empty())
+            return list;
+
+        size_t read_index = 0;
+        if(str.front() == '?')
+            read_index++;
+
+        while(true)
+        {
+            auto equal_pos = str.find("=", read_index);
+            if(equal_pos != std::string::npos)
+            {
+                auto and_pos = str.find("&", read_index);
+                if(and_pos == std::string::npos)
+                {
+                    list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, str.size() - equal_pos - 1));
+                    break;
+                }
+                else
+                {
+                    list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, and_pos - equal_pos - 1));
+                    read_index = and_pos + 1;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return list;
+    }
+
+    void Http::parse_header_line(const std::string &str)
+    {
+        auto colon_pos = str.find(":");
+        if(colon_pos != std::string::npos)
+        {
+            auto data_begin = str.find_first_not_of(" ", colon_pos + 1);
+            if(data_begin != std::string::npos)
+            {
+                std::string header_name = str.substr(0, colon_pos);
+                std::cout << "HEADER: " << header_name << std::endl;
+                std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
+                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - data_begin));
+            }
+        }
     }
 }

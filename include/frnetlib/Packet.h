@@ -25,6 +25,8 @@ namespace fr
 
         }
 
+        virtual ~Packet() = default;
+
         //Nasty constructor to allow things like Packet{1, 2, 3, "bob"}.
         template <typename T, typename ...Args>
         Packet(T const &part, Args &&...args)

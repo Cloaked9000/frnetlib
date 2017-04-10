@@ -9,51 +9,32 @@ namespace fr
 {
     bool HttpResponse::parse(const std::string &response_data)
     {
-        //Clear old headers/data
-        clear();
+        body += response_data;
 
-        //Make sure there's actual request data to read
-        if(response_data.empty())
-            return false;
-
-        //Split by new lines
-        std::vector<std::string> lines = split_string(response_data);
-        if(lines.empty())
-            return false;
-
-        //Extract request get_type
-        if(lines[0].find("GET") != std::string::npos)
-            request_type = RequestType::Get;
-        else if(lines[0].find("POST") != std::string::npos)
-            request_type = RequestType::Post;
-        else
-            request_type = RequestType::Unknown;
-
-        //Extract headers
-        size_t a;
-        for(a = 1; a < lines.size(); a++)
+        //Ensure that the whole header has been parsed first
+        if(!header_ended)
         {
-            //New line indicates headers have ended
-            if(lines[a].empty() || lines[a].size() <= 2)
-                break;
+            //Check to see if this request data contains the end of the header
+            auto header_end = body.find("\r\n\r\n");
+            header_ended = header_end != std::string::npos;
 
-            //Find the colon separating the header name and header data
-            auto colon_iter = lines[a].find(":");
-            if(colon_iter == std::string::npos)
-                continue;
+            //If the header end has not been found, return true, indicating that we need more data.
+            if(!header_ended)
+            {
+                return true;
+            }
+            else
+            {
+                parse_header(header_end);
+                body.clear();
+            }
+            content_length += 2; //The empty line between header and data
 
-            //Store the header
-            std::string header_name = lines[a].substr(0, colon_iter);
-            std::string header_content = url_decode(lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3));
-            headers.emplace(header_name, header_content);
+            body += response_data.substr(header_end, response_data.size() - header_end);
         }
 
-        //Store request body
-        for(; a < lines.size(); a++)
-        {
-            body += lines[a] + "\n";
-        }
-        return false;
+        return body.size() < content_length;
+
     }
 
     std::string HttpResponse::construct(const std::string &host) const
@@ -62,16 +43,16 @@ namespace fr
         std::string response = "HTTP/1.1 " + std::to_string(status) + " \r\n";
 
         //Add the headers to the response
-        for(const auto &header : headers)
+        for(const auto &header : header_data)
         {
             std::string data = header.first + ": " + url_encode(header.second) + "\r\n";
             response += data;
         }
 
         //Add in required headers if they're missing
-        if(headers.find("Connection") == headers.end())
+        if(header_data.find("Connection") == header_data.end())
             response += "Connection: close_socket\r\n";
-        if(headers.find("Content-type") == headers.end())
+        if(header_data.find("Content-type") == header_data.end())
             response += "Content-type: text/html\r\n";
 
         //Add in space
@@ -80,5 +61,26 @@ namespace fr
         //Add in the body
         response += body + "\r\n";
         return response;
+    }
+
+    void HttpResponse::parse_header(ssize_t header_end_pos)
+    {
+        //Split the header into lines
+        size_t line = 0;
+        std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
+        if(header_lines.empty())
+            return;
+        line++;
+
+        //Read in headers
+        for(; line < header_lines.size(); line++)
+        {
+            parse_header_line(header_lines[line]);
+        }
+
+        //Store content length value if it exists
+        auto length_header_iter = header_data.find("content-length");
+        if(length_header_iter != header_data.end())
+            content_length = std::stoull(length_header_iter->second);
     }
 }

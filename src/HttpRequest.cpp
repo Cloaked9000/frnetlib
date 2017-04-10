@@ -2,122 +2,79 @@
 // Created by fred on 10/12/16.
 //
 
+#include <algorithm>
 #include "frnetlib/HttpRequest.h"
 
 namespace fr
 {
-    bool HttpRequest::parse(const std::string &request_data)
+    HttpRequest::HttpRequest()
+    : header_ended(false),
+      last_parsed_character(0),
+      content_length(0)
     {
-        //Warning: Horrible string parsing code
 
-        //Clear old headers/data
-        clear();
+    }
 
-        //Make sure there's actual request data to read
-        if(request_data.empty())
+    bool HttpRequest::parse(const std::string &request)
+    {
+        body += request;
+
+        //Ensure that the whole header has been parsed first
+        if(!header_ended)
+        {
+            //Check to see if this request data contains the end of the header
+            auto header_end = body.find("\r\n\r\n");
+            header_ended = header_end != std::string::npos;
+
+            //If the header end has not been found, return true, indicating that we need more data.
+            if(!header_ended)
+            {
+                return true;
+            }
+            else
+            {
+                parse_header(header_end);
+                body.clear();
+            }
+            content_length += 2; //The empty line between header and data
+
+            body += request.substr(header_end, request.size() - header_end);
+        }
+
+        //If we've got the whole request, parse the POST if it exists
+        if(body.size() >= content_length)
+        {
+            if(request_type == RequestType::Post)
+                parse_post_body();
             return false;
-
-        //Split by new lines
-        std::vector<std::string> lines = split_string(request_data);
-        if(lines.empty())
-            return false;
-
-        //Extract request get_type
-        if(lines[0].find("GET") != std::string::npos)
-            request_type = RequestType::Get;
-        else if(lines[0].find("POST") != std::string::npos)
-            request_type = RequestType::Post;
-        else
-            request_type = RequestType::Unknown;
-
-        //Remove HTTP version
-        auto http_version = lines[0].find("HTTP");
-        if(http_version != std::string::npos && http_version > 0)
-            lines[0].erase(http_version - 1, lines[0].size() - http_version + 1);
-
-        //Extract URI & GET variables
-        auto uri_start = lines[0].find(" ");
-        auto uri_end = lines[0].find("?");
-        if(uri_start != std::string::npos)
-        {
-            if(uri_end == std::string::npos) //If no GET arguments
-            {
-                uri = url_decode(lines[0].substr(uri_start + 1, lines[0].size() - 1));
-            }
-            else //There's get arguments
-            {
-                uri = url_decode(lines[0].substr(uri_start + 1, uri_end - uri_start - 1));
-                std::string get_lines = lines[0].substr(uri_end + 1, lines[0].size());
-                std::string name_buffer, value_buffer;
-
-                bool state = false;
-                for(size_t a = 0; a < get_lines.size(); a++)
-                {
-                    if(get_lines[a] == '&')
-                    {
-                        get_variables.emplace(name_buffer, url_decode(value_buffer));
-                        name_buffer.clear();
-                        value_buffer.clear();
-                        state = false;
-                        continue;
-                    }
-                    else if(get_lines[a] == '=')
-                    {
-                        state = true;
-                    }
-                    else if(state)
-                    {
-                        value_buffer += get_lines[a];
-                    }
-                    else
-                    {
-                        name_buffer += get_lines[a];
-                    }
-                }
-                get_variables.emplace(name_buffer, url_decode(value_buffer));
-            }
         }
 
-        //Extract headers
-        size_t a;
-        for(a = 1; a < lines.size(); a++)
+        return true;
+    }
+
+    void HttpRequest::parse_header(ssize_t header_end_pos)
+    {
+        //Split the header into lines
+        size_t line = 0;
+        std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
+        if(header_lines.empty())
+            return;
+
+        //Parse request type & uri
+        parse_header_type(header_lines[line]);
+        parse_header_uri(header_lines[line]);
+        line++;
+
+        //Read in headers
+        for(; line < header_lines.size(); line++)
         {
-            //New line indicates headers have ended
-            if(lines[a].empty() || lines[a].size() <= 2)
-                break;
-
-            //Find the colon separating the header name and header data
-            auto colon_iter = lines[a].find(":");
-            if(colon_iter == std::string::npos)
-                continue;
-
-            //Store the header
-            std::string header_name = lines[a].substr(0, colon_iter);
-            std::string header_content = url_decode(lines[a].substr(colon_iter + 2, lines[a].size () - colon_iter - 3));
-            headers.emplace(header_name, header_content);
+            parse_header_line(header_lines[line]);
         }
 
-        //Extract POST data if it's a post request
-        if(request_type == Post)
-        {
-            for(; a < lines.size(); a++)
-            {
-                size_t equals_pos = lines[a].find("=");
-                if(equals_pos != std::string::npos)
-                {
-                    headers[lines[a].substr(0, equals_pos)] = url_decode(lines[a].substr(equals_pos + 1, (lines[a].size() - equals_pos) + 1));
-                }
-            }
-        }
-        else
-        {
-            //Store request body
-            for(; a < lines.size(); a++)
-            {
-                body += lines[a] + "\n";
-            }
-        }
-        return false;
+        //Store content length value if it exists
+        auto length_header_iter = header_data.find("content-length");
+        if(length_header_iter != header_data.end())
+            content_length = std::stoull(length_header_iter->second);
     }
 
     std::string HttpRequest::construct(const std::string &host) const
@@ -126,26 +83,91 @@ namespace fr
         std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri + " HTTP/1.1\r\n";
 
         //Add the headers to the request
-        for(const auto &header : headers)
+        for(const auto &header : header_data)
         {
             std::string data = header.first + ": " + header.second + "\r\n";
             request += data;
         }
 
+        //Generate post line
+        std::string post_string;
+        for(auto &post : post_data)
+            post_string += post.first + "=" + post.second + "&";
+        if(!post_string.empty())
+        {
+            post_string.erase(request.size() - 1, 1);
+            post_string += "\r\n";
+        }
+
         //Add in required headers if they're missing
-        if(headers.find("Connection") == headers.end())
+        if(header_data.find("Connection") == header_data.end())
             request += "Connection: keep-alive\n";
-        if(headers.find("Host") == headers.end())
+        if(header_data.find("Host") == header_data.end())
             request += "Host: " + host + "\r\n";
         if(!body.empty())
-            request += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+            request += "Content-Length: " + std::to_string(body.size() + post_string.size()) + "\r\n";
 
         //Add in space
         request += "\r\n";
+
+        //Add in post
+        request += post_string;
 
         //Add in the body
         request += body + "\r\n";
 
         return request;
+    }
+
+    void HttpRequest::parse_post_body()
+    {
+        auto post_begin = body.find_first_not_of("\r\n");
+        if(post_begin != std::string::npos)
+        {
+            auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin));
+            for(auto &c : post)
+                post_data.emplace(std::move(c.first), std::move(c.second));
+        }
+    }
+
+    void HttpRequest::parse_header_type(const std::string &str)
+    {
+        //Find the request type
+        auto type_end = str.find(" ");
+        if(type_end != std::string::npos)
+        {
+            //Check what it is
+            if(str.compare(0, type_end, "GET") == 0)
+                request_type = fr::Http::Get;
+            else
+                request_type = fr::Http::Post;
+            return;
+        }
+        throw std::invalid_argument("No known request type found in: " + str);
+    }
+
+    void HttpRequest::parse_header_uri(const std::string &str)
+    {
+        auto uri_begin = str.find("/");
+        auto uri_end = str.find("HTTP") - 1;
+        if(uri_begin != std::string::npos)
+        {
+            //Extract URI
+            std::string uri = str.substr(uri_begin, uri_end - uri_begin);
+
+            //Parse GET variables
+            auto get_begin = str.find("?");
+            if(get_begin != std::string::npos)
+            {
+                auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));
+                for(auto &c : get_vars)
+                    get_data.emplace(std::move(c.first), std::move(c.second));
+                uri.erase(get_begin, uri.size() - get_begin);
+            }
+
+            set_uri(uri);
+            return;
+        }
+        throw std::invalid_argument("No URI found in: " + str);
     }
 }

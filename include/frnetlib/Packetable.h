@@ -12,6 +12,8 @@ namespace fr
     class Packetable
     {
     public:
+        virtual ~Packetable() = default;
+
         /*!
          * Called to pack class data into the 'destination'
          * packet.

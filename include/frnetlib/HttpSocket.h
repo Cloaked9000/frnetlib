@@ -6,6 +6,7 @@
 #define FRNETLIB_HTTPSOCKET_H
 
 #include "Http.h"
+#include "Socket.h"
 
 namespace fr
 {
@@ -26,6 +27,8 @@ namespace fr
         {
 
         }
+
+        virtual ~HttpSocket() = default;
 
         Socket::Status receive(Http &request)
         {
