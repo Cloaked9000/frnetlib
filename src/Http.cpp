@@ -206,9 +206,8 @@ namespace fr
             if(data_begin != std::string::npos)
             {
                 std::string header_name = str.substr(0, colon_pos);
-                std::cout << "HEADER: " << header_name << std::endl;
                 std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
-                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - data_begin));
+                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - (data_begin + 1)));
             }
         }
     }
