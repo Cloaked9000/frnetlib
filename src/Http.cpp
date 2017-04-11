@@ -151,8 +151,9 @@ namespace fr
         return result;
     }
 
-    std::string &Http::header(const std::string &key)
+    std::string &Http::header(std::string &&key)
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return header_data[key];
     }
 

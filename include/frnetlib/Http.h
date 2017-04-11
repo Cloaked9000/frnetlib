@@ -155,7 +155,7 @@ namespace fr
         * @param key The name of the header
         * @return A reference to the header
         */
-        std::string &header(const std::string &key);
+        std::string &header(std::string &&key);
 
 
         /*!

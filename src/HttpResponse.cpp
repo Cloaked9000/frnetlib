@@ -45,15 +45,15 @@ namespace fr
         //Add the headers to the response
         for(const auto &header : header_data)
         {
-            std::string data = header.first + ": " + url_encode(header.second) + "\r\n";
+            std::string data = header.first + ": " + header.second + "\r\n";
             response += data;
         }
 
         //Add in required headers if they're missing
-        if(header_data.find("Connection") == header_data.end())
-            response += "Connection: close_socket\r\n";
-        if(header_data.find("Content-type") == header_data.end())
-            response += "Content-type: text/html\r\n";
+        if(header_data.find("connection") == header_data.end())
+            response += "connection: close_socket\r\n";
+        if(header_data.find("content-type") == header_data.end())
+            response += "content-type: text/html\r\n";
 
         //Add in space
         response += "\r\n";
