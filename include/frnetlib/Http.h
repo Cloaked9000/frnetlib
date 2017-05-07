@@ -234,6 +234,14 @@ namespace fr
          */
         static std::string url_decode(const std::string &str);
 
+        /*!
+         * Gets the mimetype of a given filename, or file extention.
+         *
+         * @param filename The filename, or file extention to find the mime type of
+         * @return The mime type. Returns 'application/octet-stream' if it couldn't be found.
+         */
+        const std::string &get_mimetype(const std::string &filename);
+
     protected:
         /*!
          * Splits a string by new line. Ignores escaped \n's
@@ -282,6 +290,10 @@ namespace fr
         RequestType request_type;
         std::string uri;
         RequestStatus status;
+
+    private:
+        static std::unordered_map<std::string, std::string> mime_types;
+        void load_mimetypes();
     };
 }
 
