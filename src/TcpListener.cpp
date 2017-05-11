@@ -43,7 +43,7 @@ namespace fr
             //If it's an IPv6 interface, attempt to allow IPv4 connections
             if(c->ai_family == AF_INET6)
             {
-                setsockopt(socket_descriptor, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&no, sizeof(no));
+                setsockopt(socket_descriptor, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&no, sizeof(no));
             }
 
             //Attempt to bind
