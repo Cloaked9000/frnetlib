@@ -18,7 +18,11 @@ namespace fr
     class SSLContext
     {
     public:
-        SSLContext(const std::string &ca_certs_path)
+        /*!
+         * Initialises a new SSL context for use with SSL instances.
+         * Will throw a std::runtime_error on failure.
+         */
+        SSLContext()
         {
             int error = 0;
 
@@ -30,15 +34,7 @@ namespace fr
             mbedtls_entropy_init(&entropy);
             if((error = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, nullptr, 0)) != 0)
             {
-                std::cout << "Failed to initialise random number generator. Returned error: " << error << std::endl;
-                return;
-            }
-
-            //Load root CA certificate
-            if((error = mbedtls_x509_crt_parse_file(&cacert, ca_certs_path.c_str()) < 0))
-            {
-                std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
-                return;
+                throw std::runtime_error("Failed to initialise random number generator. Returned error: " + std::to_string(error));
             }
         }
 
@@ -47,6 +43,40 @@ namespace fr
             mbedtls_ctr_drbg_free(&ctr_drbg);
             mbedtls_entropy_free(&entropy);
             mbedtls_x509_crt_free(&cacert);
+        }
+
+        /*!
+         * Parses a list of x509 crt certificates from a location in memory
+         *
+         * @param ca_certs The certificates to parse
+         * @return True on success, false on failure.
+         */
+        bool load_ca_certs_from_memory(const std::string &ca_certs)
+        {
+            int error;
+            if((error = mbedtls_x509_crt_parse(&cacert, (const unsigned char *)ca_certs.c_str(), ca_certs.size()) < 0))
+            {
+                std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
+                return false;
+            }
+            return true;
+        }
+
+        /*!
+         * Parses a list of x509 crt certificates from a location on disk
+         *
+         * @param ca_certs_filepath The certificates to parse
+         * @return True on success, false on failure
+         */
+        bool load_ca_certs_from_file(const std::string &ca_certs_filepath)
+        {
+            int error;
+            if((error = mbedtls_x509_crt_parse_file(&cacert, ca_certs_filepath.c_str()) < 0))
+            {
+                std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
+                return false;
+            }
+            return true;
         }
 
         mbedtls_entropy_context entropy;

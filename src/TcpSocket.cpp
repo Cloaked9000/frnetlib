@@ -90,7 +90,7 @@ namespace fr
 
         memset(&hints, 0, sizeof(addrinfo));
 
-        hints.ai_family = AF_UNSPEC; //IPv6 or IPv4
+        hints.ai_family = ai_family;
         hints.ai_socktype = SOCK_STREAM; //TCP
         hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
 
@@ -107,6 +107,7 @@ namespace fr
             {
                 continue;
             }
+
 
             if(::connect(socket_descriptor, c->ai_addr, c->ai_addrlen) == SOCKET_ERROR)
             {

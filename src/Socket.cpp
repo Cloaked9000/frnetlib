@@ -16,7 +16,8 @@ namespace fr
 
     Socket::Socket() noexcept
     : is_blocking(true),
-      is_connected(false)
+      is_connected(false),
+      ai_family(AF_UNSPEC)
     {
             if(instance_count == 0)
             {
@@ -109,5 +110,23 @@ namespace fr
         //todo: Perhaps allow for these settings to be modified
         int one = 1;
         setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+    }
+
+    void Socket::set_inet_version(Socket::IP version)
+    {
+        switch(version)
+        {
+            case Socket::IP::v4:
+                ai_family = AF_INET;
+                break;
+            case Socket::IP::v6:
+                ai_family = AF_INET6;
+                break;
+            case Socket::IP::any:
+                ai_family = AF_UNSPEC;
+                break;
+            default:
+                throw std::logic_error("Unknown Socket::IP value passed to set_inet_version()");
+        }
     }
 }

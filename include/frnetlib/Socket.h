@@ -28,6 +28,13 @@ namespace fr
             VerificationFailed = 9,
         };
 
+        enum IP
+        {
+            v4 = 1,
+            v6 = 2,
+            any = 3
+        };
+
         Socket() noexcept;
         virtual ~Socket() noexcept = default;
         Socket(Socket &&) noexcept = default;
@@ -147,7 +154,13 @@ namespace fr
          */
         void shutdown();
 
-
+        /*!
+         * Set which IP version to use. IP::any is the default
+         * value, so either an IPv4 OR IPv6 interface will be used.
+         *
+         * @param version Should IPv4, IPv6 be used, or any?
+         */
+        void set_inet_version(IP version);
     protected:
         /*!
          * Applies requested socket options to the socket.
@@ -160,7 +173,7 @@ namespace fr
         bool is_connected;
         std::mutex outbound_mutex;
         std::mutex inbound_mutex;
-
+        int ai_family;
         #ifdef _WIN32
                 static WSADATA wsaData;
         #endif // _WIN32

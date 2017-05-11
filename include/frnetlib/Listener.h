@@ -11,6 +11,12 @@ namespace fr
     class Listener
     {
     public:
+        Listener()
+        : ai_family(AF_UNSPEC)
+        {
+
+        }
+
         /*!
          * Listens to the given port for connections
          *
@@ -36,6 +42,33 @@ namespace fr
          * you're exiting and need the blocking socket to return).
          */
         virtual void shutdown()=0;
+
+        /*!
+         * Set which IP version to use. IP::any is the default
+         * value, so either an IPv4 OR IPv6 interface will be used.
+         *
+         * @param version Should IPv4, IPv6 be used, or any?
+         */
+        void set_inet_version(Socket::IP version)
+        {
+            switch(version)
+            {
+                case Socket::IP::v4:
+                    ai_family = AF_INET;
+                    break;
+                case Socket::IP::v6:
+                    ai_family = AF_INET6;
+                    break;
+                case Socket::IP::any:
+                    ai_family = AF_UNSPEC;
+                    break;
+                default:
+                    throw std::logic_error("Unknown Socket::IP value passed to set_inet_version()");
+            }
+        }
+
+    protected:
+        int ai_family;
     };
 }
 

@@ -16,9 +16,9 @@ namespace fr
 class TcpListener : public Listener
 {
 public:
-    TcpListener() noexcept = default;
-    virtual ~TcpListener() noexcept = default;
-    TcpListener(TcpListener &&o) noexcept = default;
+    TcpListener() = default;
+    virtual ~TcpListener() = default;
+    TcpListener(TcpListener &&o) = default;
 
     /*!
      * Listens to the given port for connections

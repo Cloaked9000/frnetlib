@@ -17,7 +17,7 @@ namespace fr
 
         memset(&hints, 0, sizeof(addrinfo));
 
-        hints.ai_family = AF_UNSPEC; //IPv6 or IPv4. NOTE: Might want to make configurable.
+        hints.ai_family = ai_family;
         hints.ai_socktype = SOCK_STREAM; //TCP
         hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
 
@@ -38,6 +38,12 @@ namespace fr
             if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
             {
                 continue;
+            }
+
+            //If it's an IPv6 interface, attempt to allow IPv4 connections
+            if(c->ai_family == AF_INET6)
+            {
+                setsockopt(socket_descriptor, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&no, sizeof(no));
             }
 
             //Attempt to bind
