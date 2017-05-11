@@ -70,18 +70,8 @@ namespace fr
 
     Socket::Status fr::SSLListener::listen(const std::string &port)
     {
-        int mbed_addr_family = 0;
-        if(ai_family == fr::Socket::IP::v4)
-            mbed_addr_family = MBEDTLS_NET_ADDR_FAMILY_4;
-        else if(ai_family == fr::Socket::IP::v6)
-            mbed_addr_family = MBEDTLS_NET_ADDR_FAMILY_6;
-        else if(ai_family == fr::Socket::IP::any)
-            mbed_addr_family = MBEDTLS_NET_ADDR_FAMILY_ANY;
-        else
-            return fr::Socket::Error;
-
         //Bind to port
-        if(mbedtls_net_bind(&listen_fd, NULL, port.c_str(), MBEDTLS_NET_PROTO_TCP, mbed_addr_family) != 0)
+        if(mbedtls_net_bind(&listen_fd, NULL, port.c_str(), MBEDTLS_NET_PROTO_TCP) != 0)
         {
             return Socket::BindFailed;
         }
