@@ -53,8 +53,8 @@ namespace fr
          */
         bool load_ca_certs_from_memory(const std::string &ca_certs)
         {
-            int error;
-            if((error = mbedtls_x509_crt_parse(&cacert, (const unsigned char *)ca_certs.c_str(), ca_certs.size()) < 0))
+            int error = mbedtls_x509_crt_parse(&cacert, (const unsigned char *)ca_certs.c_str(), ca_certs.size());
+            if(error < 0)
             {
                 std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
                 return false;
@@ -70,8 +70,8 @@ namespace fr
          */
         bool load_ca_certs_from_file(const std::string &ca_certs_filepath)
         {
-            int error;
-            if((error = mbedtls_x509_crt_parse_file(&cacert, ca_certs_filepath.c_str()) < 0))
+            int error = mbedtls_x509_crt_parse_file(&cacert, ca_certs_filepath.c_str());
+            if(error < 0)
             {
                 std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
                 return false;
