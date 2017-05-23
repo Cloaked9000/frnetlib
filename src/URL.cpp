@@ -117,8 +117,8 @@ std::string URL::to_lower(const std::string &str)
 
 const std::string &URL::scheme_to_string(URL::Scheme scheme)
 {
-    auto iter = std::find_if(scheme_string_map.begin(), scheme_string_map.end(), [](const auto &i){
-        return i->second == scheme;
+    auto iter = std::find_if(scheme_string_map.begin(), scheme_string_map.end(), [&](const auto &i){
+        return i.second == scheme;
     });
 
     if(iter == scheme_string_map.end())
