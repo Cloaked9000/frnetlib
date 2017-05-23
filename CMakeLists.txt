@@ -57,9 +57,6 @@ else()
     endif()
 endif()
 
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -m64 -fPIC")
-
 if(USE_SSL)
     if( WIN32 )
         TARGET_LINK_LIBRARIES(frnetlib ${MBEDTLS_LIBRARIES} -lws2_32)
