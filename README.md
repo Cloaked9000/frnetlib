@@ -1,6 +1,6 @@
 # frnetlib
 
-Frnetlib, is a small and fast networking library written in C++. It can be used for both messaging and for sending/receiving HTTP requests. There are no library dependencies, and it should compile fine with any C++11 complient compiler. The API should be considered relatively stable, but things could change as new features are added, given that the library is still in the early stages of deveopment.
+Frnetlib, is a small and fast networking library written in C++. It can be used for both messaging and for sending/receiving HTTP requests. There are no library dependencies (unless you want to use SSL, in which case MbedTLS is required), and it should compile fine with any C++11 compliant compiler. The API should be considered relatively stable, but things could change as new features are added, given that the library is still in the early stages of development.
 
 # Connecting to a Socket:
 
@@ -37,7 +37,7 @@ if(listener.accept(client) != fr::Socket::Success)
 }
 
 ```
-Here we create a new fr::TcpListener, which is used to listen for incomming connections and accept them. Calling fr::TcpListener::listen(port) will bind the listener to a port, allowing you to receive connections on that port. Next a new fr::TcpSocket is created, which is where the accepted connection is stored, to send data through the new connection, we do so though 'client' from now on. fr::TcpListener's can accept as many new connections as you want. You don't need a new one for each client. 
+Here we create a new fr::TcpListener, which is used to listen for incoming connections and accept them. Calling fr::TcpListener::listen(port) will bind the listener to a port, allowing you to receive connections on that port. Next a new fr::TcpSocket is created, which is where the accepted connection is stored, to send data through the new connection, we do so though 'client' from now on. fr::TcpListener's can accept as many new connections as you want. You don't need a new one for each client. 
 
 # Using SSL
 
@@ -46,7 +46,8 @@ Here we create a new fr::TcpListener, which is used to listen for incomming conn
 #include <SSLContext.h>
 #include <SSLListener.h>
 
-std::shared_ptr<fr::SSLContext> ssl_context(new fr::SSLContext("certs.crt")); //Creates a new 'SSL' context. 'certs.txt' should be a list of your trusted public keys.
+std::shared_ptr<fr::SSLContext> ssl_context(new fr::SSLContext("certs.crt")); //Creates a new 'SSL' context. This stores certificates and is shared between SSL enabled objects.
+ssl_conext->load_ca_certs_from_file(filepath); //This, or 'load_ca_certs_from_memory' should be called on the context, to load your SSL certificates.
 
 fr::SSLListener listener(ssl_context, "crt_path", "pem_path", "private_key_path"); //This is the SSL equivilent to fr::TcpListener
 
@@ -55,8 +56,8 @@ fr::SSLSocket socket(ssl_context); //This is the SSL equivilent to fr::TcpSocket
 fr::HttpSocket<fr::SSLSocket> socket(ssl_context); //This is the SSL equivilent for a HTTP socket.
 
 ```
-As you've probably noticed, everything unencrypted has it's equivilent encrypted counter part, usually just by replacing 'TCP' with 'SSL' and providing an SSLContext object.
-fr::SSLContext stores SSL information which needn't be duplicated across each socket and listener, such as the random number generator, and public key list. It is *important* to build mbedtls with thread protection enabled, if your program is multithreaded. This SSLContext object can then be passed to any SSL sockets or listeners which you may create.
+As you've probably noticed, everything unencrypted has it's equivalent encrypted counterpart, usually just by replacing 'TCP' with 'SSL' and providing an SSLContext object.
+fr::SSLContext stores SSL information which need not be duplicated across each socket and listener, such as the random number generator, and public key list. It is *important* to build mbedtls with thread protection enabled, if your program is multithreaded. This SSLContext object can then be passed to any SSL sockets or listeners which you may create.
 
 SSLListener accepts a lot more arguments than its unencrypted counterpart, TcpListener, and it needs the filepaths to your SSL certificates and keys to properly authenticate with clients. 
 
