@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <mbedtls/net_sockets.h>
+#include <frnetlib/TcpListener.h>
 #include "frnetlib/SSLListener.h"
 #ifdef SSL_ENABLED
 
@@ -70,11 +71,16 @@ namespace fr
 
     Socket::Status fr::SSLListener::listen(const std::string &port)
     {
-        //Bind to port
-        if(mbedtls_net_bind(&listen_fd, NULL, port.c_str(), MBEDTLS_NET_PROTO_TCP) != 0)
+        //This is a hack. mbedtls doesn't support specifying the address family.
+        fr::TcpListener tcp_listen;
+        tcp_listen.set_inet_version(ai_family);
+        if(tcp_listen.listen(port) != fr::Socket::Success)
         {
             return Socket::BindFailed;
         }
+
+        listen_fd.fd = tcp_listen.get_socket_descriptor();
+        tcp_listen.set_socket_descriptor(-1); //The socket wont close if it's -1 when we destruct it
         return Socket::Success;
     }
 
@@ -123,6 +129,16 @@ namespace fr
     void SSLListener::shutdown()
     {
         ::shutdown(listen_fd.fd, 0);
+    }
+
+    int32_t SSLListener::get_socket_descriptor()
+    {
+        return listen_fd.fd;
+    }
+
+    void SSLListener::set_socket_descriptor(int32_t descriptor)
+    {
+        listen_fd.fd = descriptor;
     }
 
 }

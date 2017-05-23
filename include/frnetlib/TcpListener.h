@@ -17,7 +17,7 @@ class TcpListener : public Listener
 {
 public:
     TcpListener() = default;
-    virtual ~TcpListener() = default;
+    virtual ~TcpListener() override;
     TcpListener(TcpListener &&o) = default;
 
     /*!
@@ -45,6 +45,21 @@ public:
      * you're exiting and need the blocking socket to return).
      */
     virtual void shutdown() override;
+
+    /*!
+     * Gets the socket descriptor.
+     *
+     * @return The listen socket descriptor
+     */
+    virtual int32_t get_socket_descriptor() override;
+
+    /*!
+     * Sets the socket descriptor.
+     *
+     * @param descriptor The listen descriptor to use
+     */
+    virtual void set_socket_descriptor(int32_t descriptor) override;
+
 
 private:
     int32_t socket_descriptor;

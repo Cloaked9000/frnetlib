@@ -17,6 +17,8 @@ namespace fr
 
         }
 
+        virtual ~Listener() = default;
+
         /*!
          * Listens to the given port for connections
          *
@@ -44,6 +46,20 @@ namespace fr
         virtual void shutdown()=0;
 
         /*!
+         * Gets the socket descriptor.
+         *
+         * @return The listen socket descriptor
+         */
+        virtual int32_t get_socket_descriptor()=0;
+
+        /*!
+         * Sets the socket descriptor.
+         *
+         * @param descriptor The listen descriptor to use
+         */
+        virtual void set_socket_descriptor(int32_t descriptor)=0;
+
+        /*!
          * Set which IP version to use. IP::any is the default
          * value, so either an IPv4 OR IPv6 interface will be used.
          *
@@ -65,6 +81,17 @@ namespace fr
                 default:
                     throw std::logic_error("Unknown Socket::IP value passed to set_inet_version()");
             }
+        }
+
+        /*!
+         * Same as the other set_inet_version,
+         * but accepts a AF_INET* macro directly.
+         *
+         * @param version
+         */
+        void set_inet_version(int version)
+        {
+            ai_family = version;
         }
 
     protected:

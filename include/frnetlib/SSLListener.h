@@ -54,6 +54,20 @@ namespace fr
          */
         virtual void shutdown() override;
 
+        /*!
+         * Gets the socket descriptor.
+         *
+         * @return The listen socket descriptor
+         */
+        virtual int32_t get_socket_descriptor() override;
+
+        /*!
+         * Sets the socket descriptor.
+         *
+         * @param descriptor The listen descriptor to use
+         */
+        virtual void set_socket_descriptor(int32_t descriptor) override;
+
     private:
         mbedtls_net_context listen_fd;
         mbedtls_ssl_config conf;
