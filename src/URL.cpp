@@ -63,6 +63,28 @@ namespace fr
             pos = (pos != std::string::npos) ? pos : url.size();
             host = url.substr(parse_offset, pos - parse_offset);
             parse_offset = pos + 1;
+
+            //Guess port based on scheme, if it's not explicitly provided.
+            switch(scheme)
+            {
+                case URL::HTTP:
+                    port = "80";
+                    break;
+                case URL::HTTPS:
+                    port = "443";
+                    break;
+                case URL::IRC:
+                    port = "6697";
+                    break;
+                case URL::FTP:
+                    port = "21";
+                    break;
+                case URL::SFTP:
+                    port = "25";
+                    break;
+                default:
+                    break;
+            }
         }
 
         //Exit if done
