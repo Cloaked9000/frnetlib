@@ -41,7 +41,7 @@ namespace fr
         /*!
          * Get the URL scheme
          */
-        inline Scheme get_scheme()
+        inline Scheme get_scheme() const
         {
             return scheme;
         }
@@ -49,7 +49,7 @@ namespace fr
         /*
          * Get the URL host
          */
-        inline const std::string &get_host()
+        inline const std::string &get_host() const
         {
             return host;
         }
@@ -57,7 +57,7 @@ namespace fr
         /*
          * Get the URL port
          */
-        inline const std::string &get_port()
+        inline const std::string &get_port() const
         {
             return port;
         }
@@ -65,7 +65,7 @@ namespace fr
         /*
          * Get the URL path
          */
-        inline const std::string &get_path()
+        inline const std::string &get_path() const
         {
             return path;
         }
@@ -73,7 +73,7 @@ namespace fr
         /*
          * Get the URL query
          */
-        inline const std::string &get_query()
+        inline const std::string &get_query() const
         {
             return query;
         }
@@ -81,7 +81,7 @@ namespace fr
         /*
          * Get the URL fragment
          */
-        inline const std::string &get_fragment()
+        inline const std::string &get_fragment() const
         {
             return fragment;
         }
