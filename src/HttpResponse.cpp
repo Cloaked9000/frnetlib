@@ -28,9 +28,8 @@ namespace fr
                 parse_header(header_end);
                 body.clear();
             }
-            content_length += 2; //The empty line between header and data
 
-            body += response_data.substr(header_end, response_data.size() - header_end);
+            body += response_data.substr(header_end + 4, response_data.size() - header_end - 4);
         }
 
         return body.size() < content_length;
