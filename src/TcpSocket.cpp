@@ -9,6 +9,7 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
+    : socket_descriptor(-1)
     {
 
     }
@@ -40,10 +41,10 @@ namespace fr
 
     void TcpSocket::close_socket()
     {
-        if(is_connected)
+        if(socket_descriptor > -1)
         {
             ::closesocket(socket_descriptor);
-            is_connected = false;
+            socket_descriptor = -1;
         }
     }
 
@@ -80,7 +81,6 @@ namespace fr
     {
         reconfigure_socket();
         socket_descriptor = descriptor;
-        is_connected = true;
     }
 
     Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
@@ -124,7 +124,6 @@ namespace fr
         freeaddrinfo(info);
 
         //Update state now we've got a valid socket descriptor
-        is_connected = true;
         remote_address = address + ":" + port;
         reconfigure_socket();
 

@@ -131,10 +131,7 @@ namespace fr
          *
          * @return True if it's connected. False otherwise.
          */
-        inline bool connected() const
-        {
-            return is_connected;
-        }
+         virtual bool connected() const =0;
 
         /*!
          * Gets the socket descriptor.
@@ -162,6 +159,7 @@ namespace fr
          */
         void set_inet_version(IP version);
     protected:
+
         /*!
          * Applies requested socket options to the socket.
          * Should be called when a new socket is created.
@@ -170,7 +168,6 @@ namespace fr
 
         std::string remote_address;
         bool is_blocking;
-        bool is_connected;
         std::mutex outbound_mutex;
         std::mutex inbound_mutex;
         int ai_family;

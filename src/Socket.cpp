@@ -16,7 +16,6 @@ namespace fr
 
     Socket::Socket() noexcept
     : is_blocking(true),
-      is_connected(false),
       ai_family(AF_UNSPEC)
     {
             if(instance_count == 0)
@@ -38,7 +37,7 @@ namespace fr
 
     Socket::Status Socket::send(Packet &packet)
     {
-        if(!is_connected)
+        if(!connected())
             return Socket::Disconnected;
 
         std::string &data = packet.get_buffer();
@@ -47,7 +46,7 @@ namespace fr
 
     Socket::Status Socket::send(Packet &&packet)
     {
-        if(!is_connected)
+        if(!connected())
             return Socket::Disconnected;
 
         std::string &data = packet.get_buffer();
@@ -56,7 +55,7 @@ namespace fr
 
     Socket::Status Socket::receive(Packet &packet)
     {
-        if(!is_connected)
+        if(!connected())
             return Socket::Disconnected;
 
         Socket::Status status;
@@ -81,7 +80,7 @@ namespace fr
 
     Socket::Status Socket::receive_all(void *dest, size_t buffer_size)
     {
-        if(!is_connected)
+        if(!connected())
             return Socket::Disconnected;
 
         ssize_t bytes_remaining = buffer_size;

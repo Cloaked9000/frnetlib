@@ -4,6 +4,8 @@
 
 #include "frnetlib/SSLSocket.h"
 #include <memory>
+#include <mbedtls/net_sockets.h>
+
 #ifdef SSL_ENABLED
 
 namespace fr
@@ -27,13 +29,12 @@ namespace fr
 
     void SSLSocket::close_socket()
     {
-        if(is_connected)
+        if(ssl_socket_descriptor->fd > -1)
         {
             if(ssl)
                 mbedtls_ssl_close_notify(ssl.get());
             if(ssl_socket_descriptor)
                 mbedtls_net_free(ssl_socket_descriptor.get());
-            is_connected = false;
         }
     }
 
@@ -44,7 +45,7 @@ namespace fr
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                is_connected = false;
+                close_socket();
                 return Socket::Status::Disconnected;
             }
         }
@@ -64,7 +65,7 @@ namespace fr
 
         if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
         {
-            is_connected = false;
+            close_socket();
             return Socket::Status::Disconnected;
         }
         else if(read <= 0)
@@ -136,7 +137,6 @@ namespace fr
         }
 
         //Update state
-        is_connected = true;
         remote_address = address + ":" + port;
         reconfigure_socket();
 
@@ -150,7 +150,6 @@ namespace fr
 
     void SSLSocket::set_net_context(std::unique_ptr<mbedtls_net_context> context)
     {
-        is_connected = true;
         ssl_socket_descriptor = std::move(context);
         reconfigure_socket();
     }

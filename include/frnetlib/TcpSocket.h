@@ -93,6 +93,16 @@ public:
      */
     int32_t get_socket_descriptor() const override;
 
+    /*!
+     * Checks to see if we're connected to a socket or not
+     *
+     * @return True if it's connected. False otherwise.
+     */
+    inline virtual bool connected() const override final
+    {
+        return socket_descriptor > -1;
+    }
+
 protected:
     int32_t socket_descriptor;
 };

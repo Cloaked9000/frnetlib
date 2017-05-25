@@ -98,6 +98,16 @@ namespace fr
             abort();
         }
 
+        /*!
+         * Checks to see if we're connected to a socket or not
+         *
+         * @return True if it's connected. False otherwise.
+         */
+        inline virtual bool connected() const override final
+        {
+            return ssl_socket_descriptor->fd > -1;
+        }
+
     private:
         std::shared_ptr<SSLContext> ssl_context;
 
