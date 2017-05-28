@@ -41,7 +41,7 @@ namespace fr
          *
          * @param header_end_pos The position in 'body' of the end of the header
          */
-        void parse_header(ssize_t header_end_pos);
+        void parse_header(int32_t header_end_pos);
 
         /*!
          * Parses the POST data from the body
@@ -64,7 +64,7 @@ namespace fr
 
         //State
         bool header_ended;
-        ssize_t last_parsed_character;
+		int32_t last_parsed_character;
         size_t content_length;
 
     };

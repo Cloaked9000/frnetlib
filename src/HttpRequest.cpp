@@ -52,7 +52,7 @@ namespace fr
         return true;
     }
 
-    void HttpRequest::parse_header(ssize_t header_end_pos)
+    void HttpRequest::parse_header(int32_t header_end_pos)
     {
         //Split the header into lines
         size_t line = 0;
@@ -74,7 +74,7 @@ namespace fr
         //Store content length value if it exists
         auto length_header_iter = header_data.find("content-length");
         if(length_header_iter != header_data.end())
-            content_length = std::stoull(length_header_iter->second);
+            content_length = (size_t)std::stoull(length_header_iter->second);
     }
 
     std::string HttpRequest::construct(const std::string &host) const

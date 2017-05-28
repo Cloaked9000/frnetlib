@@ -83,7 +83,7 @@ namespace fr
         if(!connected())
             return Socket::Disconnected;
 
-        ssize_t bytes_remaining = buffer_size;
+		int32_t bytes_remaining = buffer_size;
         size_t bytes_read = 0;
         while(bytes_remaining > 0)
         {

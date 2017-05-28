@@ -25,7 +25,7 @@ namespace fr
         size_t sent = 0;
         while(sent < size)
         {
-            ssize_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
+            int32_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
             if(status > 0)
             {
                 sent += status;
@@ -53,7 +53,7 @@ namespace fr
         received = 0;
 
         //Read RECV_CHUNK_SIZE bytes into the recv buffer
-        ssize_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
+		int32_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
 
         if(status > 0)
         {
