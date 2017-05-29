@@ -14,8 +14,10 @@ if( WIN32 )
 
 elseif(APPLE)
 	set( ADDITIONAL_LIB "" )
+	set( FRNETLIB_LIB frnetlib)
 else()
     set( ADDITIONAL_LIB "" )
+	set( FRNETLIB_LIB frnetlib)
 	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -m64 -fPIC -std=c++14 -pthread -lmbedtls -lmbedx509 -lmbedcrypto")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -m64 -fPIC -std=c++14 -pthread")
 endif()
@@ -23,7 +25,10 @@ endif()
 
 add_executable(${PROJECT_NAME} ../main.cpp)
 add_executable(packet packet.cpp)
-
+add_executable(tcpsocket_server tcpsocket_server.cpp)
+add_executable(tcpsocket_client tcpsocket_client.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
 target_link_libraries(packet ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
+target_link_libraries(tcpsocket_server ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
+target_link_libraries(tcpsocket_client ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
