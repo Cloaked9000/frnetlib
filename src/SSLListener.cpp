@@ -3,10 +3,11 @@
 //
 
 #include <chrono>
-#include <mbedtls/net_sockets.h>
 #include <frnetlib/TcpListener.h>
 #include "frnetlib/SSLListener.h"
 #ifdef SSL_ENABLED
+
+#include <mbedtls/net_sockets.h>
 
 namespace fr
 {

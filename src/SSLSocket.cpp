@@ -4,9 +4,10 @@
 
 #include "frnetlib/SSLSocket.h"
 #include <memory>
-#include <mbedtls/net_sockets.h>
 
 #ifdef SSL_ENABLED
+
+#include <mbedtls/net_sockets.h>
 
 namespace fr
 {
