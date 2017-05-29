@@ -62,7 +62,7 @@ namespace fr
         return response;
     }
 
-    void HttpResponse::parse_header(ssize_t header_end_pos)
+    void HttpResponse::parse_header(int32_t header_end_pos)
     {
         //Split the header into lines
         size_t line = 0;
