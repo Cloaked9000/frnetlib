@@ -7,6 +7,7 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_mo
 #User options
 option(USE_SSL "Use SSL" ON)
 option(BUILD_EXAMPLES "Build frnetlib examples" ON)
+option(BUILD_TESTS "Build frnetlib tests" ON)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 
 if(USE_SSL)
@@ -64,6 +65,13 @@ if(USE_SSL)
     else()
         TARGET_LINK_LIBRARIES(frnetlib ${MBEDTLS_LIBRARIES})
     endif()
+endif()
+
+#Build Tests if needbe
+if(BUILD_TESTS)
+    set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
+    add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
+    add_subdirectory(tests)
 endif()
 
 #Build examples if needbe
