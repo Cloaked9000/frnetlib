@@ -43,7 +43,11 @@ int client_round(fr::TcpSocket& socket)
 int main()
 {
 	fr::TcpSocket socket;
-	if (socket.connect("127.0.0.1", "8081") != fr::Socket::Success)
+
+	string server_ip = "127.0.0.1";
+	string server_port = "8081";
+
+	if (socket.connect(server_ip, server_port) != fr::Socket::Success)
 	{
 		//Failed to connect
 		cout << "CLIENT:it seem that the socket can be accessed or there is no such socket at all" << endl;
