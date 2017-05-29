@@ -23,7 +23,10 @@ endif()
 
 add_executable(${PROJECT_NAME} ../main.cpp)
 add_executable(packet packet.cpp)
-
+add_executable(tcpsocket_server tcpsocket_server.cpp)
+add_executable(tcpsocket_client tcpsocket_client.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
 target_link_libraries(packet ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
+target_link_libraries(tcpsocket_server ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
+target_link_libraries(tcpsocket_client ${FRNETLIB_LIB} ${ADDITIONAL_LIB})
