@@ -1,5 +1,7 @@
 dist: trusty
-sudo: required
+sudo: false
+cache:
+    apt: true
 language:
   - cpp
 compiler:
@@ -24,3 +26,4 @@ script:
   # Build commands
   - cmake .
   - make
+  - exit 0
