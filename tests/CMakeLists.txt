@@ -23,6 +23,11 @@ else()
         )
 endif()
 
-target_link_libraries(${FRNETLIB_TEST} ${CMAKE_THREAD_LIBS_INIT})
-
+#Link tests
+target_link_libraries(${FRNETLIB_TEST} -lgtest -lfrnetlib)
 add_test(test1 ${FRNETLIB_TEST})
+
+#Run tests automatically
+add_custom_command(TARGET ${FRNETLIB_TEST}
+        POST_BUILD
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/_test)
