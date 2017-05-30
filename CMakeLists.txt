@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.2)
 project(frnetlib)
 
 #Set module path
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 
 #User options
-option(USE_SSL "Use SSL" ON)
+option(USE_SSL "Use SSL" OFF)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 
 #Tests and examples are currently broken on Windows
