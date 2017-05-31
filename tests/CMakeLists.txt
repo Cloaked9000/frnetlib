@@ -24,7 +24,7 @@ else()
 endif()
 
 #Link tests
-target_link_libraries(${FRNETLIB_TEST} gtest_main frnetlib)
+target_link_libraries(${FRNETLIB_TEST} frnetlib)
 add_test(test1 ${FRNETLIB_TEST})
 
 #Run tests automatically
