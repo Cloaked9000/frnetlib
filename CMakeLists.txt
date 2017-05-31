@@ -14,6 +14,12 @@ option(BUILD_EXAMPLES "Build frnetlib examples" ON)
 option(BUILD_TESTS "Build frnetlib tests" ON)
 
 add_definitions(-DNOMINMAX)
+add_definitions(-Dhtonf)
+add_definitions(-Dhtonll)
+add_definitions(-Dntohll)
+add_definitions(-Dhtond)
+add_definitions(-Dntodh)
+
 if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
     INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
