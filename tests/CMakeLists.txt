@@ -6,6 +6,9 @@ file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/tests/*.cpp)
 add_executable(${FRNETLIB_TEST} ${TEST_SRC_FILES})
 add_dependencies(${FRNETLIB_TEST} googletest)
 
+if(MSVC)
+	set(FRNETLIB_TEST ${FRNETLIB_TEST} wsock32 ws2_32)
+endif()
 
 if(NOT WIN32 OR MINGW)
     target_link_libraries(${FRNETLIB_TEST}
@@ -26,8 +29,3 @@ endif()
 #Link tests
 target_link_libraries(${FRNETLIB_TEST} frnetlib)
 add_test(test1 ${FRNETLIB_TEST})
-
-#Run tests automatically
-add_custom_command(TARGET ${FRNETLIB_TEST}
-        POST_BUILD
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/_test)

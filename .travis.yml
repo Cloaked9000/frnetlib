@@ -26,3 +26,5 @@ script:
   # Build commands
   - cmake .
   - make
+  # Run tests
+  - tests/_test

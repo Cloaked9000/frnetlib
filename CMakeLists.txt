@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(frnetlib)
+set(FRNETLIB_LINK_LIBRARIES "")
 
 #Set module path
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
@@ -8,17 +9,11 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_mo
 option(USE_SSL "Use SSL" OFF)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 
-#Tests and examples are currently broken on Windows
-if(WIN32)
-	option(BUILD_EXAMPLES "Build frnetlib examples" OFF)
-	option(BUILD_TESTS "Build frnetlib tests" OFF)
-else()
-	option(BUILD_EXAMPLES "Build frnetlib examples" ON)
-	option(BUILD_TESTS "Build frnetlib tests" ON)
+#Enable tests and examples by default
+option(BUILD_EXAMPLES "Build frnetlib examples" ON)
+option(BUILD_TESTS "Build frnetlib tests" ON)
 
-endif()
-
-
+add_definitions(-DNOMINMAX)
 if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
     INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
@@ -75,13 +70,15 @@ else()
     endif()
 endif()
 
-if(USE_SSL)
-    if( WIN32 )
-        TARGET_LINK_LIBRARIES(frnetlib ${MBEDTLS_LIBRARIES} -lws2_32)
-    else()
-        TARGET_LINK_LIBRARIES(frnetlib ${MBEDTLS_LIBRARIES})
-    endif()
+if(WIN32)
+	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} wsock32 ws2_32)
 endif()
+
+if(USE_SSL)
+	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} ${MBEDTLS_LIBRARIES})
+endif()
+
+target_link_libraries(frnetlib ${FRNETLIB_LINK_LIBRARIES})
 
 #Build Tests if needbe
 if(BUILD_TESTS)
