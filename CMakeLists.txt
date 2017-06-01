@@ -34,11 +34,12 @@ set(SOURCE_FILES main.cpp src/TcpSocket.cpp include/frnetlib/TcpSocket.h src/Tcp
 include_directories(include)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-if(UNIX)
+if(USE_SSL)
+	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} ${MBEDTLS_LIBRARIES})
+endif()
+
+if(NOT MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -fPIC -std=c++14 -pthread")
-	if(USE_SSL)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lmbedtls -lmbedx509 -lmbedcrypto")
-	endif()
 endif()
 
 # Set the library output directory
@@ -78,10 +79,6 @@ endif()
 
 if(WIN32)
 	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} wsock32 ws2_32)
-endif()
-
-if(USE_SSL)
-	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} ${MBEDTLS_LIBRARIES})
 endif()
 
 target_link_libraries(frnetlib ${FRNETLIB_LINK_LIBRARIES})
