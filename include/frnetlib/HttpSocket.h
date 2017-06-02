@@ -7,11 +7,12 @@
 
 #include "Http.h"
 #include "Socket.h"
+#include "WebSocket.h"
 
 namespace fr
 {
     template<class SocketType>
-    class HttpSocket : public SocketType
+    class HttpSocket : public SocketType, public WebSocket
     {
     public:
         HttpSocket()
