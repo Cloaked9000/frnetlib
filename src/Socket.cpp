@@ -16,7 +16,8 @@ namespace fr
 
     Socket::Socket() noexcept
     : is_blocking(true),
-      ai_family(AF_UNSPEC)
+      ai_family(AF_UNSPEC),
+      max_packet_size(0)
     {
             if(instance_count == 0)
             {
@@ -68,6 +69,13 @@ namespace fr
             return status;
         packet_length = ntohl(packet_length);
 
+        //Check that packet_length doesn't exceed the limit, if any
+        if(max_packet_size && max_packet_size > max_packet_size)
+        {
+            close_socket();
+            return fr::Socket::MaxPacketSizeExceeded;
+        }
+
         //Now we've got the length, read the rest of the data in
         packet.buffer.resize(packet_length + PACKET_HEADER_LENGTH);
         status = receive_all(&packet.buffer[PACKET_HEADER_LENGTH], packet_length);
@@ -83,7 +91,7 @@ namespace fr
         if(!connected())
             return Socket::Disconnected;
 
-		int32_t bytes_remaining = buffer_size;
+		int32_t bytes_remaining = (int32_t) buffer_size;
         size_t bytes_read = 0;
         while(bytes_remaining > 0)
         {
@@ -127,5 +135,10 @@ namespace fr
             default:
                 throw std::logic_error("Unknown Socket::IP value passed to set_inet_version()");
         }
+    }
+
+    void Socket::set_max_packet_size(uint32_t sz)
+    {
+        max_packet_size = sz;
     }
 }

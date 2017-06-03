@@ -26,6 +26,7 @@ namespace fr
             ConnectionFailed = 7,
             HandshakeFailed = 8,
             VerificationFailed = 9,
+            MaxPacketSizeExceeded = 10,
         };
 
         enum IP
@@ -158,6 +159,22 @@ namespace fr
          * @param version Should IPv4, IPv6 be used, or any?
          */
         void set_inet_version(IP version);
+
+        /*!
+         * Sets the maximum fr::Packet size that may be received by the socket.
+         *
+         * If a client attempts to send a packet larger than sz bytes, then
+         * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
+         * will be returned. Pass '0' to indicate no limit. The default value is 0.
+         *
+         * This should be used to prevent potential abuse, as a client could say that
+         * it's going to send a 200GiB packet, which would cause the Socket to try and
+         * allocate that much memory to accommodate the data, which is most likely not
+         * desirable.
+         *
+         * @param sz The maximum number of bytes that may be received in an fr::Packet
+         */
+        void set_max_packet_size(uint32_t sz);
     protected:
 
         /*!
@@ -171,6 +188,7 @@ namespace fr
         std::mutex outbound_mutex;
         std::mutex inbound_mutex;
         int ai_family;
+        uint32_t max_packet_size;
         #ifdef _WIN32
                 static WSADATA wsaData;
         #endif // _WIN32
