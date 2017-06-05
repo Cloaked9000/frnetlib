@@ -148,7 +148,7 @@ fr::HttpRequest objects are used for dealing with data being sent *to* the serve
 #include <HttpResponse.h>
 
 //Connect to the website
-fr::HttpSocket socket;
+fr::HttpSocket<fr::TcpSocket> socket;
 if(socket.connect("example.com", "80") != fr::Socket::Success)
 {
     //Failed to connect to site
@@ -177,7 +177,7 @@ if(socket.receive(response) != fr::Socket::Success)
 //Print out the response
 std::cout << request.get_body() << std::endl;
 ```
-Here we create a fr::HttpSocket object, connect to a domain (don't include the 'http://' bit). SSL support is planned but not implemented just yet. After connecting, we construct a fr::HttpRequest object to send to the server, adding in some GET arguments, POST arguments and a request header. 
+Here we create a fr::HttpSocket object, connect to a domain (don't include the 'http://' bit). The socket is non-SSL and so the underlying socket type is fr::TcpSocket. If this were an SSL socket, then it'd be fr::HttpSocket<fr::SSLSocket>. After connecting, we construct a fr::HttpRequest object to send to the server, adding in some GET arguments, POST arguments and a request header. 
 
 You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse)::(get/post) functions. And access/set headers though the [] operator. Once we've sent a request, we wait for a response. Once received, we print out the body of the response and exit.
 
