@@ -9,13 +9,16 @@ namespace fr
 
     const int yes = 1;
     const int no = 0;
+
+    TcpListener::TcpListener()
+    : socket_descriptor(-1)
+    {
+
+    }
+
     TcpListener::~TcpListener()
     {
-        if(socket_descriptor > -1)
-        {
-            closesocket(socket_descriptor);
-            socket_descriptor = -1;
-        }
+        close_socket();
     }
 
     Socket::Status TcpListener::listen(const std::string &port)
@@ -121,5 +124,14 @@ namespace fr
     void TcpListener::set_socket_descriptor(int32_t descriptor)
     {
         socket_descriptor = descriptor;
+    }
+
+    void TcpListener::close_socket()
+    {
+        if(socket_descriptor > -1)
+        {
+            closesocket(socket_descriptor);
+            socket_descriptor = -1;
+        }
     }
 }

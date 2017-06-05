@@ -15,7 +15,7 @@ namespace fr
     : ssl_context(ssl_context_)
     {
         //Initialise SSL objects required
-        mbedtls_net_init(&listen_fd);
+        listen_fd.fd = -1;
         mbedtls_ssl_config_init(&conf);
         mbedtls_x509_crt_init(&srvcert);
         mbedtls_pk_init(&pkey);
@@ -64,7 +64,7 @@ namespace fr
 
     SSLListener::~SSLListener()
     {
-        mbedtls_net_free(&listen_fd);
+        close_socket();
         mbedtls_x509_crt_free(&srvcert);
         mbedtls_pk_free(&pkey);
         mbedtls_ssl_config_free(&conf);
@@ -73,6 +73,8 @@ namespace fr
     Socket::Status fr::SSLListener::listen(const std::string &port)
     {
         //This is a hack. mbedtls doesn't support specifying the address family.
+        close_socket();
+        mbedtls_net_init(&listen_fd);
         fr::TcpListener tcp_listen;
         tcp_listen.set_inet_version(ai_family);
         if(tcp_listen.listen(port) != fr::Socket::Success)
@@ -140,6 +142,15 @@ namespace fr
     void SSLListener::set_socket_descriptor(int32_t descriptor)
     {
         listen_fd.fd = descriptor;
+    }
+
+    void SSLListener::close_socket()
+    {
+        if(listen_fd.fd != -1)
+        {
+            mbedtls_net_free(&listen_fd);
+            listen_fd.fd = -1;
+        }
     }
 
 }

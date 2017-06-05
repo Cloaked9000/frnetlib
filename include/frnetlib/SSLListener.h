@@ -45,6 +45,11 @@ namespace fr
         virtual Socket::Status accept(Socket &client) override;
 
         /*!
+         * Closes the socket
+         */
+        virtual void close_socket() override;
+
+        /*!
          * Calls the shutdown syscall on the socket.
          * So you can receive data but not send.
          *
