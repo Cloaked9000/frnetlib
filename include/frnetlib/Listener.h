@@ -39,11 +39,18 @@ namespace fr
          * Calls the shutdown syscall on the socket.
          * So you can receive data but not send.
          *
+         * Note: THIS DOES NOT CLOSE THE SOCKET. SHUTDOWN AND CLOSE ARE TWO DIFFERENT THINGS.
+         *
          * This can be called on a blocking socket to force
          * it to immediately return (you might want to do this if
          * you're exiting and need the blocking socket to return).
          */
         virtual void shutdown()=0;
+
+        /*!
+         * Closes the socket
+         */
+        virtual void close_socket()=0;
 
         /*!
          * Gets the socket descriptor.

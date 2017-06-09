@@ -33,7 +33,8 @@ namespace fr
             }
             else
             {
-                parse_header(header_end);
+                if(!parse_header(header_end))
+                    return false;
                 body.clear();
             }
             content_length += 2; //The empty line between header and data
@@ -52,29 +53,38 @@ namespace fr
         return true;
     }
 
-    void HttpRequest::parse_header(int32_t header_end_pos)
+    bool HttpRequest::parse_header(int32_t header_end_pos)
     {
-        //Split the header into lines
-        size_t line = 0;
-        std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
-        if(header_lines.empty())
-            return;
-
-        //Parse request type & uri
-        parse_header_type(header_lines[line]);
-        parse_header_uri(header_lines[line]);
-        line++;
-
-        //Read in headers
-        for(; line < header_lines.size(); line++)
+        try
         {
-            parse_header_line(header_lines[line]);
-        }
+            //Split the header into lines
+            size_t line = 0;
+            std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
+            if(header_lines.empty())
+                return false;
 
-        //Store content length value if it exists
-        auto length_header_iter = header_data.find("content-length");
-        if(length_header_iter != header_data.end())
-            content_length = (size_t)std::stoull(length_header_iter->second);
+            //Parse request type & uri
+            parse_header_type(header_lines[line]);
+            parse_header_uri(header_lines[line]);
+            line++;
+
+            //Read in headers
+            for(; line < header_lines.size(); line++)
+            {
+                parse_header_line(header_lines[line]);
+            }
+
+            //Store content length value if it exists
+            auto length_header_iter = header_data.find("content-length");
+            if(length_header_iter != header_data.end())
+                content_length = (size_t)std::stoull(length_header_iter->second);
+        }
+        catch(const std::exception &e)
+        {
+            return false;
+        }
+        return true;
+
     }
 
     std::string HttpRequest::construct(const std::string &host) const

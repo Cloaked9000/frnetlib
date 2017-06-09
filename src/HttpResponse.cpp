@@ -62,24 +62,32 @@ namespace fr
         return response;
     }
 
-    void HttpResponse::parse_header(int32_t header_end_pos)
+    bool HttpResponse::parse_header(int32_t header_end_pos)
     {
-        //Split the header into lines
-        size_t line = 0;
-        std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
-        if(header_lines.empty())
-            return;
-        line++;
-
-        //Read in headers
-        for(; line < header_lines.size(); line++)
+        try
         {
-            parse_header_line(header_lines[line]);
-        }
+            //Split the header into lines
+            size_t line = 0;
+            std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
+            if(header_lines.empty())
+                return false;
+            line++;
 
-        //Store content length value if it exists
-        auto length_header_iter = header_data.find("content-length");
-        if(length_header_iter != header_data.end())
-            content_length = std::stoull(length_header_iter->second);
+            //Read in headers
+            for(; line < header_lines.size(); line++)
+            {
+                parse_header_line(header_lines[line]);
+            }
+
+            //Store content length value if it exists
+            auto length_header_iter = header_data.find("content-length");
+            if(length_header_iter != header_data.end())
+                content_length = std::stoull(length_header_iter->second);
+        }
+        catch(const std::exception &e)
+        {
+            return false;
+        }
+        return true;
     }
 }

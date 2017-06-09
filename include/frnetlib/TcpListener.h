@@ -16,7 +16,7 @@ namespace fr
 class TcpListener : public Listener
 {
 public:
-    TcpListener() = default;
+    TcpListener();
     virtual ~TcpListener() override;
     TcpListener(TcpListener &&o) = default;
 
@@ -59,6 +59,11 @@ public:
      * @param descriptor The listen descriptor to use
      */
     virtual void set_socket_descriptor(int32_t descriptor) override;
+
+    /*!
+     * Closes the socket
+     */
+    virtual void close_socket() override;
 
 
 private:
