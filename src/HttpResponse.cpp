@@ -71,6 +71,13 @@ namespace fr
             std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
             if(header_lines.empty())
                 return false;
+
+            //Get response code
+            auto status_begin = header_lines[0].find(' ');
+            if(status_begin == std::string::npos)
+                return false;
+            auto end_pos = header_lines[0].find(' ', status_begin + 1);
+            status = (RequestStatus)std::stoi(header_lines[0].substr(status_begin, end_pos - status_begin));
             line++;
 
             //Read in headers
