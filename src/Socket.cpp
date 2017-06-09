@@ -117,6 +117,9 @@ namespace fr
         //todo: Perhaps allow for these settings to be modified
         int one = 1;
         setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+#ifdef _WIN32
+        setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&one, sizeof(one));
+#endif
     }
 
     void Socket::set_inet_version(Socket::IP version)
