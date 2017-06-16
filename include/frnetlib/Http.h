@@ -19,6 +19,7 @@ namespace fr
             Unknown = 0,
             Get = 1,
             Post = 2,
+            Put = 3,
             RequestTypeCount = 3,
         };
         enum RequestStatus

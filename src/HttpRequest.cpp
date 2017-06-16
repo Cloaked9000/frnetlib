@@ -149,8 +149,13 @@ namespace fr
             //Check what it is
             if(str.compare(0, type_end, "GET") == 0)
                 request_type = fr::Http::Get;
-            else
+            else if(str.compare(0, type_end, "POST") == 0)
                 request_type = fr::Http::Post;
+            else if(str.compare(0, type_end, "PUT") == 0)
+                request_type = fr::Http::Put;
+            else
+                request_type = fr::Http::Unknown;
+
             return;
         }
         throw std::invalid_argument("No known request type found in: " + str);
