@@ -7,6 +7,20 @@
 
 namespace fr
 {
+    HttpResponse::HttpResponse(HttpResponse &&other)
+    : header_ended(other.header_ended),
+      content_length(other.content_length)
+    {
+
+    }
+
+    HttpResponse::HttpResponse(const HttpResponse &other)
+    : header_ended(other.header_ended),
+      content_length(other.content_length)
+    {
+
+    }
+
     bool HttpResponse::parse(const std::string &response_data)
     {
         body += response_data;

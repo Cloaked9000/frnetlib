@@ -79,6 +79,8 @@ namespace fr
         };
 
         Http();
+        Http(Http &&);
+        Http(const Http &);
         virtual ~Http() = default;
 
         /*!
@@ -280,6 +282,11 @@ namespace fr
          */
         std::vector<std::pair<std::string, std::string>> parse_argument_list(const std::string &str);
 
+        /*!
+         * Parses a header line in a HTTP request/response
+         *
+         * @param str The header. E.g: header: value
+         */
         void parse_header_line(const std::string &str);
 
         //Other request info

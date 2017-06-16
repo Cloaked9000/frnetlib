@@ -19,6 +19,29 @@ namespace fr
         clear();
     }
 
+    Http::Http(Http &&o)
+    : header_data(std::move(o.header_data)),
+      post_data(std::move(o.post_data)),
+      get_data(std::move(o.get_data)),
+      body(std::move(o.body)),
+      request_type(o.request_type),
+      uri(std::move(o.uri)),
+      status(o.status)
+    {
+    }
+
+    Http::Http(const Http &o)
+    : header_data(o.header_data),
+      post_data(o.post_data),
+      get_data(o.get_data),
+      body(o.body),
+      request_type(o.request_type),
+      uri(o.uri),
+      status(o.status)
+    {
+
+    }
+
     Http::RequestType Http::get_type() const
     {
         return request_type;

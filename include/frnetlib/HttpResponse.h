@@ -16,9 +16,10 @@ namespace fr
     {
     public:
         //Constructors
-        HttpResponse() = default;
-        HttpResponse(HttpResponse &&other) = default;
-        virtual ~HttpResponse() = default;
+        HttpResponse(){};
+        HttpResponse(HttpResponse &&other);
+        HttpResponse(const HttpResponse &);
+        virtual ~HttpResponse(){}
 
         /*!
          * Parse a HTTP response.
