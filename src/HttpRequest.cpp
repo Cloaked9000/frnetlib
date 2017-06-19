@@ -153,6 +153,10 @@ namespace fr
                 request_type = fr::Http::Post;
             else if(str.compare(0, type_end, "PUT") == 0)
                 request_type = fr::Http::Put;
+            else if(str.compare(0, type_end, "DELETE") == 0)
+                request_type = fr::Http::Delete;
+            else if(str.compare(0, type_end, "PATCH") == 0)
+                request_type = fr::Http::Patch;
             else
                 request_type = fr::Http::Unknown;
 
