@@ -53,9 +53,9 @@ namespace fr
         received = 0;
 
         //Read RECV_CHUNK_SIZE bytes into the recv buffer
-		int32_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
+		int64_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
 
-        if(status > 0)
+        if(status >= 0)
         {
             received += status;
         }

@@ -46,6 +46,8 @@ namespace fr
             body += response_data.substr(header_end + 4, response_data.size() - header_end - 4);
         }
 
+        if(body.size() > content_length)
+            body.resize(content_length);
         return body.size() < content_length;
 
     }
@@ -67,12 +69,13 @@ namespace fr
             response += "connection: close_socket\r\n";
         if(header_data.find("content-type") == header_data.end())
             response += "content-type: text/html\r\n";
+        response += "content-length: " + std::to_string(body.size()) + "\r\n";
 
         //Add in space
         response += "\r\n";
 
         //Add in the body
-        response += body + "\r\n";
+        response += body;
         return response;
     }
 

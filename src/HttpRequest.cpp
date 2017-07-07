@@ -53,13 +53,13 @@ namespace fr
         return true;
     }
 
-    bool HttpRequest::parse_header(int32_t header_end_pos)
+    bool HttpRequest::parse_header(int64_t header_end_pos)
     {
         try
         {
             //Split the header into lines
             size_t line = 0;
-            std::vector<std::string> header_lines = split_string(body.substr(0, header_end_pos));
+            std::vector<std::string> header_lines = split_string(body.substr(0, (unsigned long)header_end_pos));
             if(header_lines.empty())
                 return false;
 

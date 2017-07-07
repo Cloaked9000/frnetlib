@@ -119,7 +119,15 @@ namespace fr
 
     void Http::set_uri(const std::string &str)
     {
-        uri = str;
+        //Don't do anything if there's no URI provided
+        if(str.empty())
+            return;
+
+        //Ensure that URI begins with a /
+        if(str.front() == '/')
+            uri = str;
+        else
+            uri = "/" + str;
     }
 
     std::string Http::request_type_to_string(RequestType type) const
@@ -234,7 +242,7 @@ namespace fr
             {
                 std::string header_name = str.substr(0, colon_pos);
                 std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
-                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - (data_begin + 1)));
+                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - data_begin));
             }
         }
     }
