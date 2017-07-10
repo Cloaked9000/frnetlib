@@ -7,20 +7,6 @@
 
 namespace fr
 {
-    HttpResponse::HttpResponse(HttpResponse &&other)
-    : header_ended(other.header_ended),
-      content_length(other.content_length)
-    {
-
-    }
-
-    HttpResponse::HttpResponse(const HttpResponse &other)
-    : header_ended(other.header_ended),
-      content_length(other.content_length)
-    {
-
-    }
-
     bool HttpResponse::parse(const std::string &response_data)
     {
         body += response_data;
@@ -69,7 +55,8 @@ namespace fr
             response += "connection: close_socket\r\n";
         if(header_data.find("content-type") == header_data.end())
             response += "content-type: text/html\r\n";
-        response += "content-length: " + std::to_string(body.size()) + "\r\n";
+        if(header_data.find("content-length") == header_data.end())
+            response += "content-length: " + std::to_string(body.size()) + "\r\n";
 
         //Add in space
         response += "\r\n";

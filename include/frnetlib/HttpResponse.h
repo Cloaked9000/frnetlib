@@ -17,8 +17,6 @@ namespace fr
     public:
         //Constructors
         HttpResponse(){};
-        HttpResponse(HttpResponse &&other);
-        HttpResponse(const HttpResponse &);
         virtual ~HttpResponse(){}
 
         /*!

@@ -234,17 +234,27 @@ namespace fr
 
     void Http::parse_header_line(const std::string &str)
     {
-        auto colon_pos = str.find(":");
-        if(colon_pos != std::string::npos)
+        size_t colon_pos = str.find(':');
+        if(colon_pos == std::string::npos)
+            return;
+
+        auto data_begin = str.find_first_not_of(" ", colon_pos + 1);
+        if(data_begin == std::string::npos)
+            return;
+
+        size_t data_len = 0;
+        for(size_t a = data_begin; a < str.size(); a++)
         {
-            auto data_begin = str.find_first_not_of(" ", colon_pos + 1);
-            if(data_begin != std::string::npos)
-            {
-                std::string header_name = str.substr(0, colon_pos);
-                std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
-                header_data.emplace(std::move(header_name), str.substr(data_begin, str.size() - data_begin));
-            }
+            if(str[a] >= 32 && str[a] <= 126)
+                data_len++;
+            else
+                break;
         }
+        std::string header_name = str.substr(0, colon_pos);
+        std::string header_value = str.substr(data_begin, data_len);
+
+        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
+        header_data.emplace(std::move(header_name), std::move(header_value));
     }
 
     void Http::load_mimetypes()
