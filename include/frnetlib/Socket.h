@@ -27,6 +27,7 @@ namespace fr
             HandshakeFailed = 8,
             VerificationFailed = 9,
             MaxPacketSizeExceeded = 10,
+            NotEnoughData = 11
         };
 
         enum IP
@@ -98,6 +99,20 @@ namespace fr
         virtual Status receive_raw(void *data, size_t data_size, size_t &received) = 0;
 
         /*!
+         * Gets the socket descriptor.
+         *
+         * @return The socket descriptor.
+         */
+        virtual int32_t get_socket_descriptor() const = 0;
+
+        /*!
+         * Checks to see if we're connected to a socket or not
+         *
+         * @return True if it's connected. False otherwise.
+         */
+        virtual bool connected() const =0;
+
+        /*!
          * Send a packet through the socket
          *
          * @param packet The packet to send
@@ -126,21 +141,6 @@ namespace fr
          * @return Operation status.
          */
         Status receive_all(void *dest, size_t buffer_size);
-
-        /*!
-         * Checks to see if we're connected to a socket or not
-         *
-         * @return True if it's connected. False otherwise.
-         */
-         virtual bool connected() const =0;
-
-        /*!
-         * Gets the socket descriptor.
-         *
-         * @return The socket descriptor.
-         */
-        virtual int32_t get_socket_descriptor() const = 0;
-
 
         /*!
          * Calls the shutdown syscall on the socket.

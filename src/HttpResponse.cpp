@@ -15,7 +15,13 @@ namespace fr
         if(!header_ended)
         {
             //Check to see if this request data contains the end of the header
+            uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
+            if(header_end == std::string::npos)
+            {
+                header_end = body.find("\n\n");
+                header_end_size = 2;
+            }
             header_ended = header_end != std::string::npos;
 
             //If the header end has not been found, return true, indicating that we need more data.
@@ -29,7 +35,7 @@ namespace fr
                 body.clear();
             }
 
-            body += response_data.substr(header_end + 4, response_data.size() - header_end - 4);
+            body += response_data.substr(header_end + header_end_size, response_data.size() - header_end - header_end_size);
         }
 
         if(body.size() > content_length)

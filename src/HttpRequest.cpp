@@ -23,7 +23,13 @@ namespace fr
         if(!header_ended)
         {
             //Check to see if this request data contains the end of the header
+            uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
+            if(header_end == std::string::npos)
+            {
+                header_end = body.find("\n\n");
+                header_end_size = 2;
+            }
             header_ended = header_end != std::string::npos;
 
             //If the header end has not been found, return true, indicating that we need more data.
@@ -37,9 +43,8 @@ namespace fr
                     return false;
                 body.clear();
             }
-            content_length += 2; //The empty line between header and data
 
-            body += request.substr(header_end, request.size() - header_end);
+            body += request.substr(header_end + header_end_size, request.size() - header_end - header_end_size);
         }
 
         //If we've got the whole request, parse the POST if it exists
@@ -70,9 +75,7 @@ namespace fr
 
             //Read in headers
             for(; line < header_lines.size(); line++)
-            {
                 parse_header_line(header_lines[line]);
-            }
 
             //Store content length value if it exists
             auto length_header_iter = header_data.find("content-length");
@@ -124,7 +127,7 @@ namespace fr
         request += post_string;
 
         //Add in the body
-        request += body + "\r\n";
+        request += body;
 
         return request;
     }
@@ -132,6 +135,8 @@ namespace fr
     void HttpRequest::parse_post_body()
     {
         auto post_begin = body.find_first_not_of("\r\n");
+        if(post_begin == std::string::npos)
+            post_begin = body.find_first_not_of("\n");
         if(post_begin != std::string::npos)
         {
             auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin));
