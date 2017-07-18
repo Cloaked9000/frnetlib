@@ -7,11 +7,12 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#define HTTP_RECV_BUFFER_SIZE 8192
+#include "Socket.h"
+#include "Sendable.h"
 
 namespace fr
 {
-    class Http
+    class Http : public Sendable
     {
     public:
         enum RequestType
@@ -91,9 +92,10 @@ namespace fr
          * into the object.
          *
          * @param data The request/response to parse
+         * @param datasz The length of data in bytes
          * @return True if more data is needed, false if finished.
          */
-        virtual bool parse(const std::string &data)=0;
+        virtual bool parse(const char *data, size_t datasz)=0;
 
         /*!
          * Constructs a HTTP request/response to send.
@@ -291,6 +293,26 @@ namespace fr
          * @param str The header. E.g: header: value
          */
         void parse_header_line(const std::string &str);
+
+        /*!
+         * Overridable send, to allow
+         * custom types to be directly sent through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not.
+         */
+        virtual Socket::Status send(Socket *socket) override;
+
+        /*!
+         * Overrideable receive, to allow
+         * custom types to be directly received through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not.
+         */
+        virtual Socket::Status receive(Socket *socket) override;
 
         //Other request info
         std::unordered_map<std::string, std::string> header_data;

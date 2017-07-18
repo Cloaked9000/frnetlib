@@ -57,7 +57,7 @@ namespace fr
          *
          * @return The listen socket descriptor
          */
-        virtual int32_t get_socket_descriptor()=0;
+        virtual int32_t get_socket_descriptor() const=0;
 
         /*!
          * Sets the socket descriptor.

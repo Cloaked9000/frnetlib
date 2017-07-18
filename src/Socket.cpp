@@ -6,6 +6,7 @@
 #include <csignal>
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
+#include "frnetlib/Sendable.h"
 
 namespace fr
 {
@@ -17,7 +18,7 @@ namespace fr
     Socket::Socket() noexcept
     : is_blocking(true),
       ai_family(AF_UNSPEC),
-      max_packet_size(0)
+      max_receive_size(0)
     {
             if(instance_count == 0)
             {
@@ -36,54 +37,29 @@ namespace fr
 			instance_count++;
     }
 
-    Socket::Status Socket::send(Packet &packet)
+    Socket::Status Socket::send(Sendable &obj)
     {
         if(!connected())
             return Socket::Disconnected;
 
-        std::string &data = packet.get_buffer();
-        return send_raw(data.c_str(), data.size());
+        return obj.send(this);
     }
 
-    Socket::Status Socket::send(Packet &&packet)
+    Socket::Status Socket::send(Sendable &&obj)
     {
         if(!connected())
             return Socket::Disconnected;
 
-        std::string &data = packet.get_buffer();
-        return send_raw(data.c_str(), data.size());
+        return obj.send(this);
     }
 
-    Socket::Status Socket::receive(Packet &packet)
+    Socket::Status Socket::receive(Sendable &obj)
     {
         if(!connected())
             return Socket::Disconnected;
 
-        Socket::Status status;
         std::lock_guard<std::mutex> guard(inbound_mutex);
-
-        //Try to read packet length
-        uint32_t packet_length = 0;
-        status = receive_all(&packet_length, sizeof(packet_length));
-        if(status != Socket::Status::Success)
-            return status;
-        packet_length = ntohl(packet_length);
-
-        //Check that packet_length doesn't exceed the limit, if any
-        if(max_packet_size && max_packet_size > max_packet_size)
-        {
-            close_socket();
-            return fr::Socket::MaxPacketSizeExceeded;
-        }
-
-        //Now we've got the length, read the rest of the data in
-        packet.buffer.resize(packet_length + PACKET_HEADER_LENGTH);
-        status = receive_all(&packet.buffer[PACKET_HEADER_LENGTH], packet_length);
-        if(status != Socket::Status::Success)
-            return status;
-
-
-        return Socket::Status::Success;
+        return obj.receive(this);
     }
 
     Socket::Status Socket::receive_all(void *dest, size_t buffer_size)
@@ -140,8 +116,8 @@ namespace fr
         }
     }
 
-    void Socket::set_max_packet_size(uint32_t sz)
+    void Socket::set_max_receive_size(uint32_t sz)
     {
-        max_packet_size = sz;
+        max_receive_size = sz;
     }
 }

@@ -54,8 +54,6 @@ fr::SSLListener listener(ssl_context, "crt_path", "pem_path", "private_key_path"
 
 fr::SSLSocket socket(ssl_context); //This is the SSL equivilent to fr::TcpSocket
 
-fr::HttpSocket<fr::SSLSocket> socket(ssl_context); //This is the SSL equivilent for a HTTP socket.
-
 ```
 As you've probably noticed, everything unencrypted has it's equivalent encrypted counterpart, usually just by replacing 'TCP' with 'SSL' and providing an SSLContext object.
 fr::SSLContext stores SSL information which need not be duplicated across each socket and listener, such as the random number generator, and public key list. It is *important* to build mbedtls with thread protection enabled, if your program is multithreaded. This SSLContext object can then be passed to any SSL sockets or listeners which you may create.
@@ -98,7 +96,7 @@ Effectively the reverse of sending packets. We call fr::TcpSocket::receive, pass
 #include <HttpRequest.h>
 #include <HttpResponse.h>
 
-fr::HttpSocket<fr::TcpSocket> client; //fr::TcpSocket for HTTP. fr::SSLSocket for HTTPS.
+fr::TcpSocket client;                 //fr::TcpSocket for HTTP. fr::SSLSocket for HTTPS.
 fr::TcpListener listener;             //Use an fr::SSLListener if HTTPS.
 
 //Bind to a port
@@ -136,19 +134,18 @@ while(true)
     client.close();
 }
 ```
-To deal with HTTP requests, we need to use fr::HttpSockets, to automatically construct and extract fr::HttpResponse/fr::HttpRequest objects. fr::HttpSocket is internally just a wrapper around fr::TcpSocket for HTTP requests, allowing you to add it to a fr::TcpListener the same you would a fr::TcpSocket. After binding to the port, we infinitely try and receive a new request, construct a response with the body of 'Hello, World!' and send it back to the client before closing the socket. 
+After binding to the port, we infinitely try and receive a new request, construct a response with the body of 'Hello, World!' and send it back to the client before closing the socket. fr::HttpRequest, and fr::HttpResponse both inherit fr::Sendable, which allows them to be sent and received through sockets just like fr::Packets.
 
 fr::HttpRequest objects are used for dealing with data being sent *to* the server, whereas fr::HttpResponse objects are used for dealing with data being sent *from* the server. GET/POST/Header information can be manipulated the same as in the example below.
 
 # A simple HTTP client: 
 
 ```c++
-#include <HttpSocket.h>
 #include <HttpRequest.h>
 #include <HttpResponse.h>
 
 //Connect to the website
-fr::HttpSocket<fr::TcpSocket> socket;
+fr::TcpSocket socket;
 if(socket.connect("example.com", "80") != fr::Socket::Success)
 {
     //Failed to connect to site
@@ -177,7 +174,7 @@ if(socket.receive(response) != fr::Socket::Success)
 //Print out the response
 std::cout << request.get_body() << std::endl;
 ```
-Here we create a fr::HttpSocket object, connect to a domain (don't include the 'http://' bit). The socket is non-SSL and so the underlying socket type is fr::TcpSocket. If this were an SSL socket, then it'd be fr::HttpSocket<fr::SSLSocket>. After connecting, we construct a fr::HttpRequest object to send to the server, adding in some GET arguments, POST arguments and a request header. 
+Here we create an fr::TcpSocket object, connect to a domain (don't include the 'http://' bit). The socket is non-SSL and so the underlying socket type is fr::TcpSocket. If this were an SSL socket, then it'd be fr::SSLSocket. After connecting, we construct a fr::HttpRequest object to send to the server, adding in some GET arguments, POST arguments and a request header.
 
 You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse)::(get/post) functions. And access/set headers though the [] operator. Once we've sent a request, we wait for a response. Once received, we print out the body of the response and exit.
 
@@ -206,7 +203,7 @@ You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse
         //Check if it was the selector who sent data
         if(selector.is_ready(listener))
         {
-            std::unique_ptr<fr::HttpSocket<fr::TcpSocket>> socket(new fr::HttpSocket<fr::TcpSocket>);
+            std::unique_ptr<fr::TcpSocket> socket(new fr::TcpSocket);
             if(listener.accept(*socket) == fr::Socket::Success)
             {
                 selector.add(*socket);
@@ -221,7 +218,7 @@ You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse
             for(auto iter = connections.begin(); iter != connections.end();)
             {
                 //Eww
-                fr::HttpSocket<fr::TcpSocket> &client = (fr::HttpSocket<fr::TcpSocket>&)**iter;
+                fr::TcpSocket &client = (fr::TcpSocket &)**iter;
 
                 //Check if it's this client
                 if(selector.is_ready(client))
@@ -253,7 +250,7 @@ You can both set and get GET/POST data through the fr::(HttpRequest/HttpResponse
         }
     }
 ```
-fr::SocketSelector can be used to monitor lots of blocking sockets at once (both fr::TcpSocket's and fr::HttpSocket's), without polling, to see when data is being received or a connection has closed. To add a socket, just call fr::SocketSelector::add, and to remove a socket, which must be done before the socket object is destroyed, call fr::SocketSelector::remove. You can add as many fr::Socket's as you want.It is also important to add your fr::TcpListener to the selector, otherwise you wont be able to accept new connections whilst blocking.
+fr::SocketSelector can be used to monitor lots of blocking sockets at once, without polling, to see when data is being received or a connection has closed. To add a socket, just call fr::SocketSelector::add, and to remove a socket, which must be done before the socket object is destroyed, call fr::SocketSelector::remove. You can add as many fr::Socket's as you want.It is also important to add your fr::TcpListener to the selector, otherwise you wont be able to accept new connections whilst blocking.
 
 Once added, you can call fr::SocketSelector::wait() to wait for socket events. You can also specify a timeout, forcing it to return even if there was no activity. If any of the sockets added to the selector send data or disconnect, then it will return true. If the specified timeout has expired, then it will return false.
 

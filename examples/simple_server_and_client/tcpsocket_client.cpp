@@ -1,3 +1,5 @@
+#include <iostream>
+#include <frnetlib/Packet.h>
 #include <frnetlib/TcpSocket.h>
 #include <frnetlib/TcpListener.h>
 

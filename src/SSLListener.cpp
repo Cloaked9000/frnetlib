@@ -134,7 +134,7 @@ namespace fr
         ::shutdown(listen_fd.fd, 0);
     }
 
-    int32_t SSLListener::get_socket_descriptor()
+    int32_t SSLListener::get_socket_descriptor() const
     {
         return listen_fd.fd;
     }

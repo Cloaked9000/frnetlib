@@ -7,10 +7,12 @@
 
 #include <mutex>
 #include "NetworkEncoding.h"
-#include "Packet.h"
 
+#define RECV_CHUNK_SIZE 4096 //How much data to try and recv at once
 namespace fr
 {
+    class Packet;
+    class Sendable;
     class Socket
     {
     public:
@@ -113,21 +115,21 @@ namespace fr
         virtual bool connected() const =0;
 
         /*!
-         * Send a packet through the socket
+         * Send a Sendable object through the socket
          *
-         * @param packet The packet to send
-         * @return True on success, false on failure.
+         * @param obj The object to send
+         * @return The status of the send
          */
-        Status send(Packet &packet);
-        Status send(Packet &&packet);
+        Status send(Sendable &obj);
+        Status send(Sendable &&obj);
 
         /*!
-         * Receive a packet through the socket
+         * Receive a Sendable object through the socket
          *
-         * @param packet The packet to receive
-         * @return True on success, false on failure.
+         * @param obj The object to receive
+         * @return The status of the receive
          */
-        Status receive(Packet &packet);
+        Status receive(Sendable &obj);
 
         /*!
          * Reads size bytes into dest from the socket.
@@ -161,7 +163,8 @@ namespace fr
         void set_inet_version(IP version);
 
         /*!
-         * Sets the maximum fr::Packet size that may be received by the socket.
+         * Sets the maximum receivable size that may be received by the socket. This does
+         * not apply to receive_raw(), but only things like fr::Packet, or HTTP responses.
          *
          * If a client attempts to send a packet larger than sz bytes, then
          * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
@@ -174,7 +177,18 @@ namespace fr
          *
          * @param sz The maximum number of bytes that may be received in an fr::Packet
          */
-        void set_max_packet_size(uint32_t sz);
+        void set_max_receive_size(uint32_t sz);
+
+        /*!
+         * Gets the max packet size. See set_max_packet_size
+         * for more information.
+         *
+         * @return The max packet size
+         */
+        inline uint32_t get_max_receive_size()
+        {
+            return max_receive_size;
+        }
     protected:
 
         /*!
@@ -188,7 +202,7 @@ namespace fr
         std::mutex outbound_mutex;
         std::mutex inbound_mutex;
         int ai_family;
-        uint32_t max_packet_size;
+        uint32_t max_receive_size;
         #ifdef _WIN32
                 static WSADATA wsaData;
         #endif // _WIN32

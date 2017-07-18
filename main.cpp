@@ -8,7 +8,6 @@
 #include "frnetlib/TcpSocket.h"
 #include "frnetlib/TcpListener.h"
 #include "frnetlib/SocketSelector.h"
-#include "frnetlib/HttpSocket.h"
 #include "frnetlib/HttpRequest.h"
 #include "frnetlib/HttpResponse.h"
 #include "frnetlib/SSLSocket.h"

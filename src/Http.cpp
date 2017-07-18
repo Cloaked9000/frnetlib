@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include "frnetlib/Http.h"
+#include "frnetlib/Socket.h"
 
 namespace fr
 {
@@ -962,5 +963,28 @@ namespace fr
         if(iter == known_mimetypes.end())
             return known_mimetypes[".bin"];
         return iter->second;
+    }
+
+    Socket::Status Http::send(Socket *socket)
+    {
+        std::string data = construct(socket->get_remote_address());
+        return socket->send_raw(&data[0], data.size());
+    }
+
+    Socket::Status Http::receive(Socket *socket)
+    {
+        char recv_buffer[RECV_CHUNK_SIZE];
+        size_t received = 0;
+        do
+        {
+            //Receive the request
+            Socket::Status status = socket->receive_raw(recv_buffer, RECV_CHUNK_SIZE, received);
+            if(status != Socket::Success)
+                return status;
+
+            //Parse it
+        } while(parse(recv_buffer, received));
+
+        return Socket::Success;
     }
 }

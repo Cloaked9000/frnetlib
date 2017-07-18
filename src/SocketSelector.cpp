@@ -18,15 +18,6 @@ namespace fr
         max_descriptor = 0;
     }
 
-    void SocketSelector::add(const Socket &socket)
-    {
-        //Add it to the set
-        FD_SET(socket.get_socket_descriptor(), &listen_set);
-
-        if(socket.get_socket_descriptor() > max_descriptor)
-            max_descriptor = socket.get_socket_descriptor();
-    }
-
     bool SocketSelector::wait(std::chrono::milliseconds timeout)
     {
         //Windows will crash if we pass an empty set. Do a check.
@@ -52,15 +43,5 @@ namespace fr
             throw std::logic_error("select() returned -1. Errno: " + std::to_string(errno));
 
         return true;
-    }
-
-    void SocketSelector::remove(const Socket &socket)
-    {
-        FD_CLR(socket.get_socket_descriptor(), &listen_set);
-    }
-
-    bool SocketSelector::is_ready(const Socket &socket)
-    {
-        return (FD_ISSET(socket.get_socket_descriptor(), &listen_read));
     }
 }

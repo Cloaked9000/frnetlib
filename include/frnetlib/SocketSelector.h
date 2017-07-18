@@ -32,7 +32,15 @@ namespace fr
          *
          * @param socket The socket to add.
          */
-        void add(const Socket &socket);
+        template<typename T>
+        void add(const T &socket)
+        {
+            //Add it to the set
+            FD_SET(socket.get_socket_descriptor(), &listen_set);
+
+            if(socket.get_socket_descriptor() > max_descriptor)
+                max_descriptor = socket.get_socket_descriptor();
+        }
 
         /*!
          * Checks to see if a socket inside of the selector is ready.
@@ -42,14 +50,27 @@ namespace fr
          * @param socket The socket to check if it's ready
          * @return True if this socket is ready, false otherwise.
          */
-        bool is_ready(const Socket &socket);
+        template<typename T>
+        inline bool is_ready(const T &socket)
+        {
+            return (FD_ISSET(socket.get_socket_descriptor(), &listen_read));
+        }
+
+        inline bool is_ready(int32_t socket)
+        {
+            return (FD_ISSET(socket, &listen_read));
+        }
 
         /*!
          * Removes a socket from the socket selector.
          *
          * @param socket The socket to remove.
          */
-        void remove(const Socket &socket);
+        template<typename T>
+        inline void remove(const T &socket)
+        {
+            FD_CLR(socket.get_socket_descriptor(), &listen_set);
+        }
     private:
 
         fd_set listen_set;

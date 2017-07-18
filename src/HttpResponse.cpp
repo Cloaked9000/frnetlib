@@ -7,9 +7,9 @@
 
 namespace fr
 {
-    bool HttpResponse::parse(const std::string &response_data)
+    bool HttpResponse::parse(const char *response_data, size_t datasz)
     {
-        body += response_data;
+        body += std::string(response_data, datasz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)
@@ -35,7 +35,7 @@ namespace fr
                 body.clear();
             }
 
-            body += response_data.substr(header_end + header_end_size, response_data.size() - header_end - header_end_size);
+            body += std::string(response_data + header_end + header_end_size, datasz - header_end - header_end_size);
         }
 
         if(body.size() > content_length)

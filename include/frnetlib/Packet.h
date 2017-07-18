@@ -11,11 +11,12 @@
 #include <vector>
 #include "NetworkEncoding.h"
 #include "Packetable.h"
+#include "Sendable.h"
 
 namespace fr
 {
 #define PACKET_HEADER_LENGTH sizeof(uint32_t)
-    class Packet
+    class Packet : public Sendable
     {
     public:
         Packet() noexcept
@@ -509,6 +510,52 @@ namespace fr
 
     private:
         friend class Socket;
+
+        /*!
+         * Overridable send, to allow
+         * custom types to be directly sent through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not.
+         */
+        virtual Socket::Status send(Socket *socket) override
+        {
+            const std::string &data = get_buffer();
+            return socket->send_raw(data.c_str(), data.size());
+        }
+
+        /*!
+         * Overrideable receive, to allow
+         * custom types to be directly received through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not.
+         */
+        virtual Socket::Status receive(Socket *socket) override
+        {
+            Socket::Status status;
+
+            //Try to read packet length
+            uint32_t packet_length = 0;
+            status = socket->receive_all(&packet_length, sizeof(packet_length));
+            if(status != Socket::Status::Success)
+                return status;
+            packet_length = ntohl(packet_length);
+
+            //Check that packet_length doesn't exceed the limit, if any
+            if(socket->get_max_receive_size() && packet_length > socket->get_max_receive_size())
+                return fr::Socket::MaxPacketSizeExceeded;
+
+            //Now we've got the length, read the rest of the data in
+            buffer.resize(packet_length + PACKET_HEADER_LENGTH);
+            status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
+            if(status != Socket::Status::Success)
+                return status;
+
+            return Socket::Status::Success;
+        }
 
         /*!
          * Gets the data added to the packet

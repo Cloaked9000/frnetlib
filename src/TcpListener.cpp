@@ -116,7 +116,7 @@ namespace fr
         ::shutdown(socket_descriptor, 0);
     }
 
-    int32_t TcpListener::get_socket_descriptor()
+    int32_t TcpListener::get_socket_descriptor() const
     {
         return socket_descriptor;
     }

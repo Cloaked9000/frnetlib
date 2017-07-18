@@ -64,7 +64,7 @@ namespace fr
          *
          * @return The listen socket descriptor
          */
-        virtual int32_t get_socket_descriptor() override;
+        virtual int32_t get_socket_descriptor() const override;
 
         /*!
          * Sets the socket descriptor.

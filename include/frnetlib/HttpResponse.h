@@ -23,9 +23,10 @@ namespace fr
          * Parse a HTTP response.
          *
          * @param data The HTTP response to parse
+         * @param datasz The length of data in bytes
          * @return True if more data is needed, false if finished.
          */
-        bool parse(const std::string &data) override;
+        bool parse(const char *data, size_t datasz) override;
 
         /*!
          * Constructs a HttpResponse, ready to send.

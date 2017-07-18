@@ -15,9 +15,9 @@ namespace fr
 
     }
 
-    bool HttpRequest::parse(const std::string &request)
+    bool HttpRequest::parse(const char *request, size_t requestsz)
     {
-        body += request;
+        body += std::string(request, requestsz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)
@@ -44,7 +44,7 @@ namespace fr
                 body.clear();
             }
 
-            body += request.substr(header_end + header_end_size, request.size() - header_end - header_end_size);
+            body += std::string(request + header_end + header_end_size, requestsz - header_end - header_end_size);
         }
 
         //If we've got the whole request, parse the POST if it exists
