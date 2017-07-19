@@ -94,38 +94,38 @@ namespace fr
 
         //Initialise mbedtls
         int error = 0;
-        std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
-        mbedtls_ssl_init(ssl.get());
-        if((error = mbedtls_ssl_setup(ssl.get(), &conf ) ) != 0)
+        mbedtls_ssl_context *ssl = new mbedtls_ssl_context;
+        client.set_ssl_context(std::unique_ptr<mbedtls_ssl_context>(ssl));
+
+        mbedtls_ssl_init(ssl);
+        if((error = mbedtls_ssl_setup(ssl, &conf ) ) != 0)
         {
             std::cout << "Failed to apply SSL setings: " << error << std::endl;
             return Socket::Error;
         }
 
         //Accept a connection
-        std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
-        mbedtls_net_init(client_fd.get());
+        mbedtls_net_context *client_fd = new mbedtls_net_context;
+        client.set_net_context(std::unique_ptr<mbedtls_net_context>(client_fd));
+        mbedtls_net_init(client_fd);
 
-        if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), NULL, 0, NULL)) != 0)
+        if((error = mbedtls_net_accept(&listen_fd, client_fd, NULL, 0, NULL)) != 0)
         {
             std::cout << "Accept error: " << error << std::endl;
             return Socket::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
+        mbedtls_ssl_set_bio(ssl, client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
         //SSL Handshake
-        while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
+        while((error = mbedtls_ssl_handshake(ssl)) != 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
+                std::cout << "Handshake error: " << error << std::endl;
                 return Socket::Status::HandshakeFailed;
             }
         }
-
-        //Set socket details
-        client.set_net_context(std::move(client_fd));
-        client.set_ssl_context(std::move(ssl));
         return Socket::Success;
     }
 

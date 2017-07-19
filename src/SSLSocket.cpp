@@ -30,7 +30,7 @@ namespace fr
 
     void SSLSocket::close_socket()
     {
-        if(ssl_socket_descriptor->fd > -1)
+        if(ssl_socket_descriptor && ssl_socket_descriptor->fd > -1)
         {
             if(ssl)
                 mbedtls_ssl_close_notify(ssl.get());
@@ -41,10 +41,16 @@ namespace fr
 
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
     {
-        int error = 0;
-        while((error = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data, size)) <= 0)
+        int response = 0;
+        size_t data_sent = 0;
+        while(data_sent < size)
         {
-            if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
+            response = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data + data_sent, size - data_sent);
+            if(response != MBEDTLS_ERR_SSL_WANT_READ && response != MBEDTLS_ERR_SSL_WANT_WRITE)
+            {
+                data_sent += response;
+            }
+            else if(response < 0)
             {
                 close_socket();
                 return Socket::Status::Disconnected;
@@ -64,15 +70,10 @@ namespace fr
             read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
         }
 
-        if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
+        if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY || read <= 0)
         {
             close_socket();
             return Socket::Status::Disconnected;
-        }
-        else if(read <= 0)
-        {
-            //No data. But no error occurred.
-            return Socket::Status::Success;
         }
 
         received += read;
