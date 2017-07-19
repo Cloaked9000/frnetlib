@@ -13,8 +13,11 @@ namespace fr
     const static std::string request_type_strings[Http::RequestType::RequestTypeCount] = {"UNKNOWN", "GET", "POST"};
 
     Http::Http()
+    : request_type(Unknown),
+      uri("/"),
+      status(Ok)
     {
-        clear();
+
     }
 
     Http::Http(Http &&o)
@@ -69,34 +72,27 @@ namespace fr
         body = body_;
     }
 
-    void Http::clear()
+    std::string &Http::get(std::string &&key)
     {
-        post_data.clear();
-        get_data.clear();
-        post_data.clear();
-        body.clear();
-        uri = "/";
-        status = Ok;
-        request_type = Unknown;
-    }
-
-    std::string &Http::get(const std::string &key)
-    {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return get_data[key];
     }
 
-    std::string &Http::post(const std::string &key)
+    std::string &Http::post(std::string &&key)
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return post_data[key];
     }
 
-    bool Http::get_exists(const std::string &key) const
+    bool Http::get_exists(std::string &&key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return get_data.find(key) != get_data.end();
     }
 
-    bool Http::post_exists(const std::string &key) const
+    bool Http::post_exists(std::string &&key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return post_data.find(key) != post_data.end();
     }
 
@@ -189,8 +185,9 @@ namespace fr
         return header_data[key];
     }
 
-    bool Http::header_exists(const std::string &key) const
+    bool Http::header_exists(std::string &&key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return header_data.find(key) != header_data.end();
     }
 

@@ -17,7 +17,13 @@ namespace fr
     public:
         //Constructors
         HttpRequest();
-        HttpRequest(HttpRequest &&other) = default;
+        HttpRequest(HttpRequest &&other)=default;
+        void operator=(const HttpRequest &other)
+        {
+            header_ended = other.header_ended;
+            last_parsed_character = other.last_parsed_character;
+            content_length = other.content_length;
+        }
         virtual ~HttpRequest() = default;
 
         /*!

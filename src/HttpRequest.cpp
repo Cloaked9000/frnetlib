@@ -134,15 +134,24 @@ namespace fr
 
     void HttpRequest::parse_post_body()
     {
+        //Find beginning of post data
         auto post_begin = body.find_first_not_of("\r\n");
         if(post_begin == std::string::npos)
             post_begin = body.find_first_not_of("\n");
-        if(post_begin != std::string::npos)
-        {
-            auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin));
-            for(auto &c : post)
-                post_data.emplace(std::move(c.first), std::move(c.second));
-        }
+
+        //Find end of post data
+        auto post_end = body.rfind("\r\n\r\n");
+        if(post_end == std::string::npos)
+            post_end = body.rfind("\n\n");
+
+        //Sanity check
+        if(post_begin == post_end || post_begin == std::string::npos)
+            return;
+
+        //Split up the body and store each argument name and value
+        auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin - (body.size() - post_end)));
+        for(auto &c : post)
+            post_data.emplace(std::move(c.first), std::move(c.second));
     }
 
     void HttpRequest::parse_header_type(const std::string &str)
