@@ -5,7 +5,7 @@ TEST(HttpRequestTest, get_request_parse)
 {
     //The test request to parse
     const std::string raw_request =
-            "GET /index.html HTTP/1.1\n"
+            "GET /index.html?var=bob&other=trob HTTP/1.1\n"
             "Host: frednicolson.co.uk\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
             "My-Header:      header1\n"
@@ -35,6 +35,16 @@ TEST(HttpRequestTest, get_request_parse)
     ASSERT_EQ(request.header("content-type"), "application/x-www-form-urlencoded");
     ASSERT_EQ(request.header("My-Other-Header"), "header2");
     ASSERT_EQ(request.header("My-Header"), "header1");
+
+    //Test that GET variables exist
+    ASSERT_EQ(request.get_exists("var"), true);
+    ASSERT_EQ(request.get_exists("other"), true);
+    ASSERT_EQ(request.get_exists("fake"), false);
+
+    //Ensure that GET variables are valid
+    ASSERT_EQ(request.get("var"), "bob");
+    ASSERT_EQ(request.get("other"), "trob");
+    ASSERT_EQ(request.get("fake"), "");
 }
 
 TEST(HttpRequestTest, post_request_parse)
@@ -99,7 +109,52 @@ TEST(HttpRequestTest, request_type_parse)
     request = {};
 }
 
-TEST(HttpRequestTest, request_construction)
+TEST(HttpRequestTest, get_request_construction)
 {
-    //todo: more tests
+    //Create a request
+    fr::HttpRequest request;
+    ASSERT_EQ(request.get_uri(), "/");
+
+    request.header("MyHeader") = "header1";
+    request.header("MyOther-Header") = "header2";
+    request.get("my_get") = "var1";
+    request.get("my_other_get") = "var2";
+    request.set_uri("heyo/bobby");
+    request.set_type(fr::Http::Get);
+    const std::string constructed_request = request.construct("frednicolson.co.uk");
+
+    //Parse it and check that everything's correct
+    request = {};
+    request.parse(constructed_request.c_str(), constructed_request.size());
+    ASSERT_EQ(request.header("MyHeader"), "header1");
+    ASSERT_EQ(request.header("MyOther-Header"), "header2");
+    ASSERT_EQ(request.get("my_get"), "var1");
+    ASSERT_EQ(request.get("my_other_get"), "var2");
+    ASSERT_EQ(request.get_uri(), "/heyo/bobby");
+    ASSERT_EQ(request.get_type(), fr::Http::Get);
+}
+
+TEST(HttpRequestTest, post_request_construction)
+{
+    //Create a request
+    fr::HttpRequest request;
+    request.header("MyHeader") = "header1";
+    request.header("MyOtherHeader") = "header2";
+    request.set_uri("/heyo/bobby");
+    request.get("var") = "20";
+    request.post("my_post") = "post_data";
+    request.post("some_post") = "more_post";
+    request.set_type(fr::Http::Post);
+    const std::string constructed_request = request.construct("frednicolson.co.uk");
+
+    //Parse it
+    request = {};
+    request.parse(constructed_request.c_str(), constructed_request.size());
+    ASSERT_EQ(request.header("MyHeader"), "header1");
+    ASSERT_EQ(request.header("MyOtherHeader"), "header2");
+    ASSERT_EQ(request.get_uri(), "/heyo/bobby");
+    ASSERT_EQ(request.get("var"), "20");
+    ASSERT_EQ(request.post("my_post"), "post_data");
+    ASSERT_EQ(request.post("some_post"), "more_post");
+    ASSERT_EQ(request.get_type(), fr::Http::Post);
 }

@@ -93,7 +93,18 @@ namespace fr
     std::string HttpRequest::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri + " HTTP/1.1\r\n";
+        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri;
+        if(!get_data.empty())
+        {
+            request += "?";
+            for(auto iter = get_data.begin(); iter != get_data.end();)
+            {
+                request += iter->first + "=" + iter->second;
+                if(++iter != get_data.end())
+                    request += "&";
+            }
+        }
+        request += " HTTP/1.1\r\n";
 
         //Add the headers to the request
         for(const auto &header : header_data)
@@ -104,13 +115,13 @@ namespace fr
 
         //Generate post line
         std::string post_string;
-        for(auto &post : post_data)
-            post_string += post.first + "=" + post.second + "&";
-        if(!post_string.empty())
+        for(auto iter = post_data.begin(); iter != post_data.end();)
         {
-            post_string.erase(request.size() - 1, 1);
-            post_string += "\r\n";
+            post_string += iter->first + "=" + iter->second;
+            if(++iter != get_data.end())
+                post_string += "&";
         }
+        post_string += "\r\n";
 
         //Add in required headers if they're missing
         if(header_data.find("Connection") == header_data.end())
@@ -195,10 +206,13 @@ namespace fr
                 auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));
                 for(auto &c : get_vars)
                     get_data.emplace(std::move(c.first), std::move(c.second));
+                set_uri(str.substr(uri_begin, get_begin - uri_begin));
                 uri.erase(get_begin, uri.size() - get_begin);
             }
-
-            set_uri(uri);
+            else
+            {
+                set_uri(uri);
+            }
             return;
         }
         throw std::invalid_argument("No URI found in: " + str);

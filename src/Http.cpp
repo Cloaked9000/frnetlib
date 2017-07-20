@@ -117,11 +117,11 @@ namespace fr
         if(str.empty())
             return;
 
-        //Ensure that URI begins with a /
+        //Store it, ensuring that it begins with a forwards slash
         if(str.front() == '/')
             uri = str;
         else
-            uri = "/" + str;
+            uri = '/' + str;
     }
 
     std::string Http::request_type_to_string(RequestType type) const
