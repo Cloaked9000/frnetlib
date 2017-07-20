@@ -41,7 +41,23 @@ namespace fr
 
         Socket() noexcept;
         virtual ~Socket() noexcept = default;
-        Socket(Socket &&) noexcept = default;
+        Socket(Socket &&o) noexcept
+        {
+            outbound_mutex.lock();
+            inbound_mutex.lock();
+            o.inbound_mutex.lock();
+            o.outbound_mutex.lock();
+
+            remote_address = std::move(o.remote_address);
+            is_blocking = o.is_blocking;
+            ai_family = o.ai_family;
+            max_receive_size = o.max_receive_size;
+
+            outbound_mutex.unlock();
+            inbound_mutex.unlock();
+            o.inbound_mutex.unlock();
+            o.outbound_mutex.unlock();
+        }
 
         /*!
          * Close the connection.
@@ -72,7 +88,7 @@ namespace fr
          *
          * @param should_block True for blocking (default argument), false otherwise.
          */
-        virtual void set_blocking(bool should_block = true) = 0;
+        virtual void set_blocking(bool should_block) = 0;
 
         /*!
          * Attempts to send raw data down the socket, without

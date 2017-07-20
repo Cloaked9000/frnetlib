@@ -24,7 +24,7 @@ namespace fr
     Socket::Status TcpListener::listen(const std::string &port)
     {
         addrinfo *info;
-        addrinfo hints;
+        addrinfo hints{};
 
         memset(&hints, 0, sizeof(addrinfo));
 
@@ -32,7 +32,7 @@ namespace fr
         hints.ai_socktype = SOCK_STREAM; //TCP
         hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
 
-        if(getaddrinfo(NULL, port.c_str(), &hints, &info) != 0)
+        if(getaddrinfo(nullptr, port.c_str(), &hints, &info) != 0)
         {
             return Socket::Status::Unknown;
         }
@@ -86,10 +86,10 @@ namespace fr
     Socket::Status TcpListener::accept(Socket &client_)
     {
         //Cast to TcpSocket. Will throw bad cast on failure.
-        TcpSocket &client = dynamic_cast<TcpSocket&>(client_);
+        auto &client = dynamic_cast<TcpSocket&>(client_);
 
         //Prepare to wait for the client
-        sockaddr_storage client_addr;
+        sockaddr_storage client_addr{};
         int client_descriptor;
         char client_printable_addr[INET6_ADDRSTRLEN];
 
@@ -100,7 +100,7 @@ namespace fr
             return Socket::Unknown;
 
         //Get printable address. If we failed then set it as just 'unknown'
-        int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), 0,0,NI_NUMERICHOST);
+        int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), nullptr,0,NI_NUMERICHOST);
         if(err != 0)
             strcpy(client_printable_addr, "unknown");
 

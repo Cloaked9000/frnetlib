@@ -34,15 +34,13 @@ namespace fr
 
             //If the header end has not been found, return true, indicating that we need more data.
             if(!header_ended)
-            {
                 return true;
-            }
-            else
-            {
-                if(!parse_header(header_end))
+
+            //Else parse it
+            if(!parse_header(header_end))
                     return false;
                 body.clear();
-            }
+
 
             body += std::string(request + header_end + header_end_size, requestsz - header_end - header_end_size);
         }
@@ -148,7 +146,7 @@ namespace fr
         //Find beginning of post data
         auto post_begin = body.find_first_not_of("\r\n");
         if(post_begin == std::string::npos)
-            post_begin = body.find_first_not_of("\n");
+            post_begin = body.find_first_not_of('\n');
 
         //Find end of post data
         auto post_end = body.rfind("\r\n\r\n");
@@ -168,7 +166,7 @@ namespace fr
     void HttpRequest::parse_header_type(const std::string &str)
     {
         //Find the request type
-        auto type_end = str.find(" ");
+        auto type_end = str.find(' ');
         if(type_end != std::string::npos)
         {
             //Check what it is
@@ -192,7 +190,7 @@ namespace fr
 
     void HttpRequest::parse_header_uri(const std::string &str)
     {
-        auto uri_begin = str.find("/");
+        auto uri_begin = str.find('/');
         auto uri_end = str.find("HTTP") - 1;
         if(uri_begin != std::string::npos)
         {
@@ -200,7 +198,7 @@ namespace fr
             std::string uri = str.substr(uri_begin, uri_end - uri_begin);
 
             //Parse GET variables
-            auto get_begin = str.find("?");
+            auto get_begin = str.find('?');
             if(get_begin != std::string::npos)
             {
                 auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));

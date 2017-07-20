@@ -83,7 +83,7 @@ namespace fr
         };
 
         Http();
-        Http(Http &&);
+        Http(Http &&) noexcept;
         Http(const Http &);
         virtual ~Http() = default;
 
@@ -269,7 +269,7 @@ namespace fr
          */
         static inline int dectohex(const std::string &hex)
         {
-            return (int)strtol(&hex[0], 0, 16);
+            return (int)strtol(&hex[0], nullptr, 16);
         }
 
         /*!

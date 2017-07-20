@@ -26,14 +26,12 @@ namespace fr
 
             //If the header end has not been found, return true, indicating that we need more data.
             if(!header_ended)
-            {
                 return true;
-            }
-            else
-            {
-                parse_header(header_end);
+
+            //Else parse it
+            parse_header(header_end);
                 body.clear();
-            }
+
 
             body += std::string(response_data + header_end + header_end_size, datasz - header_end - header_end_size);
         }
@@ -72,7 +70,7 @@ namespace fr
         return response;
     }
 
-    bool HttpResponse::parse_header(int32_t header_end_pos)
+    bool HttpResponse::parse_header(size_t header_end_pos)
     {
         try
         {

@@ -30,16 +30,17 @@ namespace fr
         }
 #endif
 
-        timeval wait_time;
+        timeval wait_time{};
         wait_time.tv_sec = 0;
         wait_time.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
 
         listen_read = listen_set;
-        int select_result = select(max_descriptor + 1, &listen_read, NULL, NULL, timeout == std::chrono::milliseconds(0) ? NULL : &wait_time);
+        int select_result = select(max_descriptor + 1, &listen_read, nullptr, nullptr, timeout == std::chrono::milliseconds(0) ? nullptr
+                                                                                                                               : &wait_time);
 
         if(select_result == 0) //If it's timed out
             return false;
-        else if(select_result == SOCKET_ERROR) //Else if error
+        if(select_result == SOCKET_ERROR) //Else if error
             throw std::logic_error("select() returned -1. Errno: " + std::to_string(errno));
 
         return true;

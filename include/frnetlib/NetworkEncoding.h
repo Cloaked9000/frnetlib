@@ -19,7 +19,8 @@
 #else
 #define closesocket(x) close(x)
 #define INVALID_SOCKET 0
-#define SOCKET_ERROR -1
+#define SOCKET_ERROR (-1)
+
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -73,13 +74,6 @@ inline double ntohd(double val)
 	return val;
 }
 
-inline void *get_sin_addr(struct sockaddr *sa)
-{
-    if(sa->sa_family == AF_INET)
-        return &(((sockaddr_in*)sa)->sin_addr);
-    return &(((sockaddr_in6*)sa)->sin6_addr);
-}
-
 inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking_already, bool should_block)
 {
     //Don't update it if we're already in that mode
@@ -87,13 +81,13 @@ inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking
         return;
 
     //Different API calls needed for both windows and unix
-    #ifdef WIN32
-        u_long non_blocking = should_block ? 0 : 1;
-                            ioctlsocket(socket_descriptor, FIONBIO, &non_blocking);
-    #else
-        int flags = fcntl(socket_descriptor, F_GETFL, 0);
-        fcntl(socket_descriptor, F_SETFL, is_blocking_already ? flags ^ O_NONBLOCK : flags ^= O_NONBLOCK);
-    #endif
+#ifdef WIN32
+    u_long non_blocking = should_block ? 0 : 1;
+                        ioctlsocket(socket_descriptor, FIONBIO, &non_blocking);
+#else
+    int flags = fcntl(socket_descriptor, F_GETFL, 0);
+    fcntl(socket_descriptor, F_SETFL, is_blocking_already ? flags ^ O_NONBLOCK : flags ^= O_NONBLOCK);
+#endif
 }
 
 

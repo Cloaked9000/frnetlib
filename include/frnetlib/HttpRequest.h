@@ -18,11 +18,12 @@ namespace fr
         //Constructors
         HttpRequest();
         HttpRequest(HttpRequest &&other)=default;
-        void operator=(const HttpRequest &other)
+        HttpRequest &operator=(const HttpRequest &other)
         {
             header_ended = other.header_ended;
             last_parsed_character = other.last_parsed_character;
             content_length = other.content_length;
+            return *this;
         }
         virtual ~HttpRequest() = default;
 

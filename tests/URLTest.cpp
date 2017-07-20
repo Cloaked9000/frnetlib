@@ -3,7 +3,6 @@
 //
 
 #include <gtest/gtest.h>
-#include <string>
 #include <frnetlib/URL.h>
 
 TEST(URLTest, full_parse)

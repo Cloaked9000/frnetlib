@@ -16,8 +16,10 @@ namespace fr
     {
     public:
         //Constructors
-        HttpResponse(){};
-        virtual ~HttpResponse(){}
+        HttpResponse()
+        : header_ended(false),
+          content_length(0){}
+        virtual ~HttpResponse() = default;
 
         /*!
          * Parse a HTTP response.
@@ -41,7 +43,7 @@ namespace fr
          *
          * @param header_end_pos The position in 'body' of the end of the header
          */
-        bool parse_header(int32_t header_end_pos);
+        bool parse_header(size_t header_end_pos);
 
         //State
         bool header_ended;

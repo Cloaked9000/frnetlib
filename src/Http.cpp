@@ -6,7 +6,6 @@
 #include <sstream>
 #include <algorithm>
 #include "frnetlib/Http.h"
-#include "frnetlib/Socket.h"
 
 namespace fr
 {
@@ -20,7 +19,7 @@ namespace fr
 
     }
 
-    Http::Http(Http &&o)
+    Http::Http(Http &&o) noexcept
     : header_data(std::move(o.header_data)),
       post_data(std::move(o.post_data)),
       get_data(std::move(o.get_data)),
@@ -203,20 +202,21 @@ namespace fr
 
         while(true)
         {
-            auto equal_pos = str.find("=", read_index);
+            unsigned long equal_pos;
+            equal_pos = str.find('=', read_index);
             if(equal_pos != std::string::npos)
             {
-                auto and_pos = str.find("&", read_index);
+                unsigned long and_pos;
+                and_pos = str.find('&', read_index);
                 if(and_pos == std::string::npos)
                 {
                     list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, str.size() - equal_pos - 1));
                     break;
                 }
-                else
-                {
-                    list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, and_pos - equal_pos - 1));
+
+                list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, and_pos - equal_pos - 1));
                     read_index = and_pos + 1;
-                }
+
             }
             else
             {
@@ -233,7 +233,8 @@ namespace fr
         if(colon_pos == std::string::npos)
             return;
 
-        auto data_begin = str.find_first_not_of(" ", colon_pos + 1);
+        unsigned long data_begin;
+        data_begin = str.find_first_not_of(' ', colon_pos + 1);
         if(data_begin == std::string::npos)
             return;
 

@@ -67,12 +67,12 @@ namespace fr
         if(!connected())
             return Socket::Disconnected;
 
-		int32_t bytes_remaining = (int32_t) buffer_size;
+        auto bytes_remaining = (int32_t) buffer_size;
         size_t bytes_read = 0;
         while(bytes_remaining > 0)
         {
             size_t received = 0;
-            char *arr = (char*)dest;
+            auto *arr = (char*)dest;
             Status status = receive_raw(&arr[bytes_read], (size_t)bytes_remaining, received);
             if(status != fr::Socket::Success)
                 return status;

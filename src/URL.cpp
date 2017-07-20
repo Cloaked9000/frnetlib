@@ -21,6 +21,7 @@ namespace fr
     };
 
     URL::URL(const std::string &url)
+    : scheme(Scheme::Unknown)
     {
         parse(url);
     }
@@ -41,7 +42,7 @@ namespace fr
         }
 
         //Check to see if there's a port
-        pos = url.find(":", parse_offset);
+        pos = url.find(':', parse_offset);
         if(pos != std::string::npos)
         {
             //Store host
@@ -49,7 +50,7 @@ namespace fr
             parse_offset += host.size();
 
             //Find end of port
-            size_t port_end = url.find("/", parse_offset);
+            size_t port_end = url.find('/', parse_offset);
             port_end = (port_end == std::string::npos) ? url.size() : port_end;
             port = url.substr(pos + 1, port_end - pos - 1);
             parse_offset = port_end + 1;
@@ -57,9 +58,9 @@ namespace fr
         else
         {
             //Store host
-            pos = url.find("/", parse_offset);
-            pos = (pos != std::string::npos) ? pos : url.find("?", parse_offset);
-            pos = (pos != std::string::npos) ? pos : url.find("#", parse_offset);
+            pos = url.find('/', parse_offset);
+            pos = (pos != std::string::npos) ? pos : url.find('?', parse_offset);
+            pos = (pos != std::string::npos) ? pos : url.find('#', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.size();
             host = url.substr(parse_offset, pos - parse_offset);
             parse_offset = pos + 1;
@@ -92,7 +93,7 @@ namespace fr
             return;
 
         //Extract the path
-        pos = url.find("?", parse_offset);
+        pos = url.find('?', parse_offset);
         if(pos != std::string::npos)
         {
             path = url.substr(parse_offset, pos - parse_offset);
@@ -100,15 +101,15 @@ namespace fr
         }
         else
         {
-            pos = url.find("#", parse_offset);
-            pos = (pos != std::string::npos) ? pos : url.find("?", parse_offset);
+            pos = url.find('#', parse_offset);
+            pos = (pos != std::string::npos) ? pos : url.find('?', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.size();
             path = url.substr(parse_offset, pos - parse_offset);
             parse_offset = pos + 1;
         }
 
         //Extract the query
-        pos = url.find("#", parse_offset - 1);
+        pos = url.find('#', parse_offset - 1);
         if(pos != std::string::npos)
         {
             if(pos + 1 != parse_offset)
@@ -122,7 +123,6 @@ namespace fr
             query = url.substr(parse_offset, url.size() - parse_offset);
         }
 
-        return;
     }
 
     URL::Scheme URL::string_to_scheme(const std::string &scheme)

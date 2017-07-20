@@ -25,7 +25,7 @@ namespace fr
         size_t sent = 0;
         while(sent < size)
         {
-            int32_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
+            int64_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
             if(status > 0)
             {
                 sent += status;
@@ -86,7 +86,7 @@ namespace fr
     Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
     {
         addrinfo *info;
-        addrinfo hints;
+        addrinfo hints{};
 
         memset(&hints, 0, sizeof(addrinfo));
 

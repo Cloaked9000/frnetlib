@@ -29,7 +29,7 @@ namespace fr
          */
         URL() = default;
 
-        URL(const std::string &url);
+        explicit URL(const std::string &url);
 
         /*!
          * Parses a given URL, extracting its various components

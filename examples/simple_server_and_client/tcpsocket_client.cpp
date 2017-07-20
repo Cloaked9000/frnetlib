@@ -74,6 +74,8 @@ int main()
                 break;
             case 'q':
                 break;
+            default:
+            std::cout << "Invalid input!" << std::endl;
         }
 
         //Exit/error check

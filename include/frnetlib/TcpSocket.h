@@ -82,7 +82,7 @@ public:
      *
      * @param should_block True to block, false otherwise.
      */
-    virtual void set_blocking(bool should_block) override;
+    void set_blocking(bool should_block) override;
 
     /*!
      * Gets the unerlying socket descriptor
@@ -96,7 +96,7 @@ public:
      *
      * @return True if it's connected. False otherwise.
      */
-    inline virtual bool connected() const override final
+    inline bool connected() const final
     {
         return socket_descriptor > -1;
     }
