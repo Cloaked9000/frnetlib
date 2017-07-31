@@ -4,7 +4,6 @@
 
 #ifndef FRNETLIB_SSL_SOCKET_H
 #define FRNETLIB_SSL_SOCKET_H
-
 #ifdef SSL_ENABLED
 
 #include "TcpSocket.h"
@@ -22,7 +21,7 @@ namespace fr
     class SSLSocket : public Socket
     {
     public:
-        SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
+        explicit SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
 
         virtual ~SSLSocket() noexcept;
 
@@ -83,7 +82,7 @@ namespace fr
          *
          * @return The socket's descriptor.
          */
-        virtual int32_t get_socket_descriptor() const override
+        int32_t get_socket_descriptor() const override
         {
             return ssl_socket_descriptor->fd;
         }
@@ -93,7 +92,7 @@ namespace fr
          *
          * @param should_block True to block, false otherwise.
          */
-        virtual void set_blocking(bool should_block) override
+        void set_blocking(bool should_block) override
         {
             abort();
         }
@@ -103,7 +102,7 @@ namespace fr
          *
          * @return True if it's connected. False otherwise.
          */
-        inline virtual bool connected() const override final
+        inline bool connected() const final
         {
             return ssl_socket_descriptor->fd > -1;
         }

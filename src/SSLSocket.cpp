@@ -4,6 +4,7 @@
 
 #include "frnetlib/SSLSocket.h"
 #include <memory>
+#include <utility>
 
 #ifdef SSL_ENABLED
 
@@ -12,7 +13,7 @@
 namespace fr
 {
     SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
-    :  ssl_context(ssl_context_)
+    :  ssl_context(std::move(ssl_context_))
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
@@ -30,13 +31,14 @@ namespace fr
 
     void SSLSocket::close_socket()
     {
-        if(ssl_socket_descriptor && ssl_socket_descriptor->fd > -1)
+        if(ssl_socket_descriptor)
+            mbedtls_net_free(ssl_socket_descriptor.get());
+        if(ssl)
         {
-            if(ssl)
-                mbedtls_ssl_close_notify(ssl.get());
-            if(ssl_socket_descriptor)
-                mbedtls_net_free(ssl_socket_descriptor.get());
+            mbedtls_ssl_close_notify(ssl.get());
+            mbedtls_ssl_free(ssl.get());
         }
+
     }
 
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
@@ -84,8 +86,8 @@ namespace fr
     Socket::Status SSLSocket::connect(const std::string &address, const std::string &port)
     {
         //Initialise mbedtls stuff
-        ssl = std::unique_ptr<mbedtls_ssl_context>(new mbedtls_ssl_context);
-        ssl_socket_descriptor = std::unique_ptr<mbedtls_net_context>(new mbedtls_net_context);
+        ssl = std::make_unique<mbedtls_ssl_context>();
+        ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(ssl_socket_descriptor.get());
 
@@ -103,7 +105,7 @@ namespace fr
         }
 
         mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        mbedtls_ssl_conf_ca_chain(&conf, &ssl_context->cacert, NULL);
+        mbedtls_ssl_conf_ca_chain(&conf, &ssl_context->cacert, nullptr);
         mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ssl_context->ctr_drbg);
 
         if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
@@ -116,7 +118,7 @@ namespace fr
             return Socket::Status::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, NULL);
+        mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
 
         //Do SSL handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
