@@ -56,7 +56,7 @@ namespace fr
 
         //Add in required headers if they're missing
         if(header_data.find("connection") == header_data.end())
-            response += "connection: close_socket\r\n";
+            response += "connection: keep-alive\r\n";
         if(header_data.find("content-type") == header_data.end())
             response += "content-type: text/html\r\n";
         if(header_data.find("content-length") == header_data.end())
