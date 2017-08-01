@@ -83,9 +83,12 @@ namespace fr
         };
 
         Http();
-        Http(Http &&) noexcept;
-        Http(const Http &);
+        Http(Http&&)=default;
+        Http(const Http&)= default;
+        Http &operator=(const Http &)=default;
+        Http &operator=(Http &&)=default;
         virtual ~Http() = default;
+
 
         /*!
          * Parse a raw request or response from a string

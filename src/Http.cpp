@@ -19,29 +19,6 @@ namespace fr
 
     }
 
-    Http::Http(Http &&o) noexcept
-    : header_data(std::move(o.header_data)),
-      post_data(std::move(o.post_data)),
-      get_data(std::move(o.get_data)),
-      body(std::move(o.body)),
-      request_type(o.request_type),
-      uri(std::move(o.uri)),
-      status(o.status)
-    {
-    }
-
-    Http::Http(const Http &o)
-    : header_data(o.header_data),
-      post_data(o.post_data),
-      get_data(o.get_data),
-      body(o.body),
-      request_type(o.request_type),
-      uri(o.uri),
-      status(o.status)
-    {
-
-    }
-
     Http::RequestType Http::get_type() const
     {
         return request_type;
@@ -210,7 +187,10 @@ namespace fr
                 and_pos = str.find('&', read_index);
                 if(and_pos == std::string::npos)
                 {
-                    list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, str.size() - equal_pos - 1));
+                    size_t str_size = str.size();
+                    while(str[str_size - 1] == '\n' || str[str_size - 1] == '\r')
+                        --str_size;
+                    list.emplace_back(str.substr(read_index, equal_pos - read_index), str.substr(equal_pos + 1, str_size - equal_pos - 1));
                     break;
                 }
 

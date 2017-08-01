@@ -16,9 +16,11 @@ namespace fr
     {
     public:
         //Constructors
-        HttpResponse()
-        : header_ended(false),
-          content_length(0){}
+        HttpResponse()=default;
+        HttpResponse(HttpResponse&&)=default;
+        HttpResponse(const HttpResponse&)= default;
+        HttpResponse &operator=(const HttpResponse &)=default;
+        HttpResponse &operator=(HttpResponse &&)=default;
         virtual ~HttpResponse() = default;
 
         /*!
@@ -46,8 +48,8 @@ namespace fr
         bool parse_header(size_t header_end_pos);
 
         //State
-        bool header_ended;
-        size_t content_length;
+        bool header_ended{false};
+        size_t content_length{0};
     };
 }
 
