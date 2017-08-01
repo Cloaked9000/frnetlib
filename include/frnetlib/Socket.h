@@ -84,6 +84,16 @@ namespace fr
         }
 
         /*!
+         * Sets the connections remote address.
+         *
+         * @param addr The remote address to use
+         */
+        void set_remote_address(const std::string &addr)
+        {
+            remote_address = addr;
+        }
+
+        /*!
          * Sets the socket to blocking or non-blocking.
          *
          * @param should_block True for blocking (default argument), false otherwise.

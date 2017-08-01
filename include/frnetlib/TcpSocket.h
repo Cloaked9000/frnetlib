@@ -68,16 +68,6 @@ public:
     virtual Status receive_raw(void *data, size_t buffer_size, size_t &received) override;
 
     /*!
-     * Sets the connections remote address.
-     *
-     * @param addr The remote address to use
-     */
-    void set_remote_address(const std::string &addr)
-    {
-        remote_address = addr;
-    }
-
-    /*!
      * Sets if the socket should be blocking or non-blocking.
      *
      * @param should_block True to block, false otherwise.
