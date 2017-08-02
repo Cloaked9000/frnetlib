@@ -23,16 +23,16 @@ TEST(HttpRequestTest, get_request_parse)
     ASSERT_EQ(request.get_uri(), "/index.html");
 
     //Test that headers exist
-    ASSERT_EQ(request.header_exists("host"), true);
-    ASSERT_EQ(request.header_exists("contEnt-type"), true);
-    ASSERT_EQ(request.header_exists("my-HeadEr"), true);
-    ASSERT_EQ(request.header_exists("my-other-header"), true);
-    ASSERT_EQ(request.header_exists("cache-control"), true);
+    ASSERT_EQ(request.header_exists("Host"), true);
+    ASSERT_EQ(request.header_exists("Content-Type"), true);
+    ASSERT_EQ(request.header_exists("My-Header"), true);
+    ASSERT_EQ(request.header_exists("My-Other-Header"), true);
+    ASSERT_EQ(request.header_exists("Cache-Control"), true);
     ASSERT_EQ(request.header_exists("non-existant"), false);
 
     //Check that headers are intact
-    ASSERT_EQ(request.header("host"), "frednicolson.co.uk");
-    ASSERT_EQ(request.header("content-type"), "application/x-www-form-urlencoded");
+    ASSERT_EQ(request.header("Host"), "frednicolson.co.uk");
+    ASSERT_EQ(request.header("Content-Type"), "application/x-www-form-urlencoded");
     ASSERT_EQ(request.header("My-Other-Header"), "header2");
     ASSERT_EQ(request.header("My-Header"), "header1");
 
@@ -66,11 +66,11 @@ TEST(HttpRequestTest, post_request_parse)
 
     //Parse code is the same for GET, so skip header checks. Test if POST data exists.
     ASSERT_EQ(request.post_exists("post_data"), true);
-    ASSERT_EQ(request.post_exists("some_mOre_posT_data"), true);
+    ASSERT_EQ(request.post_exists("some_more_post_data"), true);
     ASSERT_EQ(request.post_exists("non_existant"), false);
 
     //Check that the POST data is valid
-    ASSERT_EQ(request.post("post_dAta"), "data1");
+    ASSERT_EQ(request.post("post_data"), "data1");
     ASSERT_EQ(request.post("some_more_post_data"), "data23");
 }
 

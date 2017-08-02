@@ -4,7 +4,8 @@
 
 #include <chrono>
 #include <utility>
-#include <frnetlib/TcpListener.h>
+#include "frnetlib/NetworkEncoding.h"
+#include "frnetlib/TcpListener.h"
 #include "frnetlib/SSLListener.h"
 #ifdef SSL_ENABLED
 
@@ -110,7 +111,9 @@ namespace fr
         }
 
         //Accept a connection
-        if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), nullptr, 0, nullptr)) != 0)
+        char client_ip[INET6_ADDRSTRLEN] = {0};
+        size_t ip_len = 0;
+        if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), client_ip, sizeof(client_ip), &ip_len)) != 0)
         {
             std::cout << "Accept error: " << error << std::endl;
             free_contexts();
@@ -130,8 +133,21 @@ namespace fr
             }
         }
 
+        //Get remote address and port. We could get the IP from the accept args, but we also want the port
+        //Which mbedtls doesn't provide
+        //Get printable address. If we failed then set it as just 'unknown'
+        char client_printable_addr[INET6_ADDRSTRLEN];
+        struct sockaddr_storage socket_address{};
+        socklen_t socket_length;
+        error = getpeername(client_fd->fd, (struct sockaddr*)&socket_address, &socket_length);
+        if(error == 0)
+            error = getnameinfo((sockaddr*)&socket_address, socket_length, client_printable_addr, sizeof(client_printable_addr), nullptr,0,NI_NUMERICHOST);
+        if(error != 0)
+            strcpy(client_printable_addr, "unknown");
+
         client.set_ssl_context(std::move(ssl));
         client.set_net_context(std::move(client_fd));
+        client.set_remote_address(client_printable_addr);
         return Socket::Success;
     }
 
