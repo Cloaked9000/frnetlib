@@ -64,6 +64,7 @@ namespace fr
             RequestedRangeNotSatisfiable = 416,
             ExpectationFailed = 417,
             ImATeapot = 418,
+            UnprocessableEntity = 422,
             UpgradeRequired = 426,
             PreconditionRequired = 428,
             TooManyRequests = 429,
