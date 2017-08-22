@@ -139,7 +139,7 @@ namespace fr
          * @param key The name of the GET variable
          * @return A reference to the GET variable
          */
-        std::string &get(const std::string &key);
+        std::string &get(std::string key);
 
         /*!
         * Returns a reference to a POST variable.
@@ -150,7 +150,7 @@ namespace fr
         * @param key The name of the POST variable
         * @return A reference to the POST variable
         */
-        std::string &post(const std::string &key);
+        std::string &post(std::string key);
 
         /*!
         * Returns a reference to a header.
@@ -161,7 +161,7 @@ namespace fr
         * @param key The name of the header
         * @return A reference to the header
         */
-        std::string &header(const std::string &key);
+        std::string &header(std::string key);
 
 
         /*!
@@ -170,7 +170,7 @@ namespace fr
          * @param key The name of the GET variable
          * @return True if it does. False otherwise.
          */
-        bool get_exists(const std::string &key) const;
+        bool get_exists(std::string key) const;
 
         /*!
          * Checks to see if a given POST variable exists
@@ -178,7 +178,7 @@ namespace fr
          * @param key The name of the POST variable
          * @return True if it does. False otherwise.
          */
-        bool post_exists(const std::string &key) const;
+        bool post_exists(std::string key) const;
 
         /*!
          * Checks to see if a given header exists.
@@ -186,7 +186,7 @@ namespace fr
          * @param key The name of the header
          * @return True if it does. False otherwise.
          */
-        bool header_exists(const std::string &key) const;
+        bool header_exists(std::string key) const;
 
         /*!
          * Returns the requested URI

@@ -48,33 +48,39 @@ namespace fr
         body = body_;
     }
 
-    std::string &Http::get(const std::string &key)
+    std::string &Http::get(std::string key)
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return get_data[key];
     }
 
-    std::string &Http::post(const std::string &key)
+    std::string &Http::post(std::string key)
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return post_data[key];
     }
 
-    bool Http::get_exists(const std::string &key) const
+    bool Http::get_exists(std::string key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return get_data.find(key) != get_data.end();
     }
 
-    bool Http::post_exists(const std::string &key) const
+    bool Http::post_exists(std::string key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return post_data.find(key) != post_data.end();
     }
 
-    std::string &Http::header(const std::string &key)
+    std::string &Http::header(std::string key)
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return header_data[key];
     }
 
-    bool Http::header_exists(const std::string &key) const
+    bool Http::header_exists(std::string key) const
     {
+        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
         return header_data.find(key) != header_data.end();
     }
 
@@ -223,7 +229,7 @@ namespace fr
         }
         std::string header_name = str.substr(0, colon_pos);
         std::string header_value = str.substr(data_begin, data_len);
-        
+        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
         header_data.emplace(std::move(header_name), std::move(header_value));
     }
 

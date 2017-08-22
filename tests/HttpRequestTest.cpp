@@ -139,7 +139,7 @@ TEST(HttpRequestTest, post_request_construction)
     //Create a request
     fr::HttpRequest request;
     request.header("MyHeader") = "header1";
-    request.header("MyOtherHeader") = "header2";
+    request.header("myotherheader") = "header2";
     request.set_uri("/heyo/bobby");
     request.get("var") = "20";
     request.post("my_post") = "post_data";
@@ -150,7 +150,7 @@ TEST(HttpRequestTest, post_request_construction)
     //Parse it
     request = {};
     request.parse(constructed_request.c_str(), constructed_request.size());
-    ASSERT_EQ(request.header("MyHeader"), "header1");
+    ASSERT_EQ(request.header("myheader"), "header1");
     ASSERT_EQ(request.header("MyOtherHeader"), "header2");
     ASSERT_EQ(request.get_uri(), "/heyo/bobby");
     ASSERT_EQ(request.get("var"), "20");
