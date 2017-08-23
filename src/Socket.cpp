@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <csignal>
+#include <iostream>
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 #include "frnetlib/Sendable.h"
