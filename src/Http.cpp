@@ -186,7 +186,7 @@ namespace fr
             {
                 unsigned long and_pos;
                 and_pos = str.find('&', read_index);
-                if(and_pos == std::string::npos)
+                if(and_pos >= str.size())
                 {
                     size_t str_size = str.size();
                     while(str[str_size - 1] == '\n' || str[str_size - 1] == '\r')
