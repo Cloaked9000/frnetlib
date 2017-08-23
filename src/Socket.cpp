@@ -10,31 +10,12 @@
 
 namespace fr
 {
-    #ifdef _WIN32
-        WSADATA Socket::wsaData = WSADATA();
-    #endif // _WIN32
-    uint32_t Socket::instance_count = 0;
-
     Socket::Socket() noexcept
     : is_blocking(true),
       ai_family(AF_UNSPEC),
       max_receive_size(0)
     {
-            if(instance_count == 0)
-            {
-                #ifdef _WIN32
-                    int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-                    if(wsa_result != 0)
-                    {
-                        std::cout << "Failed to initialise WSA." << std::endl;
-                        return;
-                    }
-                #else
-                    //Disable SIGPIPE
-                    signal(SIGPIPE, SIG_IGN);
-                #endif // _WIN32
-            }
-			instance_count++;
+        init_wsa();
     }
 
     Socket::Status Socket::send(Sendable &obj)

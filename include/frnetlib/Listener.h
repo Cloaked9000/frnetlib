@@ -14,7 +14,7 @@ namespace fr
         Listener()
         : ai_family(AF_UNSPEC)
         {
-
+            init_wsa();
         }
 
         virtual ~Listener() = default;
@@ -102,6 +102,7 @@ namespace fr
         }
 
     protected:
+
         int ai_family;
     };
 }

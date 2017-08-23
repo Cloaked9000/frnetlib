@@ -229,10 +229,6 @@ namespace fr
         std::mutex inbound_mutex;
         int ai_family;
         uint32_t max_receive_size;
-        #ifdef _WIN32
-                static WSADATA wsaData;
-        #endif // _WIN32
-        static uint32_t instance_count;
     };
 }
 

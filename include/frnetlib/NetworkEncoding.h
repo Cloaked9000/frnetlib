@@ -7,6 +7,10 @@
 
 #include <cstring>
 #include <cstdint>
+#include <atomic>
+#include <exception>
+#include <stdexcept>
+#include <csignal>
 
 //Windows and UNIX require some different headers.
 //We also need some compatibility defines for cross platform support.
@@ -40,38 +44,38 @@
 
 inline float htonf(float val)
 {
-	uint32_t ret;
-	memcpy(&ret, &val, sizeof(ret));
-	ret = htonl(ret);
-	memcpy(&val, &ret, sizeof(val));
-	return val;
+    uint32_t ret;
+    memcpy(&ret, &val, sizeof(ret));
+    ret = htonl(ret);
+    memcpy(&val, &ret, sizeof(val));
+    return val;
 }
 
 inline float ntohf(float val)
 {
-	uint32_t ret;
-	memcpy(&ret, &val, sizeof(ret));
-	ret = ntohl(ret);
-	memcpy(&val, &ret, sizeof(val));
-	return val;
+    uint32_t ret;
+    memcpy(&ret, &val, sizeof(ret));
+    ret = ntohl(ret);
+    memcpy(&val, &ret, sizeof(val));
+    return val;
 }
 
 inline double htond(double val)
 {
-	uint64_t ret;
-	memcpy(&ret, &val, sizeof(ret));
-	ret = htonll(ret);
-	memcpy(&val, &ret, sizeof(val));
-	return val;
+    uint64_t ret;
+    memcpy(&ret, &val, sizeof(ret));
+    ret = htonll(ret);
+    memcpy(&val, &ret, sizeof(val));
+    return val;
 }
 
 inline double ntohd(double val)
 {
-	uint64_t ret;
-	memcpy(&ret, &val, sizeof(ret));
-	ret = ntohll(ret);
-	memcpy(&val, &ret, sizeof(val));
-	return val;
+    uint64_t ret;
+    memcpy(&ret, &val, sizeof(ret));
+    ret = ntohll(ret);
+    memcpy(&val, &ret, sizeof(val));
+    return val;
 }
 
 inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking_already, bool should_block)
@@ -87,6 +91,24 @@ inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking
 #else
     int flags = fcntl(socket_descriptor, F_GETFL, 0);
     fcntl(socket_descriptor, F_SETFL, is_blocking_already ? flags ^ O_NONBLOCK : flags ^= O_NONBLOCK);
+#endif
+}
+
+static void init_wsa()
+{
+#ifdef _WIN32
+    static WSADATA wsaData = WSAData();
+    static std::atomic<uint32_t> instance_count{0};
+    if(instance_count++ == 0)
+    {
+        int wsa_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if(wsa_result != 0)
+        {
+            throw std::runtime_error("Failed to initialise WSA: " + std::to_string(wsa_result));
+        }
+    }
+#else
+    signal(SIGPIPE, SIG_IGN);
 #endif
 }
 
