@@ -8,10 +8,22 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_mo
 #User options
 option(USE_SSL "Use SSL" OFF)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
+set(MAX_HTTP_HEADER_SIZE "0xC800" CACHE STRING "The maximum allowed HTTP header size in bytes")
+set(MAX_HTTP_BODY_SIZE "0xA00000" CACHE STRING "The maximum allowed HTTP body size in bytes")
 
 #Enable tests and examples by default
 option(BUILD_EXAMPLES "Build frnetlib examples" ON)
 option(BUILD_TESTS "Build frnetlib tests" ON)
+
+#Configure defines based on user options
+add_definitions(-DMAX_HTTP_HEADER_SIZE=${MAX_HTTP_HEADER_SIZE})
+add_definitions(-DMAX_HTTP_BODY_SIZE=${MAX_HTTP_BODY_SIZE})
+
+if(USE_SSL)
+    FIND_PACKAGE(MBEDTLS)
+    INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
+    add_definitions(-DSSL_ENABLED)
+endif()
 
 add_definitions(-DNOMINMAX)
 add_definitions(-Dhtonf)
@@ -19,12 +31,6 @@ add_definitions(-Dhtonll)
 add_definitions(-Dntohll)
 add_definitions(-Dhtond)
 add_definitions(-Dntodh)
-
-if(USE_SSL)
-    FIND_PACKAGE(MBEDTLS)
-    INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
-    add_definitions(-DSSL_ENABLED)
-endif()
 
 set( INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include" )
 set( SOURCE_PATH "${PROJECT_SOURCE_DIR}/src" )

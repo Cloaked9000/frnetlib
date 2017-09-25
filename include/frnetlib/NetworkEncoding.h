@@ -20,6 +20,7 @@
 #include <windows.h>
 #include <ws2tcpip.h>
 #define SOL_TCP SOL_SOCKET
+#define SHUT_RDWR SD_BOTH
 #else
 #define closesocket(x) close(x)
 #define INVALID_SOCKET 0

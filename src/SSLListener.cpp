@@ -13,7 +13,7 @@
 
 namespace fr
 {
-    SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept
+    SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &pem_path, const std::string &private_key_path) noexcept
     : ssl_context(std::move(ssl_context_))
     {
         //Initialise SSL objects required
@@ -25,13 +25,6 @@ namespace fr
         int error = 0;
 
         //Load certificates and private key
-        error = mbedtls_x509_crt_parse_file(&srvcert, crt_path.c_str());
-        if(error != 0)
-        {
-            std::cout << "Failed to initialise SSL listener. CRT Parse returned: " << error << std::endl;
-            return;
-        }
-
         error = mbedtls_x509_crt_parse_file(&srvcert, pem_path.c_str());
         if(error != 0)
         {

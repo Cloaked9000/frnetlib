@@ -14,6 +14,13 @@ namespace fr
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
+            //Ensure that the header doesn't exceed max length
+            if(body.size() > MAX_HTTP_HEADER_SIZE)
+            {
+                status = HttpHeaderTooBig;
+                return false; //End parse
+            }
+
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
@@ -30,12 +37,20 @@ namespace fr
 
             //Else parse it
             parse_header(header_end);
-                body.clear();
+            body.clear();
 
-
-            body += std::string(response_data + header_end + header_end_size, datasz - header_end - header_end_size);
+            //Leave things after the header intact
+            body.erase(0, header_end + header_end_size);
         }
 
+        //Ensure that body doesn't exceed maximum length
+        if(body.size() > MAX_HTTP_BODY_SIZE)
+        {
+            status = HttpBodyTooBig;
+            return false; //End parse
+        }
+
+        //Cut off any data if it exceeds content length
         if(body.size() > content_length)
             body.resize(content_length);
         return body.size() < content_length;

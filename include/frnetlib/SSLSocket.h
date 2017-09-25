@@ -107,6 +107,16 @@ namespace fr
             return ssl_socket_descriptor->fd > -1;
         }
 
+        /*!
+         * Sets if the socket should verify the endpoints
+         * certificates or not. Verification is enforced
+         * by default, but disabling it could be useful
+         * for testing.
+         *
+         * @param should_verify True if certificates should be verified, false otherwise
+         */
+        void verify_certificates(bool should_verify);
+
     private:
         std::shared_ptr<SSLContext> ssl_context;
 
@@ -114,6 +124,7 @@ namespace fr
         std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
         uint32_t flags;
+        bool should_verify;
     };
 }
 

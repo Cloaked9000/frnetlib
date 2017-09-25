@@ -24,7 +24,7 @@ namespace fr
     class SSLListener : public Listener
     {
     public:
-        explicit SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &crt_path, const std::string &pem_path, const std::string &private_key_path) noexcept;
+        explicit SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &pem_path, const std::string &private_key_path) noexcept;
         virtual ~SSLListener() noexcept;
         SSLListener(SSLListener &&o) noexcept = default;
 

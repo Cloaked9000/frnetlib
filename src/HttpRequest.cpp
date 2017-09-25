@@ -3,11 +3,11 @@
 //
 
 #include <algorithm>
+#include <iostream>
 #include "frnetlib/HttpRequest.h"
-
 namespace fr
 {
-    HttpRequest::HttpRequest()
+     HttpRequest::HttpRequest()
     : header_ended(false),
       last_parsed_character(0),
       content_length(0)
@@ -22,6 +22,13 @@ namespace fr
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
+            //Ensure that the header doesn't exceed max length
+            if(body.size() > MAX_HTTP_HEADER_SIZE)
+            {
+                status = HttpHeaderTooBig;
+                return false; //End parse
+            }
+
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
@@ -38,11 +45,17 @@ namespace fr
 
             //Else parse it
             if(!parse_header(header_end))
-                    return false;
-                body.clear();
+                return false;
 
+            //Leave things after the header intact
+            body.erase(0, header_end + header_end_size);
+        }
 
-            body += std::string(request + header_end + header_end_size, requestsz - header_end - header_end_size);
+        //Ensure that body doesn't exceed maximum length
+        if(body.size() > MAX_HTTP_BODY_SIZE)
+        {
+            status = HttpBodyTooBig;
+            return false; //End parse
         }
 
         //If we've got the whole request, parse the POST if it exists

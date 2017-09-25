@@ -67,7 +67,7 @@ namespace fr
 
     void Socket::shutdown()
     {
-        ::shutdown(get_socket_descriptor(), 0);
+        ::shutdown(get_socket_descriptor(), SHUT_RDWR);
     }
 
     void Socket::reconfigure_socket()

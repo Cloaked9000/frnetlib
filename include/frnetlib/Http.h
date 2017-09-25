@@ -27,6 +27,9 @@ namespace fr
         };
         enum RequestStatus
         {
+            ParseError = 0,
+            HttpHeaderTooBig = 1,
+            HttpBodyTooBig = 2,
             Continue = 100,
             SwitchingProtocols = 101,
             Ok = 200,

@@ -13,7 +13,8 @@
 namespace fr
 {
     SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
-    :  ssl_context(std::move(ssl_context_))
+    :  ssl_context(std::move(ssl_context_)),
+       should_verify(true)
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
@@ -104,7 +105,7 @@ namespace fr
             return Socket::Status::Error;
         }
 
-        mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        mbedtls_ssl_conf_authmode(&conf, should_verify ? MBEDTLS_SSL_VERIFY_REQUIRED : MBEDTLS_SSL_VERIFY_NONE);
         mbedtls_ssl_conf_ca_chain(&conf, &ssl_context->cacert, nullptr);
         mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ssl_context->ctr_drbg);
 
@@ -131,7 +132,7 @@ namespace fr
         }
 
         //Verify server certificate
-        if((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0)
+        if(should_verify && ((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0))
         {
             char verify_buffer[512];
             mbedtls_x509_crt_verify_info( verify_buffer, sizeof( verify_buffer ), "  ! ", flags );
@@ -156,6 +157,11 @@ namespace fr
     {
         ssl_socket_descriptor = std::move(context);
         reconfigure_socket();
+    }
+
+    void SSLSocket::verify_certificates(bool should_verify_)
+    {
+        should_verify = should_verify_;
     }
 }
 
