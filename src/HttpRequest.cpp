@@ -15,20 +15,13 @@ namespace fr
 
     }
 
-    bool HttpRequest::parse(const char *request, size_t requestsz)
+    fr::Socket::Status HttpRequest::parse(const char *request, size_t requestsz)
     {
         body += std::string(request, requestsz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
-            //Ensure that the header doesn't exceed max length
-            if(body.size() > MAX_HTTP_HEADER_SIZE)
-            {
-                status = HttpHeaderTooBig;
-                return false; //End parse
-            }
-
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
@@ -39,13 +32,19 @@ namespace fr
             }
             header_ended = header_end != std::string::npos;
 
-            //If the header end has not been found, return true, indicating that we need more data.
+            //Ensure that the header doesn't exceed max length
+            if(!header_ended && body.size() > MAX_HTTP_HEADER_SIZE || header_ended && header_end > MAX_HTTP_HEADER_SIZE)
+            {
+                return fr::Socket::HttpHeaderTooBig;
+            }
+
+            //If the header end has not been found, ask for more data.
             if(!header_ended)
-                return true;
+                return fr::Socket::NotEnoughData;
 
             //Else parse it
             if(!parse_header(header_end))
-                return false;
+                return fr::Socket::ParseError;
 
             //Leave things after the header intact
             body.erase(0, header_end + header_end_size);
@@ -54,8 +53,7 @@ namespace fr
         //Ensure that body doesn't exceed maximum length
         if(body.size() > MAX_HTTP_BODY_SIZE)
         {
-            status = HttpBodyTooBig;
-            return false; //End parse
+            return fr::Socket::HttpBodyTooBig;
         }
 
         //If we've got the whole request, parse the POST if it exists
@@ -63,10 +61,10 @@ namespace fr
         {
             if(request_type == RequestType::Post)
                 parse_post_body();
-            return false;
+            return fr::Socket::Success;
         }
 
-        return true;
+        return fr::Socket::NotEnoughData;
     }
 
     bool HttpRequest::parse_header(int64_t header_end_pos)
@@ -77,7 +75,7 @@ namespace fr
             size_t line = 0;
             std::vector<std::string> header_lines = split_string(body.substr(0, (unsigned long)header_end_pos));
             if(header_lines.empty())
-                return false;
+                return true;
 
             //Parse request type & uri
             parse_header_type(header_lines[line]);

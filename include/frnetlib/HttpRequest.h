@@ -30,7 +30,7 @@ namespace fr
          * @param datasz The length of data in bytes
          * @return True if more data is needed, false if finished.
          */
-        bool parse(const char *data, size_t datasz) override;
+        fr::Socket::Status parse(const char *data, size_t datasz) override;
 
         /*!
          * Constructs a Http Request, ready to send.
@@ -44,6 +44,7 @@ namespace fr
          * Parses the request header.
          *
          * @param header_end_pos The position in 'body' of the end of the header
+         * @return True on success, false on failure
          */
         bool parse_header(int64_t header_end_pos);
 

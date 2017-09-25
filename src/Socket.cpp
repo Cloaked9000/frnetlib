@@ -5,6 +5,7 @@
 #include <mutex>
 #include <csignal>
 #include <iostream>
+#include <vector>
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 #include "frnetlib/Sendable.h"
@@ -101,5 +102,29 @@ namespace fr
     void Socket::set_max_receive_size(uint32_t sz)
     {
         max_receive_size = sz;
+    }
+
+    const std::string &Socket::status_to_string(fr::Socket::Status status)
+    {
+        static std::vector<std::string> map = {
+        "Unknown",
+        "Success",
+        "Listen Failed",
+        "Bind Failed",
+        "Disconnected",
+        "Error",
+        "Would Block",
+        "Connection Failed",
+        "Handshake Failed",
+        "Verification Failed",
+        "Max packet size exceeded",
+        "Not enough data",
+        "Parse error",
+        "HTTP header too big",
+        "HTTP body too big"};
+
+        if(status < 0 || status > map.size())
+            throw std::logic_error("Socket::status_to_string(): Invalid status value " + std::to_string(status));
+        return map[status];
     }
 }

@@ -84,6 +84,8 @@ namespace fr
          */
         int32_t get_socket_descriptor() const override
         {
+            if(!ssl_socket_descriptor)
+                return -1;
             return ssl_socket_descriptor->fd;
         }
 
@@ -104,7 +106,7 @@ namespace fr
          */
         inline bool connected() const final
         {
-            return ssl_socket_descriptor->fd > -1;
+            return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
         }
 
         /*!

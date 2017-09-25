@@ -953,6 +953,7 @@ namespace fr
     {
         char recv_buffer[RECV_CHUNK_SIZE];
         size_t received = 0;
+        fr::Socket::Status state;
         do
         {
             //Receive the request
@@ -961,8 +962,9 @@ namespace fr
                 return status;
 
             //Parse it
-        } while(parse(recv_buffer, received));
+            state = parse(recv_buffer, received);
+        } while(state == fr::Socket::NotEnoughData);
 
-        return Socket::Success;
+        return state;
     }
 }

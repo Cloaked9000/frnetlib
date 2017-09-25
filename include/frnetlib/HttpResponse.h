@@ -24,13 +24,14 @@ namespace fr
         virtual ~HttpResponse() = default;
 
         /*!
-         * Parse a HTTP response.
+         * Parse a raw request or response from a string
+         * into the object.
          *
-         * @param data The HTTP response to parse
+         * @param data The request/response to parse
          * @param datasz The length of data in bytes
-         * @return True if more data is needed, false if finished.
+         * @return NotEnoughData if parse needs to be called again. Success on success, other on error.
          */
-        bool parse(const char *data, size_t datasz) override;
+        fr::Socket::Status parse(const char *data, size_t datasz) override;
 
         /*!
          * Constructs a HttpResponse, ready to send.

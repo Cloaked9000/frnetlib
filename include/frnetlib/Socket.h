@@ -29,7 +29,11 @@ namespace fr
             HandshakeFailed = 8,
             VerificationFailed = 9,
             MaxPacketSizeExceeded = 10,
-            NotEnoughData = 11
+            NotEnoughData = 11,
+            ParseError = 12,
+            HttpHeaderTooBig = 13,
+            HttpBodyTooBig = 14,
+            //Remember to update status_to_string if more are added
         };
 
         enum IP
@@ -215,6 +219,16 @@ namespace fr
         {
             return max_receive_size;
         }
+
+        /*!
+         * Converts an fr::Socket::Status value to a printable string
+         *
+         * Throws an std::logic_error if status is out of range.
+         *
+         * @param status Status value to convert
+         * @return A string form version
+         */
+        static const std::string &status_to_string(fr::Socket::Status status);
     protected:
 
         /*!

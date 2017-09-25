@@ -7,20 +7,13 @@
 
 namespace fr
 {
-    bool HttpResponse::parse(const char *response_data, size_t datasz)
+    fr::Socket::Status HttpResponse::parse(const char *response_data, size_t datasz)
     {
         body += std::string(response_data, datasz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
-            //Ensure that the header doesn't exceed max length
-            if(body.size() > MAX_HTTP_HEADER_SIZE)
-            {
-                status = HttpHeaderTooBig;
-                return false; //End parse
-            }
-
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
@@ -31,13 +24,19 @@ namespace fr
             }
             header_ended = header_end != std::string::npos;
 
-            //If the header end has not been found, return true, indicating that we need more data.
+            //Ensure that the header doesn't exceed max length
+            if(!header_ended && body.size() > MAX_HTTP_HEADER_SIZE || header_ended && header_end > MAX_HTTP_HEADER_SIZE)
+            {
+                return fr::Socket::HttpHeaderTooBig;
+            }
+
+            //If the header end has not been found, ask for more data.
             if(!header_ended)
-                return true;
+                return fr::Socket::NotEnoughData;
 
             //Else parse it
-            parse_header(header_end);
-            body.clear();
+            if(!parse_header(header_end))
+                return fr::Socket::ParseError;
 
             //Leave things after the header intact
             body.erase(0, header_end + header_end_size);
@@ -46,14 +45,15 @@ namespace fr
         //Ensure that body doesn't exceed maximum length
         if(body.size() > MAX_HTTP_BODY_SIZE)
         {
-            status = HttpBodyTooBig;
-            return false; //End parse
+            return fr::Socket::HttpBodyTooBig;
         }
 
         //Cut off any data if it exceeds content length
         if(body.size() > content_length)
             body.resize(content_length);
-        return body.size() < content_length;
+        else if(body.size() < content_length)
+            return fr::Socket::NotEnoughData;
+        return fr::Socket::Success;
 
     }
 

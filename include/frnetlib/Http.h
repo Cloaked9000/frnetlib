@@ -27,9 +27,6 @@ namespace fr
         };
         enum RequestStatus
         {
-            ParseError = 0,
-            HttpHeaderTooBig = 1,
-            HttpBodyTooBig = 2,
             Continue = 100,
             SwitchingProtocols = 101,
             Ok = 200,
@@ -100,9 +97,9 @@ namespace fr
          *
          * @param data The request/response to parse
          * @param datasz The length of data in bytes
-         * @return True if more data is needed, false if finished.
+         * @return NotEnoughData if parse needs to be called again. Success on success, other on error.
          */
-        virtual bool parse(const char *data, size_t datasz)=0;
+        virtual fr::Socket::Status parse(const char *data, size_t datasz)=0;
 
         /*!
          * Constructs a HTTP request/response to send.

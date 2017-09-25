@@ -14,7 +14,7 @@ TEST(HttpRequestTest, get_request_parse)
 
     //Parse it
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), false);
+    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Success);
 
     //Check that the request type is intact
     ASSERT_EQ(request.get_type(), fr::Http::Get);
@@ -56,7 +56,7 @@ TEST(HttpRequestTest, post_request_parse)
 
     //Parse it
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), false);
+    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Success);
 
     //Check that the request type is intact
     ASSERT_EQ(request.get_type(), fr::Http::Post);
@@ -157,4 +157,32 @@ TEST(HttpRequestTest, post_request_construction)
     ASSERT_EQ(request.post("my_post"), "post_data");
     ASSERT_EQ(request.post("some_post"), "more_post");
     ASSERT_EQ(request.get_type(), fr::Http::Post);
+}
+
+TEST(HttpRequestTest, partial_parse)
+{
+    //The test request to parse
+    const std::string raw_request1 =
+            "GET /index.html?var=bob&other=trob HTTP/1.1\n"
+                    "Host: frednicolson.co.uk\r\n"
+                    "Content-Type: application/x-www-form-urlencoded\r\n"
+                    "My-Header:   ";
+
+    const std::string raw_request2 =
+            " header1\n"
+            "My-Other-Header:header2\r\n"
+            "Cache-Control: no-cache\r\n\r\n";
+
+
+    //Parse part 1
+    fr::HttpRequest request;
+    ASSERT_EQ(request.parse(raw_request1.c_str(), raw_request1.size()), fr::Socket::NotEnoughData);
+
+    //Parse part 2
+    ASSERT_EQ(request.parse(raw_request2.c_str(), raw_request2.size()), fr::Socket::Success);
+
+    //Verify it
+    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.header("content-type"), "application/x-www-form-urlencoded");
+    ASSERT_EQ(request.header("Cache-Control"), "no-cache");
 }
