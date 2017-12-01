@@ -21,7 +21,10 @@
 #include <ws2tcpip.h>
 #define SOL_TCP SOL_SOCKET
 #define SHUT_RDWR SD_BOTH
+#define UNUSED_VAR
 #else
+
+#define UNUSED_VAR __attribute__ ((unused))
 #define closesocket(x) close(x)
 #define INVALID_SOCKET 0
 #define SOCKET_ERROR (-1)
@@ -95,7 +98,7 @@ inline void set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking
 #endif
 }
 
-static void init_wsa()
+static UNUSED_VAR void init_wsa()
 {
 #ifdef _WIN32
     static WSADATA wsaData = WSAData();

@@ -20,8 +20,8 @@ namespace fr
     {
     public:
         Packet() noexcept
-        : buffer_read_index(PACKET_HEADER_LENGTH),
-          buffer(PACKET_HEADER_LENGTH, '0')
+        : buffer(PACKET_HEADER_LENGTH, '0'),
+          buffer_read_index(PACKET_HEADER_LENGTH)
         {
 
         }

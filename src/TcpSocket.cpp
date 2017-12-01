@@ -117,11 +117,11 @@ namespace fr
             break;
         }
 
-        if(c == nullptr)
-            return Socket::Status::Error;
-
         //We're done with this now, cleanup
         freeaddrinfo(info);
+
+        if(c == nullptr)
+            return Socket::Status::Error;
 
         //Update state now we've got a valid socket descriptor
         remote_address = address + ":" + port;
