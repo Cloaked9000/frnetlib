@@ -76,7 +76,7 @@ namespace fr
         freeaddrinfo(info);
 
         //Listen to socket
-        if(::listen(socket_descriptor, 10) == SOCKET_ERROR)
+        if(::listen(socket_descriptor, LISTEN_QUEUE_SIZE) == SOCKET_ERROR)
         {
             return Socket::ListenFailed;
         }

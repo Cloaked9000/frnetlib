@@ -10,6 +10,7 @@ option(USE_SSL "Use SSL" OFF)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 set(MAX_HTTP_HEADER_SIZE "0xC800" CACHE STRING "The maximum allowed HTTP header size in bytes")
 set(MAX_HTTP_BODY_SIZE "0xA00000" CACHE STRING "The maximum allowed HTTP body size in bytes")
+set(LISTEN_QUEUE_SIZE "64" CACHE STRING "The listen queue depth for fr::TcpListener/fr::SSLListener")
 
 #Enable tests and examples by default
 option(BUILD_EXAMPLES "Build frnetlib examples" ON)
@@ -18,6 +19,7 @@ option(BUILD_TESTS "Build frnetlib tests" ON)
 #Configure defines based on user options
 add_definitions(-DMAX_HTTP_HEADER_SIZE=${MAX_HTTP_HEADER_SIZE})
 add_definitions(-DMAX_HTTP_BODY_SIZE=${MAX_HTTP_BODY_SIZE})
+add_definitions(-DLISTEN_QUEUE_SIZE=${LISTEN_QUEUE_SIZE})
 
 if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
