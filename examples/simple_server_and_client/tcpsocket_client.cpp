@@ -43,7 +43,7 @@ int main()
 
     //Try and connect to the server, create a new TCP object for the job and then connect
     fr::TcpSocket socket;  //Use an fr::SSLSocket if SSL
-    if(socket.connect(SERVER_IP, SERVER_PORT) != fr::Socket::Success)
+    if(socket.connect(SERVER_IP, SERVER_PORT, std::chrono::seconds(20)) != fr::Socket::Success)
     {
         //Failed to connect
         std::cout << "Failed to connect to: " << SERVER_IP << ":" << SERVER_PORT << std::endl;
