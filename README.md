@@ -9,7 +9,7 @@ Frnetlib, is a small and fast networking library written in C++. It can be used 
 #include <TcpSocket.h>
 
 fr::TcpSocket socket;
-if(socket.connect("127.0.0.1", "8081") != fr::Socket::Success)
+if(socket.connect("127.0.0.1", "8081", std::chrono::seconds(10)) != fr::Socket::Success)
 {
     //Failed to connect
 }
@@ -144,9 +144,9 @@ fr::HttpRequest objects are used for dealing with data being sent *to* the serve
 #include <HttpRequest.h>
 #include <HttpResponse.h>
 
-//Connect to the website
+//Connect to the website example.com on port 80, with a 10 second connection timeout
 fr::TcpSocket socket;
-if(socket.connect("example.com", "80") != fr::Socket::Success)
+if(socket.connect("example.com", "80", std::chrono::seconds(10)) != fr::Socket::Success)
 {
     //Failed to connect to site
 }
