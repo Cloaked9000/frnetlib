@@ -30,9 +30,10 @@ public:
      *
      * @param address The address of the socket to connect to
      * @param port The port of the socket to connect to
+     * @param timeout The number of seconds to wait before timing the connection attempt out. Pass -1 for default.
      * @return A Socket::Status indicating the status of the operation.
      */
-    virtual Socket::Status connect(const std::string &address, const std::string &port);
+    virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
 
     /*!
      * Sets the socket file descriptor.

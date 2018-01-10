@@ -16,10 +16,12 @@ namespace fr
     {
     public:
         SocketSelector() noexcept;
+        ~SocketSelector();
 
         /*!
          * Waits for a socket to become ready.
          *
+         * @throws An std::exception if the socket encountered an error
          * @param timeout The amount of time wait should block for before timing out.
          * @return True if a socket is ready. False if it timed out.
          */
@@ -33,13 +35,25 @@ namespace fr
          * @param socket The socket to add.
          */
         template<typename T>
-        void add(const T &socket)
+        inline void add(const T &socket)
+        {
+            add(socket.get_socket_descriptor());
+        }
+
+        /*!
+         * Adds a socket to the selector. Note that SocketSelector
+         * does not keep a copy of the object, just a handle, it's
+         * up to you to store your fr::Sockets.
+         *
+         * @param socket The socket descriptor to add.
+         */
+        void add(int32_t socket_descriptor)
         {
             //Add it to the set
-            FD_SET(socket.get_socket_descriptor(), &listen_set);
+            FD_SET(socket_descriptor, &listen_set);
 
-            if(socket.get_socket_descriptor() > max_descriptor)
-                max_descriptor = socket.get_socket_descriptor();
+            if(socket_descriptor > max_descriptor)
+                max_descriptor = socket_descriptor;
         }
 
         /*!

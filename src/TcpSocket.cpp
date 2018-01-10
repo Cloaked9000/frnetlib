@@ -3,7 +3,9 @@
 //
 
 #include <iostream>
+#include <frnetlib/SocketSelector.h>
 #include "frnetlib/TcpSocket.h"
+#define DEFAULT_SOCKET_TIMEOUT 20
 
 namespace fr
 {
@@ -83,44 +85,75 @@ namespace fr
         socket_descriptor = descriptor;
     }
 
-    Socket::Status TcpSocket::connect(const std::string &address, const std::string &port)
+    Socket::Status TcpSocket::connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)
     {
+        //Setup required structures
+        int ret = 0;
         addrinfo *info;
         addrinfo hints{};
 
         memset(&hints, 0, sizeof(addrinfo));
 
+        //Setup connection settings
         hints.ai_family = ai_family;
         hints.ai_socktype = SOCK_STREAM; //TCP
         hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
 
+        //Query remote address information
         if(getaddrinfo(address.c_str(), port.c_str(), &hints, &info) != 0)
         {
             return Socket::Status::Error;
         }
 
+        //Try to connect to results returned by getaddrinfo until we succeed/run out of things
         addrinfo *c;
         for(c = info; c != nullptr; c = c->ai_next)
         {
+            //Get the socket for this entry
             socket_descriptor = ::socket(c->ai_family, c->ai_socktype, c->ai_protocol);
             if(socket_descriptor == INVALID_SOCKET)
-            {
                 continue;
-            }
 
 
-            if(::connect(socket_descriptor, c->ai_addr, c->ai_addrlen) == SOCKET_ERROR)
-            {
+            //Put it into non-blocking mode, to allow for a custom connect timeout
+            if(!set_unix_socket_blocking(socket_descriptor, true, false))
                 continue;
-            }
+
+            //Try and connect
+            ret = ::connect(socket_descriptor, c->ai_addr, c->ai_addrlen);
+            if(ret < 0 && errno != EINPROGRESS)
+                continue;
+            else if(ret == 0) //If it connected immediately then break out of the connect loop
+                break;
+
+            //Wait for the socket to do something/expire
+            timeval tv = {};
+            tv.tv_sec = timeout.count() == -1 ? DEFAULT_SOCKET_TIMEOUT : timeout.count();
+            tv.tv_usec = 0;
+            fd_set set = {};
+            FD_ZERO(&set);
+            FD_SET(socket_descriptor, &set);
+            ret = select(socket_descriptor + 1, nullptr, &set, nullptr, &tv);
+            if(ret <= 0)
+                continue;
+
+            //Verify that we're connected
+            socklen_t len = sizeof(ret);
+            if(getsockopt(socket_descriptor, SOL_SOCKET, SO_ERROR, &ret, &len) == -1)
+                continue;
+            if(ret != 0)
+                continue;
 
             break;
         }
 
         //We're done with this now, cleanup
         freeaddrinfo(info);
-
         if(c == nullptr)
+            return Socket::Status::Error;
+
+        //Turn back to blocking mode
+        if(!set_unix_socket_blocking(socket_descriptor, false, true))
             return Socket::Status::Error;
 
         //Update state now we've got a valid socket descriptor

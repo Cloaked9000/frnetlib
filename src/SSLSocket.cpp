@@ -73,7 +73,7 @@ namespace fr
             read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
         }
 
-        if(read == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY || read <= 0)
+        if(read <= 0)
         {
             close_socket();
             return Socket::Status::Disconnected;
@@ -84,7 +84,7 @@ namespace fr
 
     }
 
-    Socket::Status SSLSocket::connect(const std::string &address, const std::string &port)
+    Socket::Status SSLSocket::connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)
     {
         //Initialise mbedtls stuff
         ssl = std::make_unique<mbedtls_ssl_context>();
@@ -92,14 +92,20 @@ namespace fr
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(ssl_socket_descriptor.get());
 
-        //Initialise the connection using mbedtlsl
-        int error = 0;
-        if((error = mbedtls_net_connect(ssl_socket_descriptor.get(), address.c_str(), port.c_str(), MBEDTLS_NET_PROTO_TCP)) != 0)
+        //Do to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
+        //Open the descriptor, and then steal it. This is a hack.
         {
-            return Socket::Status::ConnectionFailed;
+            fr::TcpSocket socket;
+            auto ret = socket.connect(address, port, timeout);
+            if(ret != fr::Socket::Success)
+                return ret;
+            ssl_socket_descriptor->fd = socket.get_socket_descriptor();
+            remote_address = socket.get_remote_address();
+            socket.set_descriptor(-1);
         }
 
         //Initialise SSL data structures
+        int error = 0;
         if((error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
         {
             return Socket::Status::Error;
@@ -142,7 +148,6 @@ namespace fr
         }
 
         //Update state
-        remote_address = address + ":" + port;
         reconfigure_socket();
 
         return Socket::Status::Success;

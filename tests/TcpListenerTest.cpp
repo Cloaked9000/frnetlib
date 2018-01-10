@@ -28,7 +28,7 @@ TEST(TcpListenerTest, listener_accept)
     {
         fr::TcpSocket socket;
         socket.set_inet_version(fr::Socket::IP::v4);
-        auto ret = socket.connect("127.0.0.1", "9095");
+        auto ret = socket.connect("127.0.0.1", "9095", std::chrono::seconds(5));
         ASSERT_EQ(ret, fr::Socket::Success);
     };
 

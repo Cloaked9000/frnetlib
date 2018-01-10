@@ -18,6 +18,12 @@ namespace fr
         max_descriptor = 0;
     }
 
+    SocketSelector::~SocketSelector()
+    {
+        FD_ZERO(&listen_set);
+        FD_ZERO(&listen_read);
+    }
+
     bool SocketSelector::wait(std::chrono::milliseconds timeout)
     {
         //Windows will crash if we pass an empty set. Do a check.
@@ -35,8 +41,7 @@ namespace fr
         wait_time.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(timeout).count();
 
         listen_read = listen_set;
-        int select_result = select(max_descriptor + 1, &listen_read, nullptr, nullptr, timeout == std::chrono::milliseconds(0) ? nullptr
-                                                                                                                               : &wait_time);
+        int select_result = select(max_descriptor + 1, &listen_read, nullptr, nullptr, timeout.count() == 0 ? nullptr : &wait_time);
 
         if(select_result == 0) //If it's timed out
             return false;
@@ -45,4 +50,5 @@ namespace fr
 
         return true;
     }
+
 }
