@@ -6,7 +6,7 @@ set(FRNETLIB_LINK_LIBRARIES "")
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 
 #User options
-option(USE_SSL "Use SSL" ON)
+option(USE_SSL "Use SSL" OFF)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 set(MAX_HTTP_HEADER_SIZE "0xC800" CACHE STRING "The maximum allowed HTTP header size in bytes")
 set(MAX_HTTP_BODY_SIZE "0xA00000" CACHE STRING "The maximum allowed HTTP body size in bytes")
