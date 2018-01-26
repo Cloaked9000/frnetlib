@@ -171,7 +171,10 @@ namespace fr
         //Split up the body and store each argument name and value
         auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin - (body.size() - post_end)));
         for(auto &c : post)
+        {
+            std::transform(c.first.begin(), c.first.end(), c.first.begin(), ::tolower);
             post_data.emplace(std::move(c.first), std::move(c.second));
+        }
     }
 
     void HttpRequest::parse_header_type(const std::string &str)
@@ -205,22 +208,21 @@ namespace fr
         auto uri_end = str.find("HTTP") - 1;
         if(uri_begin != std::string::npos)
         {
-            //Extract URI
-            std::string uri = str.substr(uri_begin, uri_end - uri_begin);
-
             //Parse GET variables
             auto get_begin = str.find('?');
             if(get_begin != std::string::npos)
             {
                 auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));
                 for(auto &c : get_vars)
+                {
+                    std::transform(c.first.begin(), c.first.end(), c.first.begin(), ::tolower);
                     get_data.emplace(std::move(c.first), std::move(c.second));
+                }
                 set_uri(str.substr(uri_begin, get_begin - uri_begin));
-                uri.erase(get_begin, uri.size() - get_begin);
             }
             else
             {
-                set_uri(uri);
+                set_uri(str.substr(uri_begin, uri_end - uri_begin));
             }
             return;
         }

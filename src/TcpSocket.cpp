@@ -139,7 +139,7 @@ namespace fr
 
             //Verify that we're connected
             socklen_t len = sizeof(ret);
-            if(getsockopt(socket_descriptor, SOL_SOCKET, SO_ERROR, &ret, &len) == -1)
+            if(getsockopt(socket_descriptor, SOL_SOCKET, SO_ERROR, (char*)&ret, &len) == -1)
                 continue;
             if(ret != 0)
                 continue;

@@ -186,3 +186,29 @@ TEST(HttpRequestTest, partial_parse)
     ASSERT_EQ(request.header("content-type"), "application/x-www-form-urlencoded");
     ASSERT_EQ(request.header("Cache-Control"), "no-cache");
 }
+
+TEST(HttpRequestTest, awkward_parse)
+{
+    std::string request_data = ""
+            "POST /my/url? HTTP/1.1\n"
+            "\n"
+            "Test=bob\n"
+            "\n";
+    fr::HttpRequest request;
+    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Success);
+    ASSERT_EQ(request.get_uri(), "/my/url");
+    ASSERT_EQ(request.post("Test"), "bob");
+}
+
+TEST(HttpRequestTest, awkward_parse2)
+{
+    std::string request_data = "POST /my/url?Bob=10 HTTP/1.1\n"
+            "\n"
+            "Test=bob";
+
+    fr::HttpRequest request;
+    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Success);
+    ASSERT_EQ(request.get_uri(), "/my/url");
+    ASSERT_EQ(request.get("Bob"), "10");
+    ASSERT_EQ(request.post("Test"), "bob");
+}
