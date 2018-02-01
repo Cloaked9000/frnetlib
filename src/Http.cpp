@@ -9,14 +9,19 @@
 
 namespace fr
 {
-    const static std::string request_type_strings[Http::RequestType::RequestTypeCount] = {"UNKNOWN", "GET", "POST"};
+    const static std::string request_type_strings[Http::RequestType::RequestTypeCount] = {"UNKNOWN",
+                                                                                          "GET",
+                                                                                          "POST",
+                                                                                          "PUT",
+                                                                                          "DELETE",
+                                                                                          "PATCH"};
 
     Http::Http()
     : request_type(Unknown),
       uri("/"),
       status(Ok)
     {
-
+        static_assert(Http::RequestType::RequestTypeCount == 6, "Please update request_type_strings");
     }
 
     Http::RequestType Http::get_type() const

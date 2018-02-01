@@ -10,7 +10,7 @@ TEST(URLTest, full_parse)
     fr::URL url("http://example.com:80/path/path?query=10&bob=20#frag");
     ASSERT_EQ(url.get_host(), "example.com");
     ASSERT_EQ(url.get_scheme(), fr::URL::HTTP);
-    ASSERT_EQ(url.get_path(), "path/path");
+    ASSERT_EQ(url.get_path(), "/path/path");
     ASSERT_EQ(url.get_query(), "query=10&bob=20");
     ASSERT_EQ(url.get_fragment(), "frag");
 }
@@ -38,6 +38,30 @@ TEST(URLTest, fragment_test)
 TEST(URLTest, path_test)
 {
     fr::URL url("example.com/path/hey#frag");
-    ASSERT_EQ(url.get_path(), "path/hey");
+    ASSERT_EQ(url.get_path(), "/path/hey");
     ASSERT_EQ(url.get_fragment(), "frag");
+}
+
+TEST(URLTest, uri_test)
+{
+    fr::URL url("http://example.com:80/path/path?query=10#frag");
+    ASSERT_EQ(url.get_uri(), "/path/path?query=10#frag");
+}
+
+TEST(URLTest, uri_test2)
+{
+    fr::URL url("http://example.com:80/path/path?query=10");
+    ASSERT_EQ(url.get_uri(), "/path/path?query=10");
+}
+
+TEST(URLTest, uri_test3)
+{
+    fr::URL url("http://example.com:80/path/path#frag");
+    ASSERT_EQ(url.get_uri(), "/path/path#frag");
+}
+
+TEST(URLTest, uri_test4)
+{
+    fr::URL url("http://example.com:80/?bob=10#frag");
+    ASSERT_EQ(url.get_uri(), "/?bob=10#frag");
 }

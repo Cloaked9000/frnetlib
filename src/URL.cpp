@@ -38,12 +38,12 @@ namespace fr
         {
             auto scheme_pos = scheme_string_map.find(to_lower(url.substr(0, pos)));
             scheme = (scheme_pos == scheme_string_map.end()) ? URL::Unknown : scheme_pos->second;
-            parse_offset = pos + 3;
+            parse_offset = pos + 3; // skip the ://
         }
 
         //Check to see if there's a port
         pos = url.find(':', parse_offset);
-        if(pos != std::string::npos)
+        if(pos != std::string::npos) //A port is provided
         {
             //Store host
             host = url.substr(parse_offset, pos - parse_offset);
@@ -55,7 +55,7 @@ namespace fr
             port = url.substr(pos + 1, port_end - pos - 1);
             parse_offset = port_end + 1;
         }
-        else
+        else //There's no port
         {
             //Store host
             pos = url.find('/', parse_offset);
@@ -96,7 +96,7 @@ namespace fr
         pos = url.find('?', parse_offset);
         if(pos != std::string::npos)
         {
-            path = url.substr(parse_offset, pos - parse_offset);
+            path.append("/").append(url.substr(parse_offset, pos - parse_offset));
             parse_offset = pos + 1;
         }
         else
@@ -104,7 +104,7 @@ namespace fr
             pos = url.find('#', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.find('?', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.size();
-            path = url.substr(parse_offset, pos - parse_offset);
+            path.append("/").append(url.substr(parse_offset, pos - parse_offset));
             parse_offset = pos + 1;
         }
 

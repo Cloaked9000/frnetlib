@@ -23,7 +23,6 @@ namespace fr
 
     Socket::Status TcpSocket::send_raw(const char *data, size_t size)
     {
-        std::lock_guard<std::mutex> guard(outbound_mutex);
         size_t sent = 0;
         while(sent < size)
         {
@@ -128,7 +127,7 @@ namespace fr
 
             //Wait for the socket to do something/expire
             timeval tv = {};
-            tv.tv_sec = timeout.count() == -1 ? DEFAULT_SOCKET_TIMEOUT : timeout.count();
+            tv.tv_sec = timeout.count() == 0 ? DEFAULT_SOCKET_TIMEOUT : timeout.count();
             tv.tv_usec = 0;
             fd_set set = {};
             FD_ZERO(&set);

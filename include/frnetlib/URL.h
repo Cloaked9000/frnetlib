@@ -32,7 +32,10 @@ namespace fr
         explicit URL(const std::string &url);
 
         /*!
-         * Parses a given URL, extracting its various components
+         * Parses a given URL, extracting its various components. This will always
+         * try to make something out of the provided URL. It will also try its best
+         * to guess any potentially missing information. For example, if the URL is
+         * https://example.com, then the 'port' will be guessed as 443.
          *
          * @param url The URL to parse
          */
@@ -84,6 +87,25 @@ namespace fr
         inline const std::string &get_fragment() const
         {
             return fragment;
+        }
+
+        /*!
+         * Returns the combination of other URL elements into a single URI string.
+         *
+         * The URL is everything after the IP/Address & Port.
+         *
+         * @return The URL's URI
+         */
+        inline std::string get_uri() const
+        {
+            std::string result;
+            if(!get_path().empty())
+                result += get_path();
+            if(!get_query().empty())
+                result += "?" + get_query();
+            if(!get_fragment().empty())
+                result += "#" + get_fragment();
+            return result;
         }
 
         /*!

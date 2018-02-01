@@ -47,20 +47,10 @@ namespace fr
         virtual ~Socket() noexcept = default;
         Socket(Socket &&o) noexcept
         {
-            outbound_mutex.lock();
-            inbound_mutex.lock();
-            o.inbound_mutex.lock();
-            o.outbound_mutex.lock();
-
             remote_address = std::move(o.remote_address);
             is_blocking = o.is_blocking;
             ai_family = o.ai_family;
             max_receive_size = o.max_receive_size;
-
-            outbound_mutex.unlock();
-            inbound_mutex.unlock();
-            o.inbound_mutex.unlock();
-            o.outbound_mutex.unlock();
         }
 
         /*!
@@ -195,7 +185,7 @@ namespace fr
 
         /*!
          * Sets the maximum receivable size that may be received by the socket. This does
-         * not apply to receive_raw(), but only things like fr::Packet, or HTTP responses.
+         * not apply to receive_raw(), but only things like fr::Packet.
          *
          * If a client attempts to send a packet larger than sz bytes, then
          * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
@@ -213,6 +203,7 @@ namespace fr
         /*!
          * Gets the max packet size. See set_max_packet_size
          * for more information.
+         *
          *
          * @return The max packet size
          */
@@ -240,8 +231,6 @@ namespace fr
 
         std::string remote_address;
         bool is_blocking;
-        std::mutex outbound_mutex;
-        std::mutex inbound_mutex;
         int ai_family;
         uint32_t max_receive_size;
     };

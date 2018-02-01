@@ -41,7 +41,6 @@ namespace fr
         if(!connected())
             return Socket::Disconnected;
 
-        std::lock_guard<std::mutex> guard(inbound_mutex);
         return obj.receive(this);
     }
 

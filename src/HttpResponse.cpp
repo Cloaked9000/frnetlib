@@ -44,11 +44,9 @@ namespace fr
 
         //Ensure that body doesn't exceed maximum length
         if(body.size() > MAX_HTTP_BODY_SIZE)
-        {
             return fr::Socket::HttpBodyTooBig;
-        }
 
-        //Cut off any data if it exceeds content length
+        //Cut off any data if it exceeds content length, todo: potentially an issue, could cut the next request off
         if(body.size() > content_length)
             body.resize(content_length);
         else if(body.size() < content_length)

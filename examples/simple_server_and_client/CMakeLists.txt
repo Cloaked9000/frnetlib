@@ -1,8 +1,8 @@
-add_executable(simple_client tcpsocket_client.cpp)
-target_link_libraries(simple_client frnetlib)
+add_executable(simple_http_client SimpleHttpClient.cpp)
+target_link_libraries(simple_http_client frnetlib)
 
-add_executable(simple_server tcpsocket_server.cpp)
-target_link_libraries(simple_server frnetlib)
+add_executable(simple_http_server SimpleHttpServer.cpp)
+target_link_libraries(simple_http_server frnetlib)
 
-install(TARGETS simple_client simple_server
+install(TARGETS simple_http_client simple_http_server
         DESTINATION "bin")

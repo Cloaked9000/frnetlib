@@ -131,7 +131,7 @@ while(true)
     }
 
     //Close connection
-    client.close();
+    client.close_socket();
 }
 ```
 After binding to the port, we infinitely try and receive a new request, construct a response with the body of 'Hello, World!' and send it back to the client before closing the socket. fr::HttpRequest, and fr::HttpResponse both inherit fr::Sendable, which allows them to be sent and received through sockets just like fr::Packets.

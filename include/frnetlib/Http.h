@@ -23,7 +23,7 @@ namespace fr
             Put = 3,
             Delete = 4,
             Patch = 5,
-            RequestTypeCount = 3,
+            RequestTypeCount = 6, //Keep me at the end and updated
         };
         enum RequestStatus
         {
