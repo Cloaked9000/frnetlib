@@ -4,8 +4,6 @@
 
 #ifndef FRNETLIB_SSL_SOCKET_H
 #define FRNETLIB_SSL_SOCKET_H
-#ifdef SSL_ENABLED
-
 #include "TcpSocket.h"
 #include "SSLContext.h"
 #include <mbedtls/net_sockets.h>
@@ -65,18 +63,18 @@ namespace fr
         virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
 
         /*!
+         * Sets the socket file descriptor.
+         *
+         * @param descriptor The socket descriptor.
+         */
+        virtual void set_descriptor(int descriptor) override;
+
+        /*!
          * Set the SSL context
          *
          * @param context The SSL context to use
          */
         void set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context);
-
-        /*!
-         * Set the NET context
-         *
-         * @param context The NET context to use
-         */
-        void set_net_context(std::unique_ptr<mbedtls_net_context> context);
 
         /*!
          * Gets the underlying socket descriptor.
@@ -85,9 +83,7 @@ namespace fr
          */
         int32_t get_socket_descriptor() const override
         {
-            if(!ssl_socket_descriptor)
-                return -1;
-            return ssl_socket_descriptor->fd;
+            return ssl_socket_descriptor.fd;
         }
 
         /*!
@@ -107,7 +103,7 @@ namespace fr
          */
         inline bool connected() const final
         {
-            return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
+            return ssl_socket_descriptor.fd > -1;
         }
 
         /*!
@@ -123,14 +119,12 @@ namespace fr
     private:
         std::shared_ptr<SSLContext> ssl_context;
 
-        std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
+        mbedtls_net_context ssl_socket_descriptor;
         std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
         uint32_t flags;
         bool should_verify;
     };
 }
-
-#endif
 
 #endif //FRNETLIB_SSLSOCKET_H

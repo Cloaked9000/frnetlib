@@ -40,7 +40,7 @@ public:
      *
      * @param descriptor The socket descriptor.
      */
-    virtual void set_descriptor(int descriptor);
+    virtual void set_descriptor(int descriptor) override;
 
     /*!
      * Attempts to send raw data down the socket, without

@@ -5,8 +5,6 @@
 #ifndef FRNETLIB_SSLLISTENER_H
 #define FRNETLIB_SSLLISTENER_H
 
-#ifdef SSL_ENABLED
-
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/debug.h>
 #include <mbedtls/ssl.h>
@@ -83,6 +81,4 @@ namespace fr
     };
 
 }
-
-#endif //SLL_ENABLED
 #endif //FRNETLIB_SSLLISTENER_H

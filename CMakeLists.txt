@@ -24,7 +24,7 @@ add_definitions(-DLISTEN_QUEUE_SIZE=${LISTEN_QUEUE_SIZE})
 if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
     INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
-    add_definitions(-DSSL_ENABLED)
+    set(SOURCE_FILES ${SOURCE_FILES} src/SSLSocket.cpp include/frnetlib/SSLSocket.h src/SSLListener.cpp include/frnetlib/SSLListener.h include/frnetlib/SSLContext.h)
 endif()
 
 add_definitions(-DNOMINMAX)
@@ -37,7 +37,7 @@ add_definitions(-Dntodh)
 set( INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include" )
 set( SOURCE_PATH "${PROJECT_SOURCE_DIR}/src" )
 
-set(SOURCE_FILES main.cpp src/TcpSocket.cpp include/frnetlib/TcpSocket.h src/TcpListener.cpp include/frnetlib/TcpListener.h src/Socket.cpp include/frnetlib/Socket.h src/Packet.cpp include/frnetlib/Packet.h include/frnetlib/NetworkEncoding.h src/SocketSelector.cpp include/frnetlib/SocketSelector.h src/HttpRequest.cpp include/frnetlib/HttpRequest.h src/HttpResponse.cpp include/frnetlib/HttpResponse.h src/Http.cpp include/frnetlib/Http.h src/SSLSocket.cpp include/frnetlib/SSLSocket.h src/SSLListener.cpp include/frnetlib/SSLListener.h include/frnetlib/SSLContext.h src/SocketReactor.cpp include/frnetlib/SocketReactor.h include/frnetlib/Packetable.h include/frnetlib/Listener.h src/URL.cpp include/frnetlib/URL.h include/frnetlib/Sendable.h)
+set(SOURCE_FILES ${SOURCE_FILES} main.cpp src/TcpSocket.cpp include/frnetlib/TcpSocket.h src/TcpListener.cpp include/frnetlib/TcpListener.h src/Socket.cpp include/frnetlib/Socket.h src/Packet.cpp include/frnetlib/Packet.h include/frnetlib/NetworkEncoding.h src/SocketSelector.cpp include/frnetlib/SocketSelector.h src/HttpRequest.cpp include/frnetlib/HttpRequest.h src/HttpResponse.cpp include/frnetlib/HttpResponse.h src/Http.cpp include/frnetlib/Http.h src/SocketReactor.cpp include/frnetlib/SocketReactor.h include/frnetlib/Packetable.h include/frnetlib/Listener.h src/URL.cpp include/frnetlib/URL.h include/frnetlib/Sendable.h)
 
 include_directories(include)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")

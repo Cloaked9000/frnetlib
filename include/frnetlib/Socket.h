@@ -68,25 +68,6 @@ namespace fr
          */
         virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)=0;
 
-        /*!
-         * Gets the socket's printable remote address
-         *
-         * @return The string address
-         */
-        inline const std::string &get_remote_address()
-        {
-            return remote_address;
-        }
-
-        /*!
-         * Sets the connections remote address.
-         *
-         * @param addr The remote address to use
-         */
-        void set_remote_address(const std::string &addr)
-        {
-            remote_address = addr;
-        }
 
         /*!
          * Sets the socket to blocking or non-blocking.
@@ -105,7 +86,6 @@ namespace fr
          * @return The status of the operation.
          */
         virtual Status send_raw(const char *data, size_t size) = 0;
-
 
         /*!
          * Receives raw data from the socket, without any of
@@ -134,6 +114,33 @@ namespace fr
          * @return True if it's connected. False otherwise.
          */
         virtual bool connected() const =0;
+
+        /*!
+         * Sets the socket file descriptor.
+         *
+         * @param descriptor The socket descriptor.
+         */
+        virtual void set_descriptor(int descriptor)=0;
+
+        /*!
+         * Gets the socket's printable remote address
+         *
+         * @return The string address
+         */
+        inline const std::string &get_remote_address()
+        {
+            return remote_address;
+        }
+
+        /*!
+         * Sets the connections remote address.
+         *
+         * @param addr The remote address to use
+         */
+        void set_remote_address(const std::string &addr)
+        {
+            remote_address = addr;
+        }
 
         /*!
          * Send a Sendable object through the socket

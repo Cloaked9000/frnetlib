@@ -6,8 +6,6 @@
 #include <memory>
 #include <utility>
 
-#ifdef SSL_ENABLED
-
 #include <mbedtls/net_sockets.h>
 
 namespace fr
@@ -18,7 +16,7 @@ namespace fr
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
-
+        ssl_socket_descriptor.fd = -1;
     }
 
     SSLSocket::~SSLSocket() noexcept
@@ -26,20 +24,20 @@ namespace fr
         //Close connection if active
         close_socket();
 
-        //Cleanup mbedsql stuff
+        //Cleanup mbedtls stuff
         mbedtls_ssl_config_free(&conf);
     }
 
     void SSLSocket::close_socket()
     {
-        if(ssl_socket_descriptor)
-            mbedtls_net_free(ssl_socket_descriptor.get());
         if(ssl)
         {
             mbedtls_ssl_close_notify(ssl.get());
             mbedtls_ssl_free(ssl.get());
         }
-
+        if(ssl_socket_descriptor.fd > -1)
+            mbedtls_net_free(&ssl_socket_descriptor);
+        ssl_socket_descriptor.fd = -1;
     }
 
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
@@ -88,9 +86,8 @@ namespace fr
     {
         //Initialise mbedtls stuff
         ssl = std::make_unique<mbedtls_ssl_context>();
-        ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
         mbedtls_ssl_init(ssl.get());
-        mbedtls_net_init(ssl_socket_descriptor.get());
+        mbedtls_net_init(&ssl_socket_descriptor);
 
         //Do to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
         //Open the descriptor, and then steal it. This is a hack.
@@ -99,7 +96,7 @@ namespace fr
             auto ret = socket.connect(address, port, timeout);
             if(ret != fr::Socket::Success)
                 return ret;
-            ssl_socket_descriptor->fd = socket.get_socket_descriptor();
+            ssl_socket_descriptor.fd = socket.get_socket_descriptor();
             remote_address = socket.get_remote_address();
             socket.set_descriptor(-1);
         }
@@ -125,7 +122,7 @@ namespace fr
             return Socket::Status::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
+        mbedtls_ssl_set_bio(ssl.get(), &ssl_socket_descriptor, mbedtls_net_send, mbedtls_net_recv, nullptr);
 
         //Do SSL handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
@@ -158,9 +155,9 @@ namespace fr
         ssl = std::move(context);
     }
 
-    void SSLSocket::set_net_context(std::unique_ptr<mbedtls_net_context> context)
+    void SSLSocket::set_descriptor(int descriptor)
     {
-        ssl_socket_descriptor = std::move(context);
+        ssl_socket_descriptor.fd = descriptor;
         reconfigure_socket();
     }
 
@@ -169,5 +166,3 @@ namespace fr
         should_verify = should_verify_;
     }
 }
-
-#endif

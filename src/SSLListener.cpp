@@ -7,9 +7,9 @@
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/TcpListener.h"
 #include "frnetlib/SSLListener.h"
-#ifdef SSL_ENABLED
 
 #include <mbedtls/net_sockets.h>
+#include <iostream>
 
 namespace fr
 {
@@ -86,16 +86,16 @@ namespace fr
     Socket::Status SSLListener::accept(Socket &client_)
     {
         //Cast to SSLSocket. Will throw bad cast on failure.
-        auto &client = dynamic_cast<SSLSocket&>(client_);
+        SSLSocket &client = dynamic_cast<SSLSocket&>(client_);
 
         //Initialise mbedtls
         int error = 0;
         std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
-        std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
+        mbedtls_net_context client_fd;
 
         mbedtls_ssl_init(ssl.get());
-        mbedtls_net_init(client_fd.get());
-        auto free_contexts = [&](){mbedtls_ssl_free(ssl.get()); mbedtls_net_free(client_fd.get());};
+        mbedtls_net_init(&client_fd);
+        auto free_contexts = [&](){mbedtls_ssl_free(ssl.get()); mbedtls_net_free(&client_fd);};
         if((error = mbedtls_ssl_setup(ssl.get(), &conf ) ) != 0)
         {
             std::cout << "Failed to apply SSL setings: " << error << std::endl;
@@ -106,14 +106,14 @@ namespace fr
         //Accept a connection
         char client_ip[INET6_ADDRSTRLEN] = {0};
         size_t ip_len = 0;
-        if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), client_ip, sizeof(client_ip), &ip_len)) != 0)
+        if((error = mbedtls_net_accept(&listen_fd, &client_fd, client_ip, sizeof(client_ip), &ip_len)) != 0)
         {
             std::cout << "Accept error: " << error << std::endl;
             free_contexts();
             return Socket::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
+        mbedtls_ssl_set_bio(ssl.get(), &client_fd, mbedtls_net_send, mbedtls_net_recv, nullptr);
 
         //SSL Handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
@@ -132,14 +132,14 @@ namespace fr
         char client_printable_addr[INET6_ADDRSTRLEN];
         struct sockaddr_storage socket_address{};
         socklen_t socket_length;
-        error = getpeername(client_fd->fd, (struct sockaddr*)&socket_address, &socket_length);
+        error = getpeername(client_fd.fd, (struct sockaddr*)&socket_address, &socket_length);
         if(error == 0)
             error = getnameinfo((sockaddr*)&socket_address, socket_length, client_printable_addr, sizeof(client_printable_addr), nullptr,0,NI_NUMERICHOST);
         if(error != 0)
             strcpy(client_printable_addr, "unknown");
 
         client.set_ssl_context(std::move(ssl));
-        client.set_net_context(std::move(client_fd));
+        client.set_descriptor(client_fd.fd);
         client.set_remote_address(client_printable_addr);
         return Socket::Success;
     }
@@ -169,4 +169,3 @@ namespace fr
     }
 
 }
-#endif
