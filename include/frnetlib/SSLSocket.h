@@ -20,10 +20,11 @@ namespace fr
     {
     public:
         explicit SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
-
         virtual ~SSLSocket() noexcept;
-
-        SSLSocket(SSLSocket &&) noexcept = default;
+        SSLSocket(SSLSocket &&) = delete;
+        SSLSocket(const SSLSocket &) = delete;
+        void operator=(SSLSocket &&)=delete;
+        void operator=(const SSLSocket &)=delete;
 
         /*!
          * Effectively just fr::TcpSocket::send_raw() with encryption
@@ -43,7 +44,10 @@ namespace fr
          * @param data Where to store the received data.
          * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
          * @param received Will be filled with the number of bytes actually received, might be less than you requested.
-         * @return The status of the operation, if the socket has disconnected etc.
+         * @return The status of the operation:
+         * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode
+         * 'Disconnected' if the socket has disconnected.
+         * 'Success' All the bytes you wanted have been read
          */
         Socket::Status receive_raw(void *data, size_t data_size, size_t &received) override;
 
@@ -60,14 +64,15 @@ namespace fr
          * @param timeout The number of seconds to wait before timing the connection attempt out. Pass -1 for default.
          * @return A Socket::Status indicating the status of the operation.
          */
-        virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
+        Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
 
         /*!
-         * Sets the socket file descriptor.
+         * Sets the socket file descriptor. Internally used.
          *
-         * @param descriptor The socket descriptor.
+         * @note For SSLSocket, this should be a pointer to a heap allocated mbedtls_net_context. Pointer ownership will be taken over by the SSLSocket.
+         * @param descriptor_data The socket descriptor data, set up by the Listener.
          */
-        virtual void set_descriptor(int descriptor) override;
+        void set_descriptor(void *descriptor_data) override;
 
         /*!
          * Set the SSL context
@@ -75,36 +80,6 @@ namespace fr
          * @param context The SSL context to use
          */
         void set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context);
-
-        /*!
-         * Gets the underlying socket descriptor.
-         *
-         * @return The socket's descriptor.
-         */
-        int32_t get_socket_descriptor() const override
-        {
-            return ssl_socket_descriptor.fd;
-        }
-
-        /*!
-         * Sets if the socket should block or not.
-         *
-         * @param should_block True to block, false otherwise.
-         */
-        void set_blocking(bool should_block) override
-        {
-            abort();
-        }
-
-        /*!
-         * Checks to see if we're connected to a socket or not
-         *
-         * @return True if it's connected. False otherwise.
-         */
-        inline bool connected() const final
-        {
-            return ssl_socket_descriptor.fd > -1;
-        }
 
         /*!
          * Sets if the socket should verify the endpoints
@@ -116,10 +91,43 @@ namespace fr
          */
         void verify_certificates(bool should_verify);
 
+        /*!
+         * Gets the underlying socket descriptor.
+         *
+         * @return The socket's descriptor.
+         */
+        inline int32_t get_socket_descriptor() const override
+        {
+            if(!ssl_socket_descriptor)
+                return -1;
+            return ssl_socket_descriptor->fd;
+        }
+
+        /*!
+         * Sets if the socket should block or not.
+         *
+         * @note This must be set *WHILST* connected
+         * @param should_block True to block, false otherwise.
+         */
+        inline void set_blocking(bool should_block) override
+        {
+            mbedtls_net_set_block(ssl_socket_descriptor.get());
+        }
+
+        /*!
+         * Checks to see if we're connected to a socket or not
+         *
+         * @return True if it's connected. False otherwise.
+         */
+        inline bool connected() const final
+        {
+            return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
+        }
+
+
     private:
         std::shared_ptr<SSLContext> ssl_context;
-
-        mbedtls_net_context ssl_socket_descriptor;
+        std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
         std::unique_ptr<mbedtls_ssl_context> ssl;
         mbedtls_ssl_config conf;
         uint32_t flags;

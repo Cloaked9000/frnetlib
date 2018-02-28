@@ -16,9 +16,10 @@ class TcpSocket : public Socket
 public:
     TcpSocket() noexcept;
     virtual ~TcpSocket() noexcept;
-    TcpSocket(TcpSocket &&other) noexcept
-    : socket_descriptor(other.socket_descriptor){}
-    void operator=(const TcpSocket &other)=delete;
+    TcpSocket(TcpSocket &&) = delete;
+    TcpSocket(const TcpSocket &) = delete;
+    void operator=(TcpSocket &&)=delete;
+    void operator=(const TcpSocket &)=delete;
 
     /*!
      * Close the connection.
@@ -30,17 +31,10 @@ public:
      *
      * @param address The address of the socket to connect to
      * @param port The port of the socket to connect to
-     * @param timeout The number of seconds to wait before timing the connection attempt out. Pass -1 for default.
-     * @return A Socket::Status indicating the status of the operation.
+     * @param timeout The number of seconds to wait before timing the connection attempt out. Pass {} for default.
+     * @return A Socket::Status indicating the status of the operation. (Success on success, an error type on failure).
      */
-    virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
-
-    /*!
-     * Sets the socket file descriptor.
-     *
-     * @param descriptor The socket descriptor.
-     */
-    virtual void set_descriptor(int descriptor) override;
+    Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override;
 
     /*!
      * Attempts to send raw data down the socket, without
@@ -51,7 +45,7 @@ public:
      * @param size The number of bytes, from data to send. Be careful not to overflow.
      * @return The status of the operation.
      */
-    virtual Status send_raw(const char *data, size_t size) override;
+    Status send_raw(const char *data, size_t size) override;
 
 
     /*!
@@ -64,16 +58,28 @@ public:
      * @param data Where to store the received data.
      * @param buffer_size The number of bytes to try and receive. Be sure that it's not larger than data.
      * @param received Will be filled with the number of bytes actually received, might be less than you requested.
-     * @return The status of the operation, if the socket has disconnected etc.
+     * @return The status of the operation:
+     * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode
+     * 'Disconnected' if the socket has disconnected.
+     * 'Success' All the bytes you wanted have been read
      */
-    virtual Status receive_raw(void *data, size_t buffer_size, size_t &received) override;
+    Status receive_raw(void *data, size_t buffer_size, size_t &received) override;
 
     /*!
      * Sets if the socket should be blocking or non-blocking.
      *
+     * @note This must be set *WHILST* connected
      * @param should_block True to block, false otherwise.
      */
     void set_blocking(bool should_block) override;
+
+    /*!
+     * Sets the socket file descriptor. Internally used.
+     *
+     * @note For TcpSocket, this should be a pointer to a int32_t. A copy is made.
+     * @param descriptor_data The socket descriptor data, set up by the Listener.
+     */
+    void set_descriptor(void *descriptor_data) override;
 
     /*!
      * Gets the unerlying socket descriptor

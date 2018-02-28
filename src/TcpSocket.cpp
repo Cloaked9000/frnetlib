@@ -78,10 +78,10 @@ namespace fr
     }
 
 
-    void TcpSocket::set_descriptor(int descriptor)
+    void TcpSocket::set_descriptor(void *descriptor)
     {
+        socket_descriptor = *static_cast<int32_t*>(descriptor);
         reconfigure_socket();
-        socket_descriptor = descriptor;
     }
 
     Socket::Status TcpSocket::connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)

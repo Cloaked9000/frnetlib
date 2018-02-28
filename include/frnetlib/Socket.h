@@ -45,26 +45,18 @@ namespace fr
 
         Socket() noexcept;
         virtual ~Socket() noexcept = default;
-        Socket(Socket &&o) noexcept
-        {
-            remote_address = std::move(o.remote_address);
-            is_blocking = o.is_blocking;
-            ai_family = o.ai_family;
-            max_receive_size = o.max_receive_size;
-        }
-
-        /*!
-         * Close the connection.
-         */
-        virtual void close_socket()=0;
+        Socket(Socket &&) =delete;
+        Socket(const Socket &) =delete;
+        void operator=(const Socket &) =delete;
+        void operator=(Socket &&) =delete;
 
         /*!
          * Connects the socket to an address.
          *
          * @param address The address of the socket to connect to
          * @param port The port of the socket to connect to
-         * @param timeout The number of seconds to wait before timing the connection attempt out. Pass -1 for default.
-         * @return A Socket::Status indicating the status of the operation.
+         * @param timeout The number of seconds to wait before timing the connection attempt out. Pass {} for default.
+         * @return A Socket::Status indicating the status of the operation. (Success on success, an error type on failure).
          */
         virtual Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)=0;
 
@@ -72,6 +64,7 @@ namespace fr
         /*!
          * Sets the socket to blocking or non-blocking.
          *
+         * @note This must be set *WHILST* connected
          * @param should_block True for blocking (default argument), false otherwise.
          */
         virtual void set_blocking(bool should_block) = 0;
@@ -116,31 +109,11 @@ namespace fr
         virtual bool connected() const =0;
 
         /*!
-         * Sets the socket file descriptor.
+         * Sets the socket file descriptor. Internally used.
          *
-         * @param descriptor The socket descriptor.
+         * @param descriptor_data The socket descriptor data, set up by the Listener.
          */
-        virtual void set_descriptor(int descriptor)=0;
-
-        /*!
-         * Gets the socket's printable remote address
-         *
-         * @return The string address
-         */
-        inline const std::string &get_remote_address()
-        {
-            return remote_address;
-        }
-
-        /*!
-         * Sets the connections remote address.
-         *
-         * @param addr The remote address to use
-         */
-        void set_remote_address(const std::string &addr)
-        {
-            remote_address = addr;
-        }
+        virtual void set_descriptor(void *descriptor_data)=0;
 
         /*!
          * Send a Sendable object through the socket
@@ -148,16 +121,19 @@ namespace fr
          * @param obj The object to send
          * @return The status of the send
          */
-        Status send(Sendable &obj);
-        Status send(Sendable &&obj);
+        virtual Status send(Sendable &obj);
+        virtual Status send(Sendable &&obj);
 
         /*!
          * Receive a Sendable object through the socket
          *
          * @param obj The object to receive
          * @return The status of the receive
+         * 'Disconnected' if the socket disconnected
+         * 'Success' if the object could be read successfully
+         * 'WouldBlock' if the socket is in blocking mode and no data could be read
          */
-        Status receive(Sendable &obj);
+        virtual Status receive(Sendable &obj);
 
         /*!
          * Reads size bytes into dest from the socket.
@@ -168,7 +144,10 @@ namespace fr
          *
          * @param dest Where to read the data into
          * @param buffer_size The number of bytes to read
-         * @return Operation status.
+         * @return Operation status:
+         * 'Disconnected' if the socket disconnected
+         * 'Success' if buffer_size bytes could be read successfully
+         * 'WouldBlock' if the socket is in blocking mode and no data could be read
          */
         Status receive_all(void *dest, size_t buffer_size);
 
@@ -208,6 +187,25 @@ namespace fr
         void set_max_receive_size(uint32_t sz);
 
         /*!
+         * Converts an fr::Socket::Status value to a printable string
+         *
+         * Throws an std::logic_error if status is out of range.
+         *
+         * @param status Status value to convert
+         * @return A string form version
+         */
+        static const std::string &status_to_string(fr::Socket::Status status);
+
+        /*!
+         * Ends, and closes the connection.
+         * There is a distinction between 'disconnect' and 'close_socket',
+         * in that 'disconnect' should end the connection properly (such as sending
+         * disconnect packets depending on the protocol), before calling 'close_socket' itself.
+         * 'close_socket' should just close the client connection and be done with it.
+         */
+        virtual void disconnect();
+
+        /*!
          * Gets the max packet size. See set_max_packet_size
          * for more information.
          *
@@ -220,15 +218,30 @@ namespace fr
         }
 
         /*!
-         * Converts an fr::Socket::Status value to a printable string
+         * Gets the socket's printable remote address
          *
-         * Throws an std::logic_error if status is out of range.
-         *
-         * @param status Status value to convert
-         * @return A string form version
+         * @return The string address
          */
-        static const std::string &status_to_string(fr::Socket::Status status);
+        inline const std::string &get_remote_address()
+        {
+            return remote_address;
+        }
+
+        /*!
+         * Sets the connections remote address.
+         *
+         * @param addr The remote address to use
+         */
+        inline void set_remote_address(const std::string &addr)
+        {
+            remote_address = addr;
+        }
     protected:
+
+        /*!
+         * Close the connection.
+         */
+        virtual void close_socket()=0;
 
         /*!
          * Applies requested socket options to the socket.

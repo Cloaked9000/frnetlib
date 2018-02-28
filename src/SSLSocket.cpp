@@ -16,7 +16,6 @@ namespace fr
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
-        ssl_socket_descriptor.fd = -1;
     }
 
     SSLSocket::~SSLSocket() noexcept
@@ -35,9 +34,10 @@ namespace fr
             mbedtls_ssl_close_notify(ssl.get());
             mbedtls_ssl_free(ssl.get());
         }
-        if(ssl_socket_descriptor.fd > -1)
-            mbedtls_net_free(&ssl_socket_descriptor);
-        ssl_socket_descriptor.fd = -1;
+
+        if(ssl_socket_descriptor)
+            mbedtls_net_free(ssl_socket_descriptor.get());
+        ssl_socket_descriptor = nullptr;
     }
 
     Socket::Status SSLSocket::send_raw(const char *data, size_t size)
@@ -63,13 +63,11 @@ namespace fr
 
     Socket::Status SSLSocket::receive_raw(void *data, size_t data_size, size_t &received)
     {
-        int read = MBEDTLS_ERR_SSL_WANT_READ;
+        int read = 0;
         received = 0;
-
-        while(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
-        {
-            read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
-        }
+        read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
+        if(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
+            return Socket::Status::WouldBlock;
 
         if(read <= 0)
         {
@@ -87,7 +85,7 @@ namespace fr
         //Initialise mbedtls stuff
         ssl = std::make_unique<mbedtls_ssl_context>();
         mbedtls_ssl_init(ssl.get());
-        mbedtls_net_init(&ssl_socket_descriptor);
+        mbedtls_net_init(ssl_socket_descriptor.get());
 
         //Do to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
         //Open the descriptor, and then steal it. This is a hack.
@@ -96,9 +94,10 @@ namespace fr
             auto ret = socket.connect(address, port, timeout);
             if(ret != fr::Socket::Success)
                 return ret;
-            ssl_socket_descriptor.fd = socket.get_socket_descriptor();
+            ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
+            ssl_socket_descriptor->fd = socket.get_socket_descriptor();
             remote_address = socket.get_remote_address();
-            socket.set_descriptor(-1);
+            socket.set_descriptor(nullptr);
         }
 
         //Initialise SSL data structures
@@ -155,9 +154,9 @@ namespace fr
         ssl = std::move(context);
     }
 
-    void SSLSocket::set_descriptor(int descriptor)
+    void SSLSocket::set_descriptor(void *descriptor)
     {
-        ssl_socket_descriptor.fd = descriptor;
+        ssl_socket_descriptor.reset(static_cast<mbedtls_net_context*>(descriptor));
         reconfigure_socket();
     }
 

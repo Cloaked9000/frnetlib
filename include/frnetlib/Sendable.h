@@ -19,7 +19,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status send(Socket *socket) = 0; //TODO: RETURN PROPER VALUE FROM HTTP PARSE
+        virtual Socket::Status send(Socket *socket) = 0;
 
         /*!
          * Overrideable receive, to allow

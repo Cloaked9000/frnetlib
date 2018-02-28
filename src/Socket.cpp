@@ -56,10 +56,12 @@ namespace fr
             size_t received = 0;
             auto *arr = (char*)dest;
             Status status = receive_raw(&arr[bytes_read], (size_t)bytes_remaining, received);
-            if(status != fr::Socket::Success)
+            if(status == fr::Socket::Disconnected)
                 return status;
             bytes_remaining -= received;
             bytes_read += received;
+            if(status == fr::Socket::WouldBlock && bytes_read == 0)
+                return status;
         }
 
         return Socket::Status::Success;
@@ -125,5 +127,10 @@ namespace fr
         if(status < 0 || status > map.size())
             throw std::logic_error("Socket::status_to_string(): Invalid status value " + std::to_string(status));
         return map[status];
+    }
+
+    void Socket::disconnect()
+    {
+        close_socket();
     }
 }
