@@ -57,8 +57,9 @@ namespace fr
          * Parses the header type (GET/POST) from the given string.
          *
          * @param str The first header line
+         * @return The parsed request type
          */
-        void parse_header_type(const std::string &str);
+        Http::RequestType parse_header_type(const std::string &str);
 
         /*!
          * Parses the header URI

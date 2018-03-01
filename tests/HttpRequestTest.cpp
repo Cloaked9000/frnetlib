@@ -82,29 +82,34 @@ TEST(HttpRequestTest, request_type_parse)
     const std::string delete_request = "DELETE / HTTP/1.1\r\n\r\n";
     const std::string patch_request = "PATCH / HTTP/1.1\r\n\r\n";
     const std::string invalid_request = "INVALID / HTTP/1.1\r\n\r\n";
+    const std::string invalid_request2 = "PU / HTTP/1.1\r\n\r\n";
 
     fr::HttpRequest request;
-    request.parse(get_request.c_str(), get_request.size());
+    ASSERT_EQ(request.parse(get_request.c_str(), get_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Get);
     request = {};
 
-    request.parse(post_request.c_str(), post_request.size());
+    ASSERT_EQ(request.parse(post_request.c_str(), post_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Post);
     request = {};
 
-    request.parse(put_request.c_str(), put_request.size());
+    ASSERT_EQ(request.parse(put_request.c_str(), put_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Put);
     request = {};
 
-    request.parse(delete_request.c_str(), delete_request.size());
+    ASSERT_EQ(request.parse(delete_request.c_str(), delete_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Delete);
     request = {};
 
-    request.parse(patch_request.c_str(), patch_request.size());
+    ASSERT_EQ(request.parse(patch_request.c_str(), patch_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Patch);
     request = {};
 
-    request.parse(invalid_request.c_str(), invalid_request.size());
+    ASSERT_EQ(request.parse(invalid_request.c_str(), invalid_request.size()), fr::Socket::ParseError);
+    ASSERT_EQ(request.get_type(), fr::Http::Unknown);
+    request = {};
+
+    ASSERT_EQ(request.parse(invalid_request2.c_str(), invalid_request2.size()), fr::Socket::ParseError);
     ASSERT_EQ(request.get_type(), fr::Http::Unknown);
     request = {};
 }

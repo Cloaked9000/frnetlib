@@ -5,23 +5,17 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 #include "frnetlib/Http.h"
 
 namespace fr
 {
-    const static std::string request_type_strings[Http::RequestType::RequestTypeCount] = {"UNKNOWN",
-                                                                                          "GET",
-                                                                                          "POST",
-                                                                                          "PUT",
-                                                                                          "DELETE",
-                                                                                          "PATCH"};
-
     Http::Http()
     : request_type(Unknown),
       uri("/"),
       status(Ok)
     {
-        static_assert(Http::RequestType::RequestTypeCount == 6, "Please update request_type_strings");
+
     }
 
     Http::RequestType Http::get_type() const
@@ -118,12 +112,41 @@ namespace fr
             uri = '/' + str;
     }
 
-    std::string Http::request_type_to_string(RequestType type) const
+    std::string Http::request_type_to_string(RequestType type)
     {
+        static_assert(RequestType::RequestTypeCount == 5, "Update request_type_to_string");
+        const static std::string request_type_strings[RequestType::RequestTypeCount] = {"GET",
+                                                                                        "POST",
+                                                                                        "PUT",
+                                                                                        "DELETE",
+                                                                                        "PATCH"};
+
         if(type >= RequestType::RequestTypeCount)
-            return request_type_strings[0];
+            return "UNKNOWN";
         return request_type_strings[type];
     }
+
+    Http::RequestType Http::string_to_request_type(const std::string &str)
+    {
+        //Find the request type
+        static_assert(Http::RequestTypeCount == 5, "Update parse_header_type()");
+
+        RequestType type = Http::Unknown;
+        for(size_t a = 0; a < Http::RequestTypeCount; ++a)
+        {
+            std::string type_string = request_type_to_string(static_cast<RequestType>(a));
+            int cmp_ret = str.compare(0, type_string.size(), type_string);
+            if(cmp_ret == 0)
+                return static_cast<RequestType>(a);
+            if(str.size() < type_string.size() && cmp_ret < 0)
+                type = Http::Partial;
+            if(type != Http::Partial && str.size() < type_string.size() && cmp_ret > 0)
+                type = Http::Unknown;
+        }
+
+        return type;
+    }
+
 
     void Http::set_type(Http::RequestType type)
     {
@@ -137,18 +160,31 @@ namespace fr
 
     std::string Http::url_encode(const std::string &str)
     {
-        std::stringstream encoded;
-        encoded << std::hex;
-        for(const auto &c : str)
+        static const char hex_lookup[]= "0123456789ABCDEF";
+        std::string out;
+        for(char c : str)
         {
-            if(isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
-                encoded << c;
-            else if(c == ' ')
-                encoded << '+';
+            if ((c >= '0' && c <= '9') ||
+                (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                c == '-' || c == '_' || c == '.' || c == '!' || c == '~' ||
+                c == '*' || c == '\'' || c == '(' || c == ')')
+            {
+                out += c;
+            }
+            else if (c == ' ')
+            {
+                out += '+';
+            }
             else
-                encoded << "%" << std::uppercase << (int)c << std::nouppercase;
+            {
+                out.push_back('%');
+                out.push_back(hex_lookup[(c&0xF0)>>4]);
+                out.push_back(hex_lookup[(c&0x0F)]);
+            }
         }
-        return encoded.str();
+
+        return out;
     }
 
     std::string Http::url_decode(const std::string &str)
@@ -158,8 +194,14 @@ namespace fr
         {
             if(str[a] == '%' && a < str.size() - 1)
             {
-                result += (char)dectohex(str.substr(a + 1, 2));
-                a += 2;
+                int ch1 = str[++a] - 48;
+                int ch2 = str[++a] - 48;
+                if(ch1 > 9) ch1 -= 7;
+                if(ch2 > 9) ch2 -= 7;
+                uint8_t ret = 0;
+                ret |= ch1 << 4;
+                ret |= ch2;
+                result.push_back(ret);
             }
             else if(str[a] == '+')
             {

@@ -84,6 +84,7 @@ namespace fr
     {
         //Initialise mbedtls stuff
         ssl = std::make_unique<mbedtls_ssl_context>();
+        ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(ssl_socket_descriptor.get());
 
@@ -94,7 +95,6 @@ namespace fr
             auto ret = socket.connect(address, port, timeout);
             if(ret != fr::Socket::Success)
                 return ret;
-            ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
             ssl_socket_descriptor->fd = socket.get_socket_descriptor();
             remote_address = socket.get_remote_address();
             socket.set_descriptor(nullptr);
@@ -121,7 +121,7 @@ namespace fr
             return Socket::Status::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), &ssl_socket_descriptor, mbedtls_net_send, mbedtls_net_recv, nullptr);
+        mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
 
         //Do SSL handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
@@ -157,7 +157,8 @@ namespace fr
     void SSLSocket::set_descriptor(void *descriptor)
     {
         ssl_socket_descriptor.reset(static_cast<mbedtls_net_context*>(descriptor));
-        reconfigure_socket();
+        if(descriptor)
+            reconfigure_socket();
     }
 
     void SSLSocket::verify_certificates(bool should_verify_)

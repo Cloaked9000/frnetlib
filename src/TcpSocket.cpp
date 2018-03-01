@@ -80,6 +80,11 @@ namespace fr
 
     void TcpSocket::set_descriptor(void *descriptor)
     {
+        if(!descriptor)
+        {
+            socket_descriptor = -1;
+            return;
+        }
         socket_descriptor = *static_cast<int32_t*>(descriptor);
         reconfigure_socket();
     }

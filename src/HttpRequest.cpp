@@ -22,6 +22,10 @@ namespace fr
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
+            //Verify that it's a valid HTTP header so far
+            if(!body.empty() && Http::string_to_request_type(body) == fr::Http::Unknown)
+                return fr::Socket::ParseError;
+
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
@@ -78,7 +82,9 @@ namespace fr
                 return true;
 
             //Parse request type & uri
-            parse_header_type(header_lines[line]);
+            request_type = parse_header_type(header_lines[line]);
+            if(request_type > Http::RequestTypeCount)
+                return false;
             parse_header_uri(header_lines[line]);
             line++;
 
@@ -177,29 +183,15 @@ namespace fr
         }
     }
 
-    void HttpRequest::parse_header_type(const std::string &str)
+    Http::RequestType HttpRequest::parse_header_type(const std::string &str)
     {
         //Find the request type
         auto type_end = str.find(' ');
         if(type_end != std::string::npos)
         {
-            //Check what it is
-            if(str.compare(0, type_end, "GET") == 0)
-                request_type = fr::Http::Get;
-            else if(str.compare(0, type_end, "POST") == 0)
-                request_type = fr::Http::Post;
-            else if(str.compare(0, type_end, "PUT") == 0)
-                request_type = fr::Http::Put;
-            else if(str.compare(0, type_end, "DELETE") == 0)
-                request_type = fr::Http::Delete;
-            else if(str.compare(0, type_end, "PATCH") == 0)
-                request_type = fr::Http::Patch;
-            else
-                request_type = fr::Http::Unknown;
-
-            return;
+            return string_to_request_type(str.substr(0, type_end));
         }
-        throw std::invalid_argument("No known request type found in: " + str);
+        return Http::Unknown;
     }
 
     void HttpRequest::parse_header_uri(const std::string &str)

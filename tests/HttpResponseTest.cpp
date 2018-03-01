@@ -92,6 +92,7 @@ TEST(HttpResponseTest, header_length_test)
     //Try data with no header end first
     std::string buff(MAX_HTTP_HEADER_SIZE + 1, '\0');
     fr::HttpResponse response;
+    buff.insert(0, "HTTP");
     ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::HttpHeaderTooBig);
     response = {};
 

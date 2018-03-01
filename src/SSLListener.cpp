@@ -91,7 +91,7 @@ namespace fr
         //Initialise mbedtls
         int error = 0;
         std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
-        auto client_fd = std::make_unique<mbedtls_net_context>();
+        std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
 
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(client_fd.get());
@@ -108,7 +108,6 @@ namespace fr
         size_t ip_len = 0;
         if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), client_ip, sizeof(client_ip), &ip_len)) != 0)
         {
-            std::cout << "Accept error: " << error << std::endl;
             free_contexts();
             return Socket::Error;
         }
@@ -120,7 +119,6 @@ namespace fr
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                std::cout << "Handshake error: " << error << std::endl;
                 free_contexts();
                 return Socket::Status::HandshakeFailed;
             }

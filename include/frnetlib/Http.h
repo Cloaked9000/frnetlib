@@ -17,13 +17,14 @@ namespace fr
     public:
         enum RequestType
         {
-            Unknown = 0,
-            Get = 1,
-            Post = 2,
-            Put = 3,
-            Delete = 4,
-            Patch = 5,
-            RequestTypeCount = 6, //Keep me at the end and updated
+            Get = 0,
+            Post = 1,
+            Put = 2,
+            Delete = 3,
+            Patch = 4,
+            RequestTypeCount = 5, //Keep me at the end of valid HTTP request types, and updated
+            Unknown = 6,
+            Partial = 7,
         };
         enum RequestStatus
         {
@@ -247,14 +248,6 @@ namespace fr
          */
         const static std::string &get_mimetype(const std::string &filename);
 
-    protected:
-        /*!
-         * Splits a string by new line. Ignores escaped \n's
-         *
-         * @return The split string
-         */
-        std::vector<std::string> split_string(const std::string &str);
-
         /*!
          * Converts a 'RequestType' enum value to
          * a printable string.
@@ -262,18 +255,23 @@ namespace fr
          * @param type The RequestType to convert
          * @return The printable version of the enum value
          */
-        std::string request_type_to_string(RequestType type) const;
+        static std::string request_type_to_string(RequestType type);
 
         /*!
-         * Converts hexadecimal to an integer.
+         * Converts a string value into a 'RequestType' enum value.
          *
-         * @param hex The hex value to convert
-         * @return The decimal equivilent of the hexadecimal value.
+         * @param str The string to convert
+         * @return The converted RequestType. Unknown on failure. Or Partial if str is part of a request type.
          */
-        static inline int dectohex(const std::string &hex)
-        {
-            return (int)strtol(&hex[0], nullptr, 16);
-        }
+        static RequestType string_to_request_type(const std::string &str) ;
+
+    protected:
+        /*!
+         * Splits a string by new line. Ignores escaped \n's
+         *
+         * @return The split string
+         */
+        static std::vector<std::string> split_string(const std::string &str);
 
         /*!
          * Converts a parameter list to a vector pair.
@@ -283,7 +281,7 @@ namespace fr
          * @param str The string to parse
          * @return The vector containing the results pairs
          */
-        std::vector<std::pair<std::string, std::string>> parse_argument_list(const std::string &str);
+        static std::vector<std::pair<std::string, std::string>> parse_argument_list(const std::string &str);
 
         /*!
          * Parses a header line in a HTTP request/response

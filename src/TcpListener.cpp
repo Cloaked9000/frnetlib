@@ -90,7 +90,7 @@ namespace fr
 
         //Prepare to wait for the client
         sockaddr_storage client_addr{};
-        int client_descriptor;
+        int32_t client_descriptor;
         char client_printable_addr[INET6_ADDRSTRLEN];
 
         //Accept one

@@ -14,6 +14,10 @@ namespace fr
         //Ensure that the whole header has been parsed first
         if(!header_ended)
         {
+            //Verify that it's a valid HTTP response if there's enough data
+            if(body.size() >= 4 && body.compare(0, 4, "HTTP") != 0)
+                return fr::Socket::ParseError;
+
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
             auto header_end = body.find("\r\n\r\n");
