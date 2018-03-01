@@ -94,7 +94,7 @@ namespace fr
         /*!
          * Gets the underlying socket descriptor.
          *
-         * @return The socket's descriptor.
+         * @return The socket's descriptor. -1 indicates no connection.
          */
         inline int32_t get_socket_descriptor() const override
         {

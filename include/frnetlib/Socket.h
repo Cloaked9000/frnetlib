@@ -95,7 +95,7 @@ namespace fr
         virtual Status receive_raw(void *data, size_t data_size, size_t &received) = 0;
 
         /*!
-         * Gets the socket descriptor.
+         * Gets the underlying socket descriptor.
          *
          * @return The socket descriptor.
          */
@@ -175,12 +175,14 @@ namespace fr
          *
          * If a client attempts to send a packet larger than sz bytes, then
          * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
-         * will be returned. Pass '0' to indicate no limit. The default value is 0.
+         * will be returned. Pass '0' to indicate no limit.
          *
          * This should be used to prevent potential abuse, as a client could say that
          * it's going to send a 200GiB packet, which would cause the Socket to try and
          * allocate that much memory to accommodate the data, which is most likely not
          * desirable.
+         *
+         * By default, there is no limit (0)
          *
          * @param sz The maximum number of bytes that may be received in an fr::Packet
          */
@@ -207,12 +209,12 @@ namespace fr
 
         /*!
          * Gets the max packet size. See set_max_packet_size
-         * for more information.
-         *
+         * for more information. If this returns 0, then
+         * there is no limit.
          *
          * @return The max packet size
          */
-        inline uint32_t get_max_receive_size()
+        inline uint32_t get_max_receive_size() const
         {
             return max_receive_size;
         }
@@ -222,7 +224,7 @@ namespace fr
          *
          * @return The string address
          */
-        inline const std::string &get_remote_address()
+        inline const std::string &get_remote_address() const
         {
             return remote_address;
         }

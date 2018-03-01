@@ -6,15 +6,14 @@ set(FRNETLIB_LINK_LIBRARIES "")
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 
 #User options
-option(USE_SSL "Use SSL" OFF)
+option(USE_SSL "Enable SSL support" OFF)
+option(BUILD_EXAMPLES "Build frnetlib examples" ON)
+option(BUILD_TESTS "Build frnetlib tests" ON)
+option(BUILD_WEBSOCK "Enable WebSocket support" ON)
 set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 set(MAX_HTTP_HEADER_SIZE "0xC800" CACHE STRING "The maximum allowed HTTP header size in bytes")
 set(MAX_HTTP_BODY_SIZE "0xA00000" CACHE STRING "The maximum allowed HTTP body size in bytes")
 set(LISTEN_QUEUE_SIZE "64" CACHE STRING "The listen queue depth for fr::TcpListener/fr::SSLListener")
-
-#Enable tests and examples by default
-option(BUILD_EXAMPLES "Build frnetlib examples" ON)
-option(BUILD_TESTS "Build frnetlib tests" ON)
 
 #Configure defines based on user options
 add_definitions(-DMAX_HTTP_HEADER_SIZE=${MAX_HTTP_HEADER_SIZE})
@@ -25,6 +24,10 @@ if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
     INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
     set(SOURCE_FILES ${SOURCE_FILES} src/SSLSocket.cpp include/frnetlib/SSLSocket.h src/SSLListener.cpp include/frnetlib/SSLListener.h include/frnetlib/SSLContext.h)
+endif()
+
+if(BUILD_WEBSOCK)
+    set(SOURCE_FILES ${SOURCE_FILES} src/WebFrame.cpp include/frnetlib/WebFrame.h src/Sha1.cpp include/frnetlib/Sha1.h src/Base64.cpp include/frnetlib/Base64.h src/Sha1.cpp include/frnetlib/WebSocket.h)
 endif()
 
 add_definitions(-DNOMINMAX)

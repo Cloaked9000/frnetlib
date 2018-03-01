@@ -82,9 +82,9 @@ public:
     void set_descriptor(void *descriptor_data) override;
 
     /*!
-     * Gets the unerlying socket descriptor
+     * Gets the underlying socket descriptor
      *
-     * @return The socket descriptor
+     * @return The socket descriptor. -1 typically indicates no connection.
      */
     int32_t get_socket_descriptor() const override;
 
