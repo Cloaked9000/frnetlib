@@ -52,11 +52,6 @@ namespace fr
         Socket::Status receive_raw(void *data, size_t data_size, size_t &received) override;
 
         /*!
-         * Close the connection.
-         */
-        void close_socket() override;
-
-        /*!
          * Connects the socket to an address.
          *
          * @param address The address of the socket to connect to
@@ -126,6 +121,12 @@ namespace fr
 
 
     private:
+
+        /*!
+         * Close the connection.
+         */
+        void close_socket() override;
+
         std::shared_ptr<SSLContext> ssl_context;
         std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
         std::unique_ptr<mbedtls_ssl_context> ssl;

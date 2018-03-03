@@ -1,7 +1,15 @@
 # frnetlib 
 ![Build Status](https://travis-ci.org/Cloaked9000/frnetlib.svg?branch=master)
 
-Frnetlib, is a small and fast networking library written in C++. It can be used for both messaging and for sending/receiving HTTP requests. There are no library dependencies (unless you want to use SSL, in which case MbedTLS is required), and it should compile fine with any C++11 compliant compiler. The API should be considered relatively stable, but things could change as new features are added, given that the library is still in the early stages of development.
+Frnetlib, is a cross-platform, small and fast networking library written in C++. There are no library dependencies (unless you want to use SSL, in which case MbedTLS is required), and it should compile fine with any C++11 compliant compiler. The API should be considered relatively stable, but things could change as new features are added, or existing ones changed.
+
+Frnetlib is tested on both Linux and Windows and currently supports:
+* HTTP/HTTPS clients
+* HTTP/HTTPS servers
+* WebSocket clients
+* WebSocket servers
+* Raw socket communication
+* Framed messaging of inbuilt and custom types
 
 # Connecting to a Socket:
 

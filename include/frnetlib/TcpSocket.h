@@ -22,11 +22,6 @@ public:
     void operator=(const TcpSocket &)=delete;
 
     /*!
-     * Close the connection.
-     */
-    virtual void close_socket();
-
-    /*!
      * Connects the socket to an address.
      *
      * @param address The address of the socket to connect to
@@ -99,6 +94,12 @@ public:
     }
 
 protected:
+
+    /*!
+     * Close the connection.
+     */
+    virtual void close_socket();
+
     int32_t socket_descriptor;
 };
 

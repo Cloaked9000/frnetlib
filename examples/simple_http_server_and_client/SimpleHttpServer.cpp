@@ -47,6 +47,6 @@ int main()
         }
 
         //Close connection
-        client.close_socket();
+        client.disconnect();
     }
 }

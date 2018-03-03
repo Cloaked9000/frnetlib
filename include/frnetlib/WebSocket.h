@@ -129,45 +129,6 @@ namespace fr
         }
 
         /*!
-         * Receive a Sendable object through the socket.
-         * Internally sends back a pong if a ping is received.
-         *
-         * @param obj The object to receive
-         * @return The status of the receive
-         */
-        Socket::Status receive(Sendable &obj) override
-        {
-            WebFrame &frame = dynamic_cast<WebFrame&>(obj);
-
-            //Try and receive a message. If it's a ping, then silently send back a pong.
-            Socket::Status status;
-            while(true)
-            {
-                status = SocketType::receive(obj);
-                if(status != Socket::Success)
-                    return status;
-
-                if(frame.get_opcode() == WebFrame::Ping)
-                {
-                    frame.set_opcode(WebFrame::Pong);
-                    status = SocketType::send(frame);
-                    if(status != fr::Socket::Success)
-                        return status;
-                    continue;
-                }
-                break;
-            }
-
-            //If it's a disconnect
-            if(frame.get_opcode() == WebFrame::Disconnect)
-            {
-                disconnect();
-                return Socket::Disconnected;
-            }
-            return status;
-        }
-
-        /*!
          * Checks to see if the socket initialised the connection, or
          * if it was accepted by a listener.
          *
