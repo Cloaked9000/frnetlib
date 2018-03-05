@@ -44,7 +44,7 @@ namespace fr
         }
 
         template<typename T>
-        inline void add(T const part)
+        inline void add(T const &part)
         {
             *this << part;
         }
