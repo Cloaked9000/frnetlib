@@ -82,7 +82,7 @@ namespace fr
         inline Packet &operator<<(const std::vector<T> &vec)
         {
             //First store its length
-            *this << vec.size();
+            *this << static_cast<uint64_t>(vec.size());
 
             //Now each of the elements
             for(const auto &iter : vec)
@@ -99,7 +99,7 @@ namespace fr
         template<typename T>
         inline Packet &operator>>(std::vector<T> &vec)
         {
-            size_t length;
+            uint64_t length;
 
             //First extract the length
             *this >> length;
@@ -568,7 +568,7 @@ namespace fr
             uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
             memcpy(&buffer[0], &length, sizeof(uint32_t));
 
-            //Then a reference to the buffer
+            //Then return a reference to the buffer
             return buffer;
         }
 
