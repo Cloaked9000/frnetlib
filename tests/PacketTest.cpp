@@ -3,6 +3,32 @@
 #include <gtest/gtest.h>
 #include <frnetlib/Packet.h>
 
+TEST(PacketTest, range_add)
+{
+    std::vector<int> var{1, 2, 3, 4, 5};
+    fr::Packet packet;
+    packet.add_range(var.begin(), var.end());
+
+    std::vector<int> out;
+    packet >> out;
+    ASSERT_EQ(var, out);
+}
+
+TEST(PacketTest, double_range_add)
+{
+    std::vector<int> var1{1, 2, 3, 4, 5};
+    std::vector<int> var2{6, 7, 8, 9, 10};
+    fr::Packet packet;
+    packet.add_range(var1.begin(), var1.end());
+    packet.add_range(var2.begin(), var2.end());
+
+    std::vector<int> out1;
+    std::vector<int> out2;
+    packet >> out1 >> out2;
+    ASSERT_EQ(var1, out1);
+    ASSERT_EQ(var2, out2);
+}
+
 TEST(PacketTest, pack_and_unpack_ints)
 {
     fr::Packet packet;

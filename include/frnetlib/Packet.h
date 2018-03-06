@@ -36,6 +36,13 @@ namespace fr
             add(part, std::forward<Args>(args)...);
         }
 
+        /*!
+         * Variadic add function for adding multiple values at once to the packet,
+         * used by packet constructor.
+         *
+         * @param part The first argument to add
+         * @param args The remaining arguments to add
+         */
         template<typename T, typename ...Args>
         inline void add(T const& part, Args &&...args)
         {
@@ -43,10 +50,32 @@ namespace fr
             add(std::forward<Args>(args)...);
         }
 
+        /*!
+         * Part of the variadic add function.
+         *
+         * @param part The argument to add to the packet
+         */
         template<typename T>
         inline void add(T const &part)
         {
             *this << part;
+        }
+
+        /*!
+         * Add function to allow adding iterator ranges to the packet.
+         *
+         * @note std::distance() is used, and so this function should ideally be used with random access
+         * iterators to achieve constant time complexity.
+         * @tparam Iter The iterator type
+         * @param begin An iterator to the first element to add from
+         * @param end A past-the-end iterator to stop adding at
+         */
+        template<typename Iter>
+        inline void add_range(Iter begin, Iter end)
+        {
+            *this << static_cast<uint64_t>(std::distance(begin, end));
+            for(auto iter = begin; iter != end; ++iter)
+                *this << *iter;
         }
 
         /*!
