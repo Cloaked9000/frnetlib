@@ -21,10 +21,14 @@
 #include <ws2tcpip.h>
 #define SOL_TCP SOL_SOCKET
 #define SHUT_RDWR SD_BOTH
-#define UNUSED_VAR
 #else
 
+#ifdef __GNUC__
 #define UNUSED_VAR __attribute__ ((unused))
+#else
+# define UNUSED_VAR
+#endif
+
 #define closesocket(x) close(x)
 #define INVALID_SOCKET 0
 #define SOCKET_ERROR (-1)
@@ -36,15 +40,27 @@
 #include <netinet/tcp.h>
 #endif
 
-
 #undef htonll
 #undef ntohll
 #undef htonf
 #undef ntohf
 #undef htond
 #undef ntohd
-#define htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
-#define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+
+#if defined(__GNUC__)
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+#   define htonll(x) __bswap_64 (x)
+#   define ntohll(x) __bswap_64 (x)
+#  else
+#   define htonll(x) (x)
+#   define ntohll(x) (x)
+#  endif
+#elif defined(_MSC_VER)
+//MSVC has htonll and ntohll, no need to redefine
+#else
+# define htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
+# define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+#endif
 
 inline float htonf(float val)
 {
@@ -105,7 +121,7 @@ inline bool set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking
     return true;
 }
 
-static UNUSED_VAR void init_wsa()
+static void init_wsa()
 {
 #ifdef _WIN32
     static WSADATA wsaData = WSAData();

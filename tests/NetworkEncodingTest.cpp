@@ -14,7 +14,7 @@ constexpr bool is_little_endian()
 
 TEST(NetworkEncodingTest, test_htonf)
 {
-    float input = std::numeric_limits<float>::max();
+    float input = std::numeric_limits<float>::max() - 50;
     float result = htonf(input);
 
     if(is_little_endian())
@@ -31,7 +31,7 @@ TEST(NetworkEncodingTest, test_htonf)
 
 TEST(NetworkEncodingTest, test_ntohf)
 {
-    float input = std::numeric_limits<float>::max();
+    float input = std::numeric_limits<float>::max() - 50;
     float encoded = htonf(input);
     float decoded = ntohf(encoded);
     ASSERT_EQ(input, decoded);
@@ -39,7 +39,7 @@ TEST(NetworkEncodingTest, test_ntohf)
 
 TEST(NetworkEncodingTest, test_htond)
 {
-    double input = std::numeric_limits<double>::max();
+    double input = std::numeric_limits<double>::max() - 50;
     double result = htond(input);
 
     if(is_little_endian())
@@ -64,7 +64,7 @@ TEST(NetworkEncodingTest, test_ntohd)
 
 TEST(NetworkEncodingTest, test_htonll)
 {
-    uint64_t input = std::numeric_limits<uint64_t>::max();
+    uint64_t input = std::numeric_limits<uint64_t>::max() - 50;
     uint64_t result = htonll(input);
 
     if(is_little_endian())
@@ -81,7 +81,7 @@ TEST(NetworkEncodingTest, test_htonll)
 
 TEST(NetworkEncodingTest, test_ntohll)
 {
-    uint64_t input = std::numeric_limits<uint64_t>::max();
+    uint64_t input = std::numeric_limits<uint64_t>::max() - 50;
     uint64_t encoded = htonll(input);
     uint64_t decoded = ntohll(encoded);
     ASSERT_EQ(input, decoded);
