@@ -298,7 +298,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status send(Socket *socket) override;
+        virtual Socket::Status send(Socket *socket) const override;
 
         /*!
          * Overrideable receive, to allow

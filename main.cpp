@@ -15,13 +15,14 @@ enum Enum : uint32_t
     E2 = 1,
     E3 = 2,
 };
+
+size_t get_vector_size(const std::vector<int> &vec)
+{
+    return vec.size();
+}
+
 int main()
 {
-    fr::Packet packet;
-    std::vector<std::pair<int, int>> bob = {{1, 2}, {3, 4}};
-    packet << bob;
-    bob.clear();
-
-    packet >> bob;
-    std::cout << bob[0].first << ", " << bob[0].second << ", " << bob[1].first << ", " << bob[1].second << std::endl;
+    std::vector<int> source{1, 2, 3};
+    std::cout << get_vector_size(source) << std::endl;
 }

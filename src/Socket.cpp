@@ -20,15 +20,7 @@ namespace fr
         init_wsa();
     }
 
-    Socket::Status Socket::send(Sendable &obj)
-    {
-        if(!connected())
-            return Socket::Disconnected;
-
-        return obj.send(this);
-    }
-
-    Socket::Status Socket::send(Sendable &&obj)
+    Socket::Status Socket::send(const Sendable &obj)
     {
         if(!connected())
             return Socket::Disconnected;

@@ -34,10 +34,10 @@ TEST(PacketTest, pack_and_unpack_ints)
     fr::Packet packet;
     double a1 = 11.5f, a2 = 0.f;
     float b1 = 11.52, b2 = 0.0;
-    uint8_t c1 = std::numeric_limits<uint8_t>::max(), c2 = 0;
-    uint16_t d1 = std::numeric_limits<uint16_t>::max(), d2 = 0;
-    uint32_t e1 = std::numeric_limits<uint32_t>::max(), e2 = 0;
-    uint64_t f1 = std::numeric_limits<uint64_t>::max(), f2 = 0;
+    uint8_t c1 = std::numeric_limits<uint8_t>::max() - 50, c2 = 0;
+    uint16_t d1 = std::numeric_limits<uint16_t>::max() - 50, d2 = 0;
+    uint32_t e1 = std::numeric_limits<uint32_t>::max() - 50, e2 = 0;
+    uint64_t f1 = std::numeric_limits<uint64_t>::max() - 50, f2 = 0;
 
     packet << a1 << b1 << c1 << d1 << e1 << f1;
     packet >> a2 >> b2 >> c2 >> d2 >> e2 >> f2;
@@ -135,4 +135,18 @@ TEST(PacketTest, read_cursor)
     packet.reset_read_cursor((sizeof(a1)));
     packet >> b2;
     ASSERT_EQ(b1, b2);
+}
+
+TEST(PacketTest, clear)
+{
+    uint32_t a = 20, b;
+    fr::Packet packet;
+    packet << a << a << a;
+    packet.clear();
+    ASSERT_ANY_THROW(packet >> a);
+
+    a = 20;
+    packet << a;
+    packet >> b;
+    ASSERT_EQ(b, 20);
 }

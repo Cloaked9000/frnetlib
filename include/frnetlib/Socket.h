@@ -121,8 +121,7 @@ namespace fr
          * @param obj The object to send
          * @return The status of the send
          */
-        virtual Status send(Sendable &obj);
-        virtual Status send(Sendable &&obj);
+        virtual Status send(const Sendable &obj);
 
         /*!
          * Receive a Sendable object through the socket

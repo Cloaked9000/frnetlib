@@ -102,7 +102,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        Socket::Status send(Socket *socket) override;
+        Socket::Status send(Socket *socket) const override;
 
         /*!
          * Overrideable receive, to allow
@@ -116,7 +116,7 @@ namespace fr
         Socket::Status receive(Socket *socket) override;
 
     private:
-        std::string payload;
+        mutable std::string payload;
         Opcode opcode;
         bool final;
         static uint32_t current_mask_key;

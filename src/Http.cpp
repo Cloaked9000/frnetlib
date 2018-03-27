@@ -990,7 +990,7 @@ namespace fr
         return iter->second;
     }
 
-    Socket::Status Http::send(Socket *socket)
+    Socket::Status Http::send(Socket *socket) const
     {
         std::string data = construct(socket->get_remote_address());
         return socket->send_raw(&data[0], data.size());

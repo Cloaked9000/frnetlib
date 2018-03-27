@@ -16,7 +16,7 @@ namespace fr
 
     }
 
-    fr::Socket::Status WebFrame::send(Socket *socket_)
+    fr::Socket::Status WebFrame::send(Socket *socket_) const
     {
         auto *socket = dynamic_cast<WebSocketBase*>(socket_);
         if(!socket)

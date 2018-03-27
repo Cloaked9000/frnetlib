@@ -20,8 +20,8 @@ namespace fr
     {
     public:
         Packet() noexcept
-        : buffer(PACKET_HEADER_LENGTH, '0'),
-          buffer_read_index(PACKET_HEADER_LENGTH)
+                : buffer(PACKET_HEADER_LENGTH, '0'),
+                  buffer_read_index(PACKET_HEADER_LENGTH)
         {
 
         }
@@ -73,7 +73,7 @@ namespace fr
         template<typename Iter>
         inline void add_range(Iter begin, Iter end)
         {
-            *this << static_cast<uint64_t>(std::distance(begin, end));
+            *this << static_cast<uint32_t>(std::distance(begin, end));
             for(auto iter = begin; iter != end; ++iter)
                 *this << *iter;
         }
@@ -86,8 +86,7 @@ namespace fr
          */
         inline void add_raw(const char *data, size_t datasz)
         {
-            buffer.resize(buffer.size() + datasz);
-            memcpy(&buffer[buffer.size() - datasz], data, datasz);
+            buffer.append(data, datasz);
         }
 
         /*!
@@ -111,7 +110,7 @@ namespace fr
         inline Packet &operator<<(const std::vector<T> &vec)
         {
             //First store its length
-            *this << static_cast<uint64_t>(vec.size());
+            *this << static_cast<uint32_t>(vec.size());
 
             //Now each of the elements
             for(const auto &iter : vec)
@@ -128,14 +127,14 @@ namespace fr
         template<typename T>
         inline Packet &operator>>(std::vector<T> &vec)
         {
-            uint64_t length;
+            uint32_t length;
 
             //First extract the length
             *this >> length;
             vec.resize(length);
 
             //Now take each of the elements out of the packet
-            for(size_t a = 0; a < length; a++)
+            for(uint32_t a = 0; a < length; a++)
             {
                 *this >> vec[a];
             }
@@ -171,8 +170,7 @@ namespace fr
          */
         inline Packet &operator<<(bool var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -193,8 +191,7 @@ namespace fr
          */
         inline Packet &operator<<(uint8_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -215,9 +212,8 @@ namespace fr
          */
         inline Packet &operator<<(uint16_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htons(var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -240,8 +236,7 @@ namespace fr
         inline Packet &operator<<(uint32_t var)
         {
             var = htonl(var);
-            buffer.resize(buffer.size() + sizeof(var));
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -251,7 +246,6 @@ namespace fr
         inline Packet &operator>>(uint32_t &var)
         {
             assert_data_remaining(sizeof(var));
-
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
             var = ntohl(var);
@@ -263,9 +257,8 @@ namespace fr
          */
         inline Packet &operator<<(uint64_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htonll(var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -287,9 +280,8 @@ namespace fr
          */
         inline Packet &operator<<(int16_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htons((uint16_t)var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -311,9 +303,8 @@ namespace fr
          */
         inline Packet &operator<<(int32_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htonl((uint32_t)var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -335,9 +326,8 @@ namespace fr
          */
         inline Packet &operator<<(int64_t var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htonll((uint64_t)var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -392,9 +382,8 @@ namespace fr
          */
         inline Packet &operator<<(float var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htonf(var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -416,9 +405,8 @@ namespace fr
          */
         inline Packet &operator<<(double var)
         {
-            buffer.resize(buffer.size() + sizeof(var));
             var = htond(var);
-            memcpy(&buffer[buffer.size() - sizeof(var)], &var, sizeof(var));
+            buffer.append((char*)&var, sizeof(var));
             return *this;
         }
 
@@ -442,7 +430,7 @@ namespace fr
         {
             //Strings are prefixed with their length as a 32bit uint :)
             *this << (uint32_t)var.length();
-            buffer += var;
+            buffer.append(var);
             return *this;
         }
 
@@ -451,7 +439,9 @@ namespace fr
          */
         inline Packet &operator<<(const char *var)
         {
-            *this << std::string(var);
+            auto len = (uint32_t)strlen(var);
+            *this << len;
+            buffer.append(var, len);
             return *this;
         }
 
@@ -511,7 +501,10 @@ namespace fr
          */
         inline void clear()
         {
-            buffer.erase(PACKET_HEADER_LENGTH, buffer.size() - PACKET_HEADER_LENGTH);
+            //Leave enough for the header
+            buffer.clear();
+            for(auto a = 0; a < PACKET_HEADER_LENGTH; ++a)
+                buffer.push_back('0');
             buffer_read_index = PACKET_HEADER_LENGTH;
         }
 
@@ -548,10 +541,11 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status send(Socket *socket) override
+        virtual Socket::Status send(Socket *socket) const override
         {
-            const std::string &data = get_buffer();
-            return socket->send_raw(data.c_str(), data.size());
+            uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
+            memcpy(&buffer[0], &length, sizeof(uint32_t));
+            return socket->send_raw(buffer.c_str(), buffer.size());
         }
 
         /*!
@@ -578,27 +572,13 @@ namespace fr
                 return fr::Socket::MaxPacketSizeExceeded;
 
             //Now we've got the length, read the rest of the data in
-            buffer.resize(packet_length + PACKET_HEADER_LENGTH);
+            if(packet_length + PACKET_HEADER_LENGTH > buffer.size())
+                buffer.resize(packet_length + PACKET_HEADER_LENGTH);
             status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
             if(status != Socket::Status::Success)
                 return status;
 
             return Socket::Status::Success;
-        }
-
-        /*!
-         * Gets the data added to the packet
-         *
-         * @return A string containing all of the data added to the packet
-         */
-        inline std::string &get_buffer()
-        {
-            //Update packet length first
-            uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
-            memcpy(&buffer[0], &length, sizeof(uint32_t));
-
-            //Then return a reference to the buffer
-            return buffer;
         }
 
         /*!
@@ -615,7 +595,7 @@ namespace fr
         }
 
 
-        std::string buffer; //Packet data buffer
+        mutable std::string buffer; //Packet data buffer
         size_t buffer_read_index; //Current read position
     };
 }
