@@ -6,6 +6,7 @@
 #define FRNETLIB_NETWORKENCODING_H
 
 #include <cstring>
+#include <string>
 #include <cstdint>
 #include <atomic>
 #include <exception>
@@ -55,8 +56,6 @@
 #   define htonll(x) (x)
 #   define ntohll(x) (x)
 #  endif
-#elif defined(_MSC_VER)
-//MSVC has htonll and ntohll, no need to redefine
 #else
 # define htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
 # define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))

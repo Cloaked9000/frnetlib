@@ -6,6 +6,7 @@
 #define FRNETLIB_WEBFRAME_H
 
 
+#include <ctime>
 #include "Sendable.h"
 
 namespace fr

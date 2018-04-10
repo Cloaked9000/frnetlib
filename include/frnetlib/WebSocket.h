@@ -5,6 +5,7 @@
 #ifndef FRNETLIB_WEBSOCKET_H
 #define FRNETLIB_WEBSOCKET_H
 
+#include <ctime>
 #include "frnetlib/Socket.h"
 #include "frnetlib/HttpRequest.h"
 #include "frnetlib/HttpResponse.h"
