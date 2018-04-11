@@ -52,7 +52,7 @@ namespace fr
             }
             else //64bit length
             {
-                uint64_t len = htonll(payload.size());
+                uint64_t len = fr_htonll(payload.size());
                 buffer.append((char*)&len, sizeof(len));
             }
         }
@@ -122,7 +122,7 @@ namespace fr
         else if(payload_length == 127) //Length is longer than 16 bit, so read 64bit length
         {
             status = socket->receive_all(&payload_length, sizeof(payload_length));
-            payload_length = ntohll(payload_length);
+            payload_length = fr_ntohll(payload_length);
             if(status != fr::Socket::Success)
                 return status;
         }

@@ -257,7 +257,7 @@ namespace fr
          */
         inline Packet &operator<<(uint64_t var)
         {
-            var = htonll(var);
+            var = fr_htonll(var);
             buffer.append((char*)&var, sizeof(var));
             return *this;
         }
@@ -271,7 +271,7 @@ namespace fr
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
-            var = ntohll(var);
+            var = fr_ntohll(var);
             return *this;
         }
 
@@ -326,7 +326,7 @@ namespace fr
          */
         inline Packet &operator<<(int64_t var)
         {
-            var = htonll((uint64_t)var);
+            var = fr_htonll((uint64_t)var);
             buffer.append((char*)&var, sizeof(var));
             return *this;
         }
@@ -340,7 +340,7 @@ namespace fr
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
-            var = ntohll((uint64_t)var);
+            var = fr_ntohll((uint64_t)var);
             return *this;
         }
 

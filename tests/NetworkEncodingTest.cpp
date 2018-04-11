@@ -3,6 +3,8 @@
 //
 
 #include <gtest/gtest.h>
+#include <limits>
+#include <algorithm>
 #include "frnetlib/NetworkEncoding.h"
 
 constexpr bool is_little_endian()
@@ -15,7 +17,7 @@ constexpr bool is_little_endian()
 TEST(NetworkEncodingTest, test_htonf)
 {
     float input = std::numeric_limits<float>::max() - 50;
-    float result = htonf(input);
+    float result = fr::htonf(input);
 
     if(is_little_endian())
     {
@@ -32,15 +34,15 @@ TEST(NetworkEncodingTest, test_htonf)
 TEST(NetworkEncodingTest, test_ntohf)
 {
     float input = std::numeric_limits<float>::max() - 50;
-    float encoded = htonf(input);
-    float decoded = ntohf(encoded);
+    float encoded = fr::htonf(input);
+    float decoded = fr::ntohf(encoded);
     ASSERT_EQ(input, decoded);
 }
 
 TEST(NetworkEncodingTest, test_htond)
 {
     double input = std::numeric_limits<double>::max() - 50;
-    double result = htond(input);
+    double result = fr::htond(input);
 
     if(is_little_endian())
     {
@@ -57,15 +59,15 @@ TEST(NetworkEncodingTest, test_htond)
 TEST(NetworkEncodingTest, test_ntohd)
 {
     double input = std::numeric_limits<double>::max();
-    double encoded = htond(input);
-    double decoded = ntohd(encoded);
+    double encoded = fr::htond(input);
+    double decoded = fr::ntohd(encoded);
     ASSERT_EQ(input, decoded);
 }
 
 TEST(NetworkEncodingTest, test_htonll)
 {
     uint64_t input = std::numeric_limits<uint64_t>::max() - 50;
-    uint64_t result = htonll(input);
+    uint64_t result = fr_htonll(input);
 
     if(is_little_endian())
     {
@@ -82,7 +84,7 @@ TEST(NetworkEncodingTest, test_htonll)
 TEST(NetworkEncodingTest, test_ntohll)
 {
     uint64_t input = std::numeric_limits<uint64_t>::max() - 50;
-    uint64_t encoded = htonll(input);
-    uint64_t decoded = ntohll(encoded);
+    uint64_t encoded = fr_htonll(input);
+    uint64_t decoded = fr_ntohll(encoded);
     ASSERT_EQ(input, decoded);
 }

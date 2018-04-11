@@ -41,34 +41,35 @@
 #include <netinet/tcp.h>
 #endif
 
-#undef htonll
-#undef ntohll
-#undef htonf
-#undef ntohf
-#undef htond
-#undef ntohd
 
 #if defined(__GNUC__)
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-#   define htonll(x) __builtin_bswap64 (x)
-#   define ntohll(x) __builtin_bswap64 (x)
+#   define fr_htonll(x) __builtin_bswap64 (x)
+#   define fr_ntohll(x) __builtin_bswap64 (x)
 #  else
-#   define htonll(x) (x)
-#   define ntohll(x) (x)
+#   define fr_htonll(x) (x)
+#   define fr_ntohll(x) (x)
 #  endif
 #else
-# define htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
-# define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+# define fr_htonll(x) ((1==htonl(1)) ? (x) : ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
+# define fr_ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 #endif
 
-inline float htonf(float val)
+#undef htonf
+#undef htond
+#undef ntohd
+#undef ntonf
+
+namespace fr
 {
-    uint32_t ret;
-    memcpy(&ret, &val, sizeof(ret));
-    ret = htonl(ret);
-    memcpy(&val, &ret, sizeof(val));
-    return val;
-}
+    inline float htonf(float val)
+    {
+        uint32_t ret;
+        memcpy(&ret, &val, sizeof(ret));
+        ret = htonl(ret);
+        memcpy(&val, &ret, sizeof(val));
+        return val;
+    }
 
 inline float ntohf(float val)
 {
@@ -83,7 +84,7 @@ inline double htond(double val)
 {
     uint64_t ret;
     memcpy(&ret, &val, sizeof(ret));
-    ret = htonll(ret);
+    ret = fr_htonll(ret);
     memcpy(&val, &ret, sizeof(val));
     return val;
 }
@@ -92,7 +93,7 @@ inline double ntohd(double val)
 {
     uint64_t ret;
     memcpy(&ret, &val, sizeof(ret));
-    ret = ntohll(ret);
+    ret = fr_ntohll(ret);
     memcpy(&val, &ret, sizeof(val));
     return val;
 }
@@ -136,6 +137,7 @@ static void init_wsa()
 #else
     signal(SIGPIPE, SIG_IGN);
 #endif
+}
 }
 
 
