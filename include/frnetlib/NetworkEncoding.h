@@ -121,7 +121,7 @@ inline bool set_unix_socket_blocking(int32_t socket_descriptor, bool is_blocking
     return true;
 }
 
-static void init_wsa()
+inline static void init_wsa()
 {
 #ifdef _WIN32
     static WSADATA wsaData = WSAData();

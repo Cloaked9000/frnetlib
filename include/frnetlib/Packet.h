@@ -503,7 +503,7 @@ namespace fr
         {
             //Leave enough for the header
             buffer.clear();
-            for(auto a = 0; a < PACKET_HEADER_LENGTH; ++a)
+            for(size_t a = 0; a < PACKET_HEADER_LENGTH; ++a)
                 buffer.push_back('0');
             buffer_read_index = PACKET_HEADER_LENGTH;
         }
