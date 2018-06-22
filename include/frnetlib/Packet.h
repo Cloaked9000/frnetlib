@@ -9,6 +9,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <map>
+#include <unordered_map>
 #include "NetworkEncoding.h"
 #include "Packetable.h"
 #include "Sendable.h"
@@ -137,6 +139,86 @@ namespace fr
             for(uint32_t a = 0; a < length; a++)
             {
                 *this >> vec[a];
+            }
+
+            return *this;
+        }
+
+        /*
+         * Adds a map to a packet
+         */
+        template<typename A, typename B>
+        inline Packet &operator<<(const std::map<A, B> &m)
+        {
+            //First store its length
+            *this << static_cast<uint32_t>(m.size());
+
+            //Now each of the elements
+            for(const auto &iter : m)
+            {
+                *this << iter;
+            }
+
+            return *this;
+        }
+
+        /*
+         * Extracts a map from the packet
+         */
+        template<typename A, typename B>
+        inline Packet &operator>>(std::map<A, B> &m)
+        {
+            uint32_t length;
+
+            //First extract the length
+            *this >> length;
+
+            //Now take each of the elements out of the packet
+            for(uint32_t a = 0; a < length; a++)
+            {
+                std::pair<A, B> pair;
+                *this >> pair;
+                m.emplace(std::move(pair));
+            }
+
+            return *this;
+        }
+
+        /*
+         * Adds an unordered_map to a packet
+         */
+        template<typename A, typename B>
+        inline Packet &operator<<(const std::unordered_map<A, B> &m)
+        {
+            //First store its length
+            *this << static_cast<uint32_t>(m.size());
+
+            //Now each of the elements
+            for(const auto &iter : m)
+            {
+                *this << iter;
+            }
+
+            return *this;
+        }
+
+        /*
+         * Extracts an unordered_map from the packet
+         */
+        template<typename A, typename B>
+        inline Packet &operator>>(std::unordered_map<A, B> &m)
+        {
+            uint32_t length;
+
+            //First extract the length
+            *this >> length;
+
+            //Now take each of the elements out of the packet
+            for(uint32_t a = 0; a < length; a++)
+            {
+                std::pair<A, B> pair;
+                *this >> pair;
+                m.emplace(std::move(pair));
             }
 
             return *this;

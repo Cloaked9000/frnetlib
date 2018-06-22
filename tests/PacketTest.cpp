@@ -66,6 +66,26 @@ TEST(PacketTest, pack_and_unpack_stl)
     ASSERT_EQ(c1, c2);
 }
 
+TEST(PacketTest, pack_and_unpack_map)
+{
+    std::map<std::string, std::string> base = {{"a", "b"}, {"bob", "lob"}};
+    std::map<std::string, std::string> copy;
+    fr::Packet packet;
+    packet << base;
+    packet >> copy;
+    ASSERT_EQ(base, copy);
+}
+
+TEST(PacketTest, pack_and_unpack_unordered_map)
+{
+    std::unordered_map<std::string, std::string> base = {{"a", "b"}, {"bob", "lob"}};
+    std::unordered_map<std::string, std::string> copy;
+    fr::Packet packet;
+    packet << base;
+    packet >> copy;
+    ASSERT_EQ(base, copy);
+}
+
 TEST(PacketTest, variadic_packet_constructor)
 {
     int a1 = 10, a2;
