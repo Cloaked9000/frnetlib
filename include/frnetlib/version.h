@@ -1,0 +1,18 @@
+//
+// Created by fred.nicolson on 12/07/18.
+//
+
+#ifndef FRNETLIB_VERSION_H
+#define FRNETLIB_VERSION_H
+
+//Format: Major | Minor | Patch
+
+#define FRNETLIB_VERSION_MAJOR  1
+#define FRNETLIB_VERSION_MINOR  0
+#define FRNETLIB_VERSION_PATCH  0
+
+#define FRNETLIB_VERSION_NUMBER 0x01000000
+#define FRNETLIB_VERSION_STRING "1.0.0"
+#define FRNETLIB_VERSION__STRING_FULL "frnetlib 1.0.0"
+
+#endif //FRNETLIB_VERSION_H

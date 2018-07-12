@@ -40,7 +40,7 @@ add_definitions(-Dntodh)
 set( INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include" )
 set( SOURCE_PATH "${PROJECT_SOURCE_DIR}/src" )
 
-set(SOURCE_FILES ${SOURCE_FILES} main.cpp src/TcpSocket.cpp include/frnetlib/TcpSocket.h src/TcpListener.cpp include/frnetlib/TcpListener.h src/Socket.cpp include/frnetlib/Socket.h src/Packet.cpp include/frnetlib/Packet.h include/frnetlib/NetworkEncoding.h src/SocketSelector.cpp include/frnetlib/SocketSelector.h src/HttpRequest.cpp include/frnetlib/HttpRequest.h src/HttpResponse.cpp include/frnetlib/HttpResponse.h src/Http.cpp include/frnetlib/Http.h src/SocketReactor.cpp include/frnetlib/SocketReactor.h include/frnetlib/Packetable.h include/frnetlib/Listener.h src/URL.cpp include/frnetlib/URL.h include/frnetlib/Sendable.h)
+set(SOURCE_FILES ${SOURCE_FILES} main.cpp src/TcpSocket.cpp include/frnetlib/TcpSocket.h src/TcpListener.cpp include/frnetlib/TcpListener.h src/Socket.cpp include/frnetlib/Socket.h src/Packet.cpp include/frnetlib/Packet.h include/frnetlib/NetworkEncoding.h src/SocketSelector.cpp include/frnetlib/SocketSelector.h src/HttpRequest.cpp include/frnetlib/HttpRequest.h src/HttpResponse.cpp include/frnetlib/HttpResponse.h src/Http.cpp include/frnetlib/Http.h src/SocketReactor.cpp include/frnetlib/SocketReactor.h include/frnetlib/Packetable.h include/frnetlib/Listener.h src/URL.cpp include/frnetlib/URL.h include/frnetlib/Sendable.h include/frnetlib/version.h)
 
 include_directories(include)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")

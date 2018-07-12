@@ -8,36 +8,39 @@
 #include <string>
 #include "frnetlib/NetworkEncoding.h"
 
-class Sha1
+namespace fr
 {
-public:
-    Sha1();
-
-    /*!
-     * Sha1 hashes a string input and returns the raw digest
-     *
-     * @param input The string to hash
-     * @return The Sha1 digest converted to host endianness
-     */
-    static std::string sha1_digest(const std::string &input)
+    class Sha1
     {
-        Sha1 ctx;
-        ctx.update(input);
-        ctx.final();
-        for(unsigned int &a : ctx.digest)
-            a = ntohl(a);
+    public:
+        Sha1();
 
-        return std::string((char*)&ctx.digest[0], sizeof(ctx.digest));
-    }
+        /*!
+         * Sha1 hashes a string input and returns the raw digest
+         *
+         * @param input The string to hash
+         * @return The Sha1 digest converted to host endianness
+         */
+        static std::string sha1_digest(const std::string &input)
+        {
+            Sha1 ctx;
+            ctx.update(input);
+            ctx.final();
+            for(unsigned int &a : ctx.digest)
+                a = ntohl(a);
 
-private:
-    void update(const std::string &s);
-    void update(std::istream &is);
-    void final();
+            return std::string((char*)&ctx.digest[0], sizeof(ctx.digest));
+        }
 
-    uint32_t digest[5];
-    std::string buffer;
-    uint64_t transforms;
-};
+    private:
+        void update(const std::string &s);
+        void update(std::istream &is);
+        void final();
+
+        uint32_t digest[5];
+        std::string buffer;
+        uint64_t transforms;
+    };
+}
 
 #endif //FRNETLIB_SHA1_H
