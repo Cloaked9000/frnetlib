@@ -88,7 +88,7 @@ namespace fr
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(ssl_socket_descriptor.get());
 
-        //Do to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
+        //Due to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
         //Open the descriptor, and then steal it. This is a hack.
         {
             fr::TcpSocket socket;

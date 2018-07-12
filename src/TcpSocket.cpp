@@ -11,7 +11,7 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-    : socket_descriptor(-1)
+            : socket_descriptor(-1)
     {
 
     }
@@ -54,7 +54,7 @@ namespace fr
         received = 0;
 
         //Read RECV_CHUNK_SIZE bytes into the recv buffer
-		int64_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
+        int64_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
 
         if(status > 0)
         {
@@ -125,10 +125,18 @@ namespace fr
 
             //Try and connect
             ret = ::connect(socket_descriptor, c->ai_addr, c->ai_addrlen);
+#ifdef _WIN32
+            if(ret < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
+#else
             if(ret < 0 && errno != EINPROGRESS)
+#endif
+            {
                 continue;
+            }
             else if(ret == 0) //If it connected immediately then break out of the connect loop
+            {
                 break;
+            }
 
             //Wait for the socket to do something/expire
             timeval tv = {};
