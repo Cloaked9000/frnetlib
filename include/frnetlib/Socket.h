@@ -43,8 +43,8 @@ namespace fr
             any = 3
         };
 
-        Socket() noexcept;
-        virtual ~Socket() noexcept = default;
+        Socket();
+        virtual ~Socket() = default;
         Socket(Socket &&) =delete;
         Socket(const Socket &) =delete;
         void operator=(const Socket &) =delete;

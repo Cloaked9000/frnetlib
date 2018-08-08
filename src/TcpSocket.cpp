@@ -11,7 +11,7 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-            : socket_descriptor(-1)
+    : socket_descriptor(-1)
     {
 
     }

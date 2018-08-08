@@ -51,14 +51,7 @@ namespace fr
          */
         bool load_ca_certs_from_memory(const std::string &ca_certs)
         {
-			std::cerr << "Note: load_ca_certs_from_memory() seems to be broken. Please use load_ca_certs_from_file() until this is resolved." << std::endl;
-            int error = mbedtls_x509_crt_parse(&cacert, (const unsigned char *)ca_certs.c_str(), ca_certs.size());
-            if(error < 0)
-            {
-                std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
-                return false;
-            }
-            return true;
+            return mbedtls_x509_crt_parse(&cacert, (const unsigned char *)ca_certs.c_str(), ca_certs.size()) == 0;
         }
 
         /*!
@@ -69,13 +62,7 @@ namespace fr
          */
         bool load_ca_certs_from_file(const std::string &ca_certs_filepath)
         {
-            int error = mbedtls_x509_crt_parse_file(&cacert, ca_certs_filepath.c_str());
-            if(error < 0)
-            {
-                std::cout << "Failed to parse root CA certificates. Parse returned: " << error << std::endl;
-                return false;
-            }
-            return true;
+            return mbedtls_x509_crt_parse_file(&cacert, ca_certs_filepath.c_str()) == 0;
         }
 
         mbedtls_entropy_context entropy;

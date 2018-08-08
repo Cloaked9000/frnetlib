@@ -22,9 +22,12 @@ namespace fr
     class SSLListener : public Listener
     {
     public:
-        explicit SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &pem_path, const std::string &private_key_path) noexcept;
+        explicit SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &pem_path, const std::string &private_key_path);
         virtual ~SSLListener() noexcept;
-        SSLListener(SSLListener &&o) noexcept = default;
+        SSLListener(SSLListener &&) = delete;
+        SSLListener(SSLListener &o) = delete;
+        void operator=(const SSLListener &) = delete;
+        void operator=(SSLListener &&) = delete;
 
         /*!
          * Listens to the given port for connections

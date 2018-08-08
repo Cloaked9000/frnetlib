@@ -15,7 +15,7 @@ class TcpSocket : public Socket
 {
 public:
     TcpSocket() noexcept;
-    virtual ~TcpSocket() noexcept;
+    ~TcpSocket() override;
     TcpSocket(TcpSocket &&) = delete;
     TcpSocket(const TcpSocket &) = delete;
     void operator=(TcpSocket &&)=delete;
@@ -98,7 +98,7 @@ protected:
     /*!
      * Close the connection.
      */
-    virtual void close_socket();
+    void close_socket() override;
 
     int32_t socket_descriptor;
 };

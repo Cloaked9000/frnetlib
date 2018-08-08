@@ -12,7 +12,7 @@
 
 namespace fr
 {
-    Socket::Socket() noexcept
+    Socket::Socket()
     : is_blocking(true),
       ai_family(AF_UNSPEC),
       max_receive_size(0)

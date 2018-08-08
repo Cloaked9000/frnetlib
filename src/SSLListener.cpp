@@ -13,7 +13,7 @@
 
 namespace fr
 {
-    SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &pem_path, const std::string &private_key_path) noexcept
+    SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &pem_path, const std::string &private_key_path)
     : ssl_context(std::move(ssl_context_))
     {
         //Initialise SSL objects required
@@ -24,33 +24,32 @@ namespace fr
 
         int error = 0;
 
-        //Load certificates and private key
+        //Load public key
         error = mbedtls_x509_crt_parse_file(&srvcert, pem_path.c_str());
         if(error != 0)
         {
-            std::cout << "Failed to initialise SSL listener. PEM Parse returned: " << error << std::endl;
-            return;
+            throw std::runtime_error("mbedtls_x509_crt_parse_file() returned: " + std::to_string(error));
         }
 
+        //Load private key
         error = mbedtls_pk_parse_keyfile(&pkey, private_key_path.c_str(), 0);
         if(error != 0)
         {
-            std::cout << "Failed to initialise SSL listener. Private Key Parse returned: " << error << std::endl;
-            return;
+            throw std::runtime_error("mbedtls_pk_parse_keyfile() returned: " + std::to_string(error));
         }
 
-        //Setup data structures
-        if((error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
+        //Setup data structures and apply settings
+        error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+        if(error != 0)
         {
-            std::cout << "Failed to configure SSL presets: " << error << std::endl;
-            return;
+            throw std::runtime_error("mbedtls_ssl_config_defaults() returned: " + std::to_string(error));
         }
-
-        //Apply them
         mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ssl_context->ctr_drbg);
         mbedtls_ssl_conf_ca_chain(&conf, srvcert.next, nullptr);
 
-        if((error = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey)) != 0)
+        //Apply loaded certs
+        error = mbedtls_ssl_conf_own_cert(&conf, &srvcert, &pkey);
+        if(error != 0)
         {
             std::cout << "Failed to set certificate: " << error << std::endl;
             return;
