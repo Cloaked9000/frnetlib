@@ -128,7 +128,6 @@ namespace fr
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                std::cout << "Failed to connect to server. Handshake returned: " << error << std::endl;
                 return Socket::Status::HandshakeFailed;
             }
         }
@@ -137,9 +136,8 @@ namespace fr
         if(should_verify && ((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0))
         {
             char verify_buffer[512];
-            mbedtls_x509_crt_verify_info( verify_buffer, sizeof( verify_buffer ), "  ! ", flags );
+            mbedtls_x509_crt_verify_info(verify_buffer, sizeof(verify_buffer), "  ! ", flags);
 
-            std::cout << "Failed to connect to server. Server certificate validation failed: " << verify_buffer << std::endl;
             return Socket::Status::VerificationFailed;
         }
 

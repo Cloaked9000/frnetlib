@@ -86,7 +86,7 @@ namespace fr
     Socket::Status TcpListener::accept(Socket &client_)
     {
         //Cast to TcpSocket. Will throw bad cast on failure.
-        TcpSocket &client = dynamic_cast<TcpSocket&>(client_);
+        auto &client = dynamic_cast<TcpSocket&>(client_);
 
         //Prepare to wait for the client
         sockaddr_storage client_addr{};
@@ -100,9 +100,11 @@ namespace fr
             return Socket::Unknown;
 
         //Get printable address. If we failed then set it as just 'unknown'
-        int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), nullptr,0,NI_NUMERICHOST);
+        int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), nullptr, 0, NI_NUMERICHOST);
         if(err != 0)
+        {
             strcpy(client_printable_addr, "unknown");
+        }
 
         //Set client data
         client.set_descriptor(&client_descriptor);

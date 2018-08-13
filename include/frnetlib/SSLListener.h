@@ -23,7 +23,7 @@ namespace fr
     {
     public:
         explicit SSLListener(std::shared_ptr<SSLContext> ssl_context, const std::string &pem_path, const std::string &private_key_path);
-        virtual ~SSLListener() noexcept;
+        ~SSLListener() override;
         SSLListener(SSLListener &&) = delete;
         SSLListener(SSLListener &o) = delete;
         void operator=(const SSLListener &) = delete;
@@ -35,7 +35,7 @@ namespace fr
          * @param port The port to bind to
          * @return If the operation was successful
          */
-        virtual Socket::Status listen(const std::string &port) override;
+        Socket::Status listen(const std::string &port) override;
 
         /*!
          * Accepts a new connection.
@@ -43,7 +43,7 @@ namespace fr
          * @param client Where to store the connection information
          * @return True on success. False on failure.
          */
-        virtual Socket::Status accept(Socket &client) override;
+        Socket::Status accept(Socket &client) override;
 
         /*!
          * Closes the socket

@@ -85,19 +85,18 @@ namespace fr
     Socket::Status SSLListener::accept(Socket &client_)
     {
         //Cast to SSLSocket. Will throw bad cast on failure.
-        SSLSocket &client = dynamic_cast<SSLSocket&>(client_);
+        auto &client = dynamic_cast<SSLSocket&>(client_);
 
         //Initialise mbedtls
         int error = 0;
-        std::unique_ptr<mbedtls_ssl_context> ssl(new mbedtls_ssl_context);
-        std::unique_ptr<mbedtls_net_context> client_fd(new mbedtls_net_context);
+        auto ssl = std::make_unique<mbedtls_ssl_context>();
+        auto client_fd = std::make_unique<mbedtls_net_context>();
 
         mbedtls_ssl_init(ssl.get());
         mbedtls_net_init(client_fd.get());
         auto free_contexts = [&](){mbedtls_ssl_free(ssl.get()); mbedtls_net_free(client_fd.get());};
-        if((error = mbedtls_ssl_setup(ssl.get(), &conf ) ) != 0)
+        if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {
-            std::cout << "Failed to apply SSL setings: " << error << std::endl;
             free_contexts();
             return Socket::Error;
         }
@@ -111,9 +110,9 @@ namespace fr
             return Socket::Error;
         }
 
-        mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
 
         //SSL Handshake
+        mbedtls_ssl_set_bio(ssl.get(), client_fd.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
@@ -128,12 +127,16 @@ namespace fr
         //Get printable address. If we failed then set it as just 'unknown'
         char client_printable_addr[INET6_ADDRSTRLEN];
         struct sockaddr_storage socket_address{};
-        socklen_t socket_length;
+        socklen_t socket_length = sizeof(socket_address);
         error = getpeername(client_fd->fd, (struct sockaddr*)&socket_address, &socket_length);
         if(error == 0)
+        {
             error = getnameinfo((sockaddr*)&socket_address, socket_length, client_printable_addr, sizeof(client_printable_addr), nullptr,0,NI_NUMERICHOST);
+        }
         if(error != 0)
+        {
             strcpy(client_printable_addr, "unknown");
+        }
 
         client.set_ssl_context(std::move(ssl));
         client.set_descriptor(client_fd.release());

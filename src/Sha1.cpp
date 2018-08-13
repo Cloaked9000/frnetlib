@@ -273,11 +273,11 @@ namespace fr
         uint64_t total_bits = (transforms * BLOCK_BYTES + buffer.size()) * 8;
 
         /* Padding */
-        buffer += 0x80;
+        buffer += static_cast<char>(0x80);
         size_t orig_size = buffer.size();
         while(buffer.size() < BLOCK_BYTES)
         {
-            buffer += (char) 0x00;
+            buffer += static_cast<char>(0x00);
         }
 
         uint32_t block[BLOCK_INTS];
