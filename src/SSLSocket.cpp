@@ -196,6 +196,11 @@ namespace fr
 
     void SSLSocket::reconfigure_socket()
     {
+        if(!connected())
+        {
+            return;
+        }
+
         int one = 1;
 #ifndef _WIN32
         //Disable Nagle's algorithm
