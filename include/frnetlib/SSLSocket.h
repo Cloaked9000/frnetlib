@@ -45,7 +45,7 @@ namespace fr
          * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
          * @param received Will be filled with the number of bytes actually received, might be less than you requested.
          * @return The status of the operation:
-         * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode
+         * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or the operation has timed out
          * 'Disconnected' if the socket has disconnected.
          * 'Success' All the bytes you wanted have been read
          */
@@ -85,6 +85,12 @@ namespace fr
          * @param should_verify True if certificates should be verified, false otherwise
          */
         void verify_certificates(bool should_verify);
+
+        /*!
+         * Applies requested socket options to the socket.
+         * Should be called when a new socket is created.
+         */
+        void reconfigure_socket() override;
 
         /*!
          * Gets the underlying socket descriptor.
@@ -133,6 +139,7 @@ namespace fr
         mbedtls_ssl_config conf;
         uint32_t flags;
         bool should_verify;
+        uint32_t receive_timeout;
     };
 }
 

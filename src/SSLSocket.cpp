@@ -7,12 +7,15 @@
 #include <utility>
 
 #include <mbedtls/net_sockets.h>
+#include <frnetlib/SSLSocket.h>
+
 
 namespace fr
 {
     SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
     :  ssl_context(std::move(ssl_context_)),
-       should_verify(true)
+       should_verify(true),
+       receive_timeout(0)
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
@@ -63,19 +66,46 @@ namespace fr
 
     Socket::Status SSLSocket::receive_raw(void *data, size_t data_size, size_t &received)
     {
-        int read = 0;
-        received = 0;
-        read = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
-        if(read == MBEDTLS_ERR_SSL_WANT_READ || read == MBEDTLS_ERR_SSL_WANT_WRITE)
-            return Socket::Status::WouldBlock;
-
-        if(read <= 0)
+        ssize_t status = 0;
+        if(receive_timeout == 0)
         {
-            close_socket();
-            return Socket::Status::Disconnected;
+            status = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
+            if(status <= 0)
+            {
+                if(status == MBEDTLS_ERR_SSL_WANT_READ || status == MBEDTLS_ERR_SSL_WANT_WRITE)
+                {
+                    return Socket::Status::WouldBlock;
+                }
+
+                close_socket();
+                return Socket::Status::Disconnected;
+            }
+        }
+        else
+        {
+            do
+            {
+                status = mbedtls_net_recv_timeout(ssl.get(), (unsigned char *)data, data_size, receive_timeout);
+                if(status <= 0)
+                {
+                    if(status == MBEDTLS_ERR_SSL_TIMEOUT)
+                    {
+                        return Socket::Status::WouldBlock;
+                    }
+                    else if(status == MBEDTLS_ERR_SSL_WANT_READ)
+                    {
+                        continue; //try again, interrupted before anything could be received
+                    }
+
+                    close_socket();
+                    return Socket::Status::Disconnected;
+                }
+                break;
+            } while(true);
         }
 
-        received += read;
+
+        received = static_cast<size_t>(status);
         return Socket::Status::Success;
 
     }
@@ -162,5 +192,22 @@ namespace fr
     void SSLSocket::verify_certificates(bool should_verify_)
     {
         should_verify = should_verify_;
+    }
+
+    void SSLSocket::reconfigure_socket()
+    {
+        int one = 1;
+#ifndef _WIN32
+        //Disable Nagle's algorithm
+        setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+#else
+        //Disable Nagle's algorithm
+        setsockopt(get_socket_descriptor(), IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+        setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&one, sizeof(one));
+
+        //Apply receive timeout
+        DWORD timeout_dword = static_cast<DWORD>(get_receive_timeout());
+        setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
+#endif
     }
 }

@@ -15,7 +15,8 @@ namespace fr
     Socket::Socket()
     : is_blocking(true),
       ai_family(AF_UNSPEC),
-      max_receive_size(0)
+      max_receive_size(0),
+      socket_read_timeout(0)
     {
         init_wsa();
     }
@@ -64,16 +65,6 @@ namespace fr
         ::shutdown(get_socket_descriptor(), SHUT_RDWR);
     }
 
-    void Socket::reconfigure_socket()
-    {
-        //todo: Perhaps allow for these settings to be modified
-        int one = 1;
-        setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
-#ifdef _WIN32
-        setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&one, sizeof(one));
-#endif
-    }
-
     void Socket::set_inet_version(Socket::IP version)
     {
         switch(version)
@@ -92,29 +83,25 @@ namespace fr
         }
     }
 
-    void Socket::set_max_receive_size(uint32_t sz)
-    {
-        max_receive_size = sz;
-    }
-
     const std::string &Socket::status_to_string(fr::Socket::Status status)
     {
         static std::vector<std::string> map = {
-        "Unknown",
-        "Success",
-        "Listen Failed",
-        "Bind Failed",
-        "Disconnected",
-        "Error",
-        "Would Block",
-        "Connection Failed",
-        "Handshake Failed",
-        "Verification Failed",
-        "Max packet size exceeded",
-        "Not enough data",
-        "Parse error",
-        "HTTP header too big",
-        "HTTP body too big"};
+            "Unknown",
+            "Success",
+            "Listen Failed",
+            "Bind Failed",
+            "Disconnected",
+            "Error",
+            "Would Block",
+            "Connection Failed",
+            "Handshake Failed",
+            "Verification Failed",
+            "Max packet size exceeded",
+            "Not enough data",
+            "Parse error",
+            "HTTP header too big",
+            "HTTP body too big"
+        };
 
         if(status < 0 || status > map.size())
             throw std::logic_error("Socket::status_to_string(): Invalid status value " + std::to_string(status));

@@ -90,7 +90,7 @@ namespace fr
          * @param data Where to store the received data.
          * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
          * @param received Will be filled with the number of bytes actually received, might be less than you requested.
-         * @return The status of the operation, if the socket has disconnected etc.
+         * @return The status of the operation, if the socket has disconnected etc. This is dependent on the underlying socket type.
          */
         virtual Status receive_raw(void *data, size_t data_size, size_t &received) = 0;
 
@@ -146,7 +146,7 @@ namespace fr
          * @return Operation status:
          * 'Disconnected' if the socket disconnected
          * 'Success' if buffer_size bytes could be read successfully
-         * 'WouldBlock' if the socket is in blocking mode and no data could be read
+         * 'WouldBlock' if the socket is in blocking mode and no data could be read, or if the read timed out before any data was received
          */
         Status receive_all(void *dest, size_t buffer_size);
 
@@ -169,25 +169,6 @@ namespace fr
         void set_inet_version(IP version);
 
         /*!
-         * Sets the maximum receivable size that may be received by the socket. This does
-         * not apply to receive_raw(), but only things like fr::Packet.
-         *
-         * If a client attempts to send a packet larger than sz bytes, then
-         * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
-         * will be returned. Pass '0' to indicate no limit.
-         *
-         * This should be used to prevent potential abuse, as a client could say that
-         * it's going to send a 200GiB packet, which would cause the Socket to try and
-         * allocate that much memory to accommodate the data, which is most likely not
-         * desirable.
-         *
-         * By default, there is no limit (0)
-         *
-         * @param sz The maximum number of bytes that may be received in an fr::Packet
-         */
-        void set_max_receive_size(uint32_t sz);
-
-        /*!
          * Converts an fr::Socket::Status value to a printable string
          *
          * Throws an std::logic_error if status is out of range.
@@ -205,6 +186,48 @@ namespace fr
          * 'close_socket' should just close the client connection and be done with it.
          */
         virtual void disconnect();
+
+        /*!
+         * Sets the maximum receivable size that may be received by the socket. This does
+         * not apply to receive_raw(), but only things like fr::Packet.
+         *
+         * If a client attempts to send a packet larger than sz bytes, then
+         * the client will be disconnected and an fr::Socket::MaxPacketSizeExceeded
+         * will be returned. Pass '0' to indicate no limit.
+         *
+         * This should be used to prevent potential abuse, as a client could say that
+         * it's going to send a 200GiB packet, which would cause the Socket to try and
+         * allocate that much memory to accommodate the data, which is most likely not
+         * desirable.
+         *
+         * By default, there is no limit (0)
+         *
+         * @param sz The maximum number of bytes that may be received in an fr::Packet
+         */
+        inline void set_max_receive_size(uint32_t sz)
+        {
+            max_receive_size = sz;
+        }
+
+        /*!
+          * Sets a timeout which applies when receiving data.
+          *
+          * @note When receiving framed data, such as with receive(), this timeout will apply to the underlying
+          * individual reads, but not for the message as a whole.
+          *
+          * @param timeout The maximum number of milliseconds to wait on a socket read before returning. Pass
+          * 0 (default) for no timeout.
+          */
+        inline void set_receive_timeout(uint32_t timeout)
+        {
+            socket_read_timeout = timeout;
+            reconfigure_socket();
+        }
+
+        inline uint32_t get_receive_timeout() const
+        {
+            return socket_read_timeout;
+        }
 
         /*!
          * Gets the max packet size. See set_max_packet_size
@@ -248,12 +271,13 @@ namespace fr
          * Applies requested socket options to the socket.
          * Should be called when a new socket is created.
          */
-        void reconfigure_socket();
+        virtual void reconfigure_socket()=0;
 
         std::string remote_address;
         bool is_blocking;
         int ai_family;
         uint32_t max_receive_size;
+        uint32_t socket_read_timeout;
     };
 }
 

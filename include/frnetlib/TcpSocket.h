@@ -54,7 +54,7 @@ public:
      * @param buffer_size The number of bytes to try and receive. Be sure that it's not larger than data.
      * @param received Will be filled with the number of bytes actually received, might be less than you requested.
      * @return The status of the operation:
-     * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode
+     * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or operation has timed out
      * 'Disconnected' if the socket has disconnected.
      * 'Success' All the bytes you wanted have been read
      */
@@ -82,6 +82,12 @@ public:
      * @return The socket descriptor. -1 typically indicates no connection.
      */
     int32_t get_socket_descriptor() const override;
+
+    /*!
+     * Applies requested socket options to the socket.
+     * Should be called when a new socket is created.
+     */
+    void reconfigure_socket() override;
 
     /*!
      * Checks to see if we're connected to a socket or not

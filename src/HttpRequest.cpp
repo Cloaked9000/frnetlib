@@ -37,7 +37,7 @@ namespace fr
             header_ended = header_end != std::string::npos;
 
             //Ensure that the header doesn't exceed max length
-            if(!header_ended && body.size() > MAX_HTTP_HEADER_SIZE || header_ended && header_end > MAX_HTTP_HEADER_SIZE)
+            if((!header_ended && body.size() > MAX_HTTP_HEADER_SIZE) || (header_ended && header_end > MAX_HTTP_HEADER_SIZE))
             {
                 return fr::Socket::HttpHeaderTooBig;
             }

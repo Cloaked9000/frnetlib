@@ -999,13 +999,15 @@ namespace fr
     Socket::Status Http::receive(Socket *socket)
     {
         char recv_buffer[RECV_CHUNK_SIZE];
-        size_t received = 0;
         fr::Socket::Status state;
+        size_t total_received = 0;
+        size_t received = 0;
         do
         {
             //Receive the request
             Socket::Status status = socket->receive_raw(recv_buffer, RECV_CHUNK_SIZE, received);
-            if(status != Socket::Success)
+            total_received += received;
+            if(status != Socket::Success && !(status == fr::Socket::WouldBlock && total_received != 0))
                 return status;
 
             //Parse it

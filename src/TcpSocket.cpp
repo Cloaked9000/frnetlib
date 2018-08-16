@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <frnetlib/SocketSelector.h>
+#include <frnetlib/TcpSocket.h>
+
 #include "frnetlib/TcpSocket.h"
 #define DEFAULT_SOCKET_TIMEOUT 20
 
@@ -51,29 +53,29 @@ namespace fr
 
     Socket::Status TcpSocket::receive_raw(void *data, size_t buffer_size, size_t &received)
     {
-        received = 0;
-
-        //Read RECV_CHUNK_SIZE bytes into the recv buffer
-        int64_t status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
-
-        if(status > 0)
+        ssize_t status = 0;
+        do
         {
-            received += status;
-        }
-        else
-        {
-            if(errno == EWOULDBLOCK || errno == EAGAIN)
+            status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
+            if(status <= 0)
             {
-                return Socket::Status::WouldBlock;
+                if(errno == EWOULDBLOCK || errno == EAGAIN)
+                {
+                    return Socket::Status::WouldBlock;
+                }
+                else if(errno == EINTR)
+                {
+                    continue; //try again, interrupted before anything could be received
+                }
+
+                close_socket();
+                return Socket::Status::Disconnected;
             }
+            break;
+        } while(true);
 
-            close_socket();
-            return Socket::Status::Disconnected;
-        }
 
-        if(received > buffer_size)
-            received = buffer_size;
-
+        received = static_cast<size_t>(status);
         return Socket::Status::Success;
     }
 
@@ -185,4 +187,28 @@ namespace fr
     {
         return socket_descriptor;
     }
+
+    void TcpSocket::reconfigure_socket()
+    {
+        int one = 1;
+#ifndef _WIN32
+        //Disable Nagle's algorithm
+        setsockopt(get_socket_descriptor(), SOL_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+
+        //Apply receive timeout
+        struct timeval tv = {};
+        tv.tv_sec = get_receive_timeout() / 1000;
+        tv.tv_usec = (get_receive_timeout() % 1000) * 1000;
+        setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+#else
+        //Disable Nagle's algorithm
+        setsockopt(get_socket_descriptor(), IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
+        setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char*)&one, sizeof(one));
+
+        //Apply receive timeout
+        DWORD timeout_dword = static_cast<DWORD>(get_receive_timeout());
+        setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
+#endif
+    }
+
 }
