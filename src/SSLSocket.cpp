@@ -212,7 +212,7 @@ namespace fr
 
         //Apply receive timeout
         DWORD timeout_dword = static_cast<DWORD>(get_receive_timeout());
-        setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
+        setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
 #endif
     }
 }
