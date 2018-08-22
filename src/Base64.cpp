@@ -12,7 +12,7 @@ namespace fr
 
         std::string out;
         out.reserve(input.size() + (input.size() / 3) + 1);
-        int a;
+        size_t a;
 
         //Do as many sets of 3 bytes as we can
         for(a = 0; a < input.size() - 2; a += 3)

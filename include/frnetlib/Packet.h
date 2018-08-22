@@ -99,7 +99,7 @@ namespace fr
          */
         inline void extract_raw(char *data, size_t datasz)
         {
-            assert_data_remaining(datasz);
+            assert_bytes_remaining(datasz);
 
             memcpy(data, &buffer[buffer_read_index], datasz);
             buffer_read_index += datasz;
@@ -261,7 +261,7 @@ namespace fr
          */
         inline Packet &operator>>(bool &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -282,7 +282,7 @@ namespace fr
          */
         inline Packet &operator>>(uint8_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -304,7 +304,7 @@ namespace fr
          */
         inline Packet &operator>>(uint16_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -327,7 +327,7 @@ namespace fr
          */
         inline Packet &operator>>(uint32_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
             var = ntohl(var);
@@ -349,7 +349,7 @@ namespace fr
          */
         inline Packet &operator>>(uint64_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -372,7 +372,7 @@ namespace fr
          */
         inline Packet &operator>>(int16_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -395,7 +395,7 @@ namespace fr
          */
         inline Packet &operator>>(int32_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -418,7 +418,7 @@ namespace fr
          */
         inline Packet &operator>>(int64_t &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -474,7 +474,7 @@ namespace fr
          */
         inline Packet &operator>>(float &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);
@@ -497,7 +497,7 @@ namespace fr
          */
         inline Packet &operator>>(double &var)
         {
-            assert_data_remaining(sizeof(var));
+            assert_bytes_remaining(sizeof(var));
 
             memcpy(&var, &buffer[buffer_read_index], sizeof(var));
             buffer_read_index += sizeof(var);;
@@ -585,19 +585,47 @@ namespace fr
         {
             //Leave enough for the header
             buffer.clear();
-            for(size_t a = 0; a < PACKET_HEADER_LENGTH; ++a)
-                buffer.push_back('0');
+            buffer.append(PACKET_HEADER_LENGTH, '\0');
             buffer_read_index = PACKET_HEADER_LENGTH;
         }
 
         /*!
-         * Resets the read cursor back to 0, or a specified position.
+         * Sets the read cursor back to 0, or a specific position.
          *
+         * @note THIS IS AN *ABSOLUTE* SEEK
          * @param pos The buffer index to continue reading from.
          */
-        inline void reset_read_cursor(size_t pos = 0)
+        inline void set_cursor(size_t pos = 0)
         {
             buffer_read_index = PACKET_HEADER_LENGTH + pos;
+            if(buffer_read_index > buffer.size()) buffer_read_index = buffer.size();
+        }
+
+        /*!
+         * Gets the current read cursor position within the packet
+         *
+         * @return Current read position
+         */
+        inline size_t get_cursor() const
+        {
+            return buffer_read_index - PACKET_HEADER_LENGTH;
+        }
+
+        /*!
+         * Relative seek of the read cursor, to seek to a specific position within the packet.
+         * If the seek is out of bounds, then the offset will be set to the nearest valid value.
+         * So seeking to -10, would seek to 0. Seeking to 110/100 would seek to 100.
+         *
+         * @param pos The number of bytes to seek in either direction
+         */
+        inline void seek_cursor(ssize_t pos)
+        {
+            ssize_t new_offset = buffer_read_index + pos;
+            if(new_offset < (ssize_t)PACKET_HEADER_LENGTH)
+                new_offset = PACKET_HEADER_LENGTH;
+            if(new_offset > (ssize_t)buffer.size())
+                new_offset = buffer.size();
+            buffer_read_index = static_cast<size_t>(new_offset);
         }
 
         /*!
@@ -612,6 +640,45 @@ namespace fr
             buffer.reserve(PACKET_HEADER_LENGTH + bytes);
         }
 
+        /*!
+         * Checks that there's enough data in the buffer to extract
+         * a given number of bytes to prevent buffer overflows.
+         *
+         * @throws an std::out_of_range exception if there is not enough space.
+         * @param required_space The number of bytes needed
+         */
+        inline void assert_bytes_remaining(size_t required_space) const
+        {
+            if(buffer_read_index + required_space > buffer.size())
+            {
+                throw std::out_of_range("Not enough bytes remaining in packet to extract requested data");
+            }
+        }
+
+        /*!
+         * Gets the number of bytes available until the end of the packet
+         *
+         * @return The number of bytes available until the end of the packet
+         */
+        inline size_t get_bytes_remaining() const
+        {
+            return buffer.size() - buffer_read_index;
+        }
+
+        /*!
+         * Gets the size of the packet in bytes, this does not take into
+         * account the cursor position, use get_bytes_remaining() if you want to
+         * see how many more bytes can be extracted.
+         *
+         * @note This does not include the packet header length
+         *
+         * @return The size in bytes of the packet
+         */
+        inline size_t size() const
+        {
+            return buffer.size() <= PACKET_HEADER_LENGTH ? 0 : buffer.size() - PACKET_HEADER_LENGTH;
+        }
+
     private:
         friend class Socket;
 
@@ -623,7 +690,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status send(Socket *socket) const override
+        Socket::Status send(Socket *socket) const override
         {
             uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
             memcpy(&buffer[0], &length, sizeof(uint32_t));
@@ -638,7 +705,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status receive(Socket *socket) override
+        Socket::Status receive(Socket *socket) override
         {
             Socket::Status status;
 
@@ -661,19 +728,6 @@ namespace fr
                 return status;
 
             return Socket::Status::Success;
-        }
-
-        /*!
-         * Checks that there's enough data in the buffer to extract
-         * a given number of bytes to prevent buffer overflows.
-         * Throws an exception if there is not enough space.
-         *
-         * @param required_space The number of bytes needed
-         */
-        inline void assert_data_remaining(size_t required_space)
-        {
-            if(buffer_read_index + required_space > buffer.size())
-                throw std::out_of_range("Not enough bytes remaining in packet to extract requested");
         }
 
 

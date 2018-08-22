@@ -147,12 +147,12 @@ TEST(PacketTest, read_cursor)
     ASSERT_EQ(a1, a2);
     ASSERT_EQ(b1, b2);
 
-    packet.reset_read_cursor();
+    packet.set_cursor();
     packet >> a2 >> b2;
     ASSERT_EQ(a1, a2);
     ASSERT_EQ(b1, b2);
 
-    packet.reset_read_cursor((sizeof(a1)));
+    packet.set_cursor((sizeof(a1)));
     packet >> b2;
     ASSERT_EQ(b1, b2);
 }
@@ -169,4 +169,89 @@ TEST(PacketTest, clear)
     packet << a;
     packet >> b;
     ASSERT_EQ(b, 20);
+}
+
+TEST(PacketTest, test_assert_bytes_remaining)
+{
+    fr::Packet packet;
+    ASSERT_THROW(packet.assert_bytes_remaining(1), std::out_of_range);
+    packet << (uint32_t)1;
+    ASSERT_NO_THROW(packet.assert_bytes_remaining(4));
+    uint32_t out;
+    packet >> out;
+    ASSERT_THROW(packet.assert_bytes_remaining(1), std::out_of_range);
+}
+
+TEST(PacketTest, test_size)
+{
+    uint32_t val = 30;
+    fr::Packet packet;
+    ASSERT_EQ(packet.size(), 0);
+    packet << val;
+    ASSERT_EQ(packet.size(), 4);
+    packet >> val;
+    ASSERT_EQ(packet.size(), 4);
+}
+
+TEST(PacketTest, test_get_bytes_remaining)
+{
+    uint32_t val = 30;
+    fr::Packet packet;
+    ASSERT_EQ(packet.get_bytes_remaining(), 0);
+    packet << val;
+    ASSERT_EQ(packet.get_bytes_remaining(), 4);
+
+    uint16_t out;
+    packet >> out;
+    ASSERT_EQ(packet.get_bytes_remaining(), 2);
+
+    packet.clear();
+    ASSERT_EQ(packet.get_bytes_remaining(), 0);
+}
+
+TEST(PacketTest, test_get_cursor)
+{
+    uint32_t val = 0;
+    fr::Packet packet;
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet << val << val;
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet >> val;
+    ASSERT_EQ(packet.get_cursor(), 4);
+    packet >> val;
+    ASSERT_EQ(packet.get_cursor(), 8);
+    packet.set_cursor(4);
+    ASSERT_EQ(packet.get_cursor(), 4);
+    packet.clear();
+    ASSERT_EQ(packet.get_cursor(), 0);
+}
+
+TEST(PacketTest, test_set_cursor)
+{
+    uint32_t val = 0;
+    fr::Packet packet;
+    packet.set_cursor(5);
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet << val;
+    packet.set_cursor(3);
+    ASSERT_EQ(packet.get_cursor(), 3);
+}
+
+TEST(PacketTest, test_seek_cursor)
+{
+    uint32_t val = 0;
+    fr::Packet packet;
+    packet.seek_cursor(-20);
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet.seek_cursor(20);
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet << val;
+    packet.seek_cursor(3);
+    ASSERT_EQ(packet.get_cursor(), 3);
+    packet.seek_cursor(-1);
+    ASSERT_EQ(packet.get_cursor(), 2);
+    packet.seek_cursor(-10);
+    ASSERT_EQ(packet.get_cursor(), 0);
+    packet.seek_cursor(10);
+    ASSERT_EQ(packet.get_cursor(), 4);
 }
