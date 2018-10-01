@@ -97,7 +97,7 @@ namespace fr
          *
          * @return The socket's descriptor. -1 indicates no connection.
          */
-        inline int32_t get_socket_descriptor() const override
+        inline int32_t get_socket_descriptor() const noexcept override
         {
             if(!ssl_socket_descriptor)
                 return -1;
@@ -120,7 +120,7 @@ namespace fr
          *
          * @return True if it's connected. False otherwise.
          */
-        inline bool connected() const final
+        inline bool connected() const noexcept final
         {
             return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
         }

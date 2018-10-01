@@ -48,13 +48,6 @@ public:
     void shutdown() override;
 
     /*!
-     * Gets the socket descriptor.
-     *
-     * @return The listen socket descriptor
-     */
-    int32_t get_socket_descriptor() const override;
-
-    /*!
      * Sets the socket descriptor.
      *
      * @param descriptor The listen descriptor to use
@@ -65,6 +58,20 @@ public:
      * Closes the socket
      */
     void close_socket() override;
+
+    /*!
+     * Checks to see if the socket is connected or not
+     *
+     * @return True if connected, false otherwise
+     */
+    bool connected() const noexcept override;
+
+    /*!
+     * Gets the underlying socket descriptor.
+     *
+     * @return The socket descriptor.
+     */
+    int32_t get_socket_descriptor() const noexcept override;
 
 
 private:

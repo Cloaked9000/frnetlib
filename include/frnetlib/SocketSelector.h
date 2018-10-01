@@ -6,6 +6,10 @@
 #define FRNETLIB_SOCKETSELECTOR_H
 
 #include <chrono>
+#include <vector>
+#include <iostream>
+#include <unordered_map>
+#include <sys/epoll.h>
 #include "NetworkEncoding.h"
 #include "Socket.h"
 #include "TcpListener.h"
@@ -15,81 +19,55 @@ namespace fr
     class SocketSelector
     {
     public:
-        SocketSelector() noexcept;
+        SocketSelector();
         ~SocketSelector();
 
         /*!
-         * Waits for a socket to become ready.
+         * Adds a socket to the selector along with some opaque state
          *
-         * @throws An std::exception if the socket encountered an error
-         * @param timeout The amount of time wait should block for before timing out.
-         * @return True if a socket is ready. False if it timed out.
+         * @throws An std::exception on failure
+         * @param socket The socket to add, can be a Listener/Socket.
+         * @param opaque Opaque data which is passed back by wait() when the socket
+         * has activity. Can be used for state management.
          */
-        bool wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
+        void add(const std::shared_ptr<fr::SocketDescriptor> &socket, void *opaque);
 
         /*!
-         * Adds a socket to the selector. Note that SocketSelector
-         * does not keep a copy of the object, just a handle, it's
-         * up to you to store your fr::Sockets.
+         * Waits for activity on one of the added sockets. If a socket disconnects,
+         * then it will automatically be removed from the selector, and so remove()
+         * should not be called.
          *
-         * @param socket The socket to add.
+         * @throws An std::exception on failure
+         * @param timeout The maximum time in milliseconds to wait for. Default/-1 for no timeout.
+         * @return A list of sockets which either are ready, or have disconnected.
          */
-        template<typename T>
-        inline void add(const T &socket)
-        {
-            add(socket.get_socket_descriptor());
-        }
+        std::vector<std::pair<std::shared_ptr<fr::SocketDescriptor>, void*>> wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1));
 
         /*!
-         * Adds a socket to the selector. Note that SocketSelector
-         * does not keep a copy of the object, just a handle, it's
-         * up to you to store your fr::Sockets.
+         * Removes a socket from the selector.
          *
-         * @param socket The socket descriptor to add.
+         * @throws An std::exception on failure
+         * @param socket The socket to remove. Must not be disconnected.
          */
-        void add(int32_t socket_descriptor)
-        {
-            //Add it to the set
-            FD_SET(socket_descriptor, &listen_set);
-
-            if(socket_descriptor > max_descriptor)
-                max_descriptor = socket_descriptor;
-        }
-
-        /*!
-         * Checks to see if a socket inside of the selector is ready.
-         * This should be called after 'wait' returns true, on
-         * each of the added sockets to see which one has received data.
-         *
-         * @param socket The socket to check if it's ready
-         * @return True if this socket is ready, false otherwise.
-         */
-        template<typename T>
-        inline bool is_ready(const T &socket)
-        {
-            return (FD_ISSET(socket.get_socket_descriptor(), &listen_read));
-        }
-
-        inline bool is_ready(int32_t socket)
-        {
-            return (FD_ISSET(socket, &listen_read));
-        }
-
-        /*!
-         * Removes a socket from the socket selector.
-         *
-         * @param socket The socket to remove.
-         */
-        template<typename T>
-        inline void remove(const T &socket)
-        {
-            FD_CLR(socket.get_socket_descriptor(), &listen_set);
-        }
+        void remove(const std::shared_ptr<fr::SocketDescriptor> &socket);
     private:
 
-        fd_set listen_set;
-        fd_set listen_read;
-        int32_t max_descriptor;
+#ifndef _WIN32
+        struct Opaque
+        {
+            Opaque(int descriptor_, std::shared_ptr<fr::SocketDescriptor> socket_, void *opaque_)
+            : descriptor(descriptor_),
+              socket(std::move(socket_)),
+              opaque(opaque_)
+            {}
+
+            int descriptor;
+            std::shared_ptr<fr::SocketDescriptor> socket;
+            void *opaque;
+        };
+        int epoll_fd;
+        std::unordered_map<int, Opaque> added_sockets;
+#endif
     };
 }
 

@@ -1,2 +1,3 @@
 add_subdirectory(simple_http_server_and_client)
 add_subdirectory(simple_websocket_server_and_client)
+add_subdirectory(concurrent_http_server)

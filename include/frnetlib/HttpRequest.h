@@ -28,7 +28,10 @@ namespace fr
          *
          * @param data The HTTP response to parse
          * @param datasz The length of data in bytes
-         * @return True if more data is needed, false if finished.
+         * @return Status of the parse:
+         * 'NotEnoughData' if parse needs to be re-called with more data.
+         * 'Success' if the whole request has been parsed
+         * Anything else - on error
          */
         fr::Socket::Status parse(const char *data, size_t datasz) override;
 

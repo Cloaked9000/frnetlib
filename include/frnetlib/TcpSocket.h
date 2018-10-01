@@ -77,27 +77,24 @@ public:
     void set_descriptor(void *descriptor_data) override;
 
     /*!
-     * Gets the underlying socket descriptor
-     *
-     * @return The socket descriptor. -1 typically indicates no connection.
-     */
-    int32_t get_socket_descriptor() const override;
-
-    /*!
      * Applies requested socket options to the socket.
      * Should be called when a new socket is created.
      */
     void reconfigure_socket() override;
 
     /*!
-     * Checks to see if we're connected to a socket or not
+     * Checks to see if the socket is connected or not
      *
-     * @return True if it's connected. False otherwise.
+     * @return True if connected, false otherwise
      */
-    inline bool connected() const final
-    {
-        return socket_descriptor > -1;
-    }
+    bool connected() const noexcept override;
+
+    /*!
+     * Gets the underlying socket descriptor.
+     *
+     * @return The socket descriptor.
+     */
+    int32_t get_socket_descriptor() const noexcept override;
 
 protected:
 

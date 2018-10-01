@@ -10,6 +10,8 @@
 
 #include <mbedtls/net_sockets.h>
 #include <iostream>
+#include <frnetlib/SSLListener.h>
+
 
 namespace fr
 {
@@ -149,7 +151,7 @@ namespace fr
         ::shutdown(listen_fd.fd, 0);
     }
 
-    int32_t SSLListener::get_socket_descriptor() const
+    int32_t SSLListener::get_socket_descriptor() const noexcept
     {
         return listen_fd.fd;
     }
@@ -166,6 +168,11 @@ namespace fr
             mbedtls_net_free(&listen_fd);
             listen_fd.fd = -1;
         }
+    }
+
+    bool SSLListener::connected() const noexcept
+    {
+        return listen_fd.fd > -1;
     }
 
 }

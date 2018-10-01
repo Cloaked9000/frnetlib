@@ -5,10 +5,10 @@
 #ifndef FRNETLIB_LISTENER_H
 #define FRNETLIB_LISTENER_H
 #include "Socket.h"
-
+#include "SocketDescriptor.h"
 namespace fr
 {
-    class Listener
+class Listener : public SocketDescriptor
     {
     public:
         Listener()
@@ -51,13 +51,6 @@ namespace fr
          * Closes the socket
          */
         virtual void close_socket()=0;
-
-        /*!
-         * Gets the socket descriptor.
-         *
-         * @return The listen socket descriptor
-         */
-        virtual int32_t get_socket_descriptor() const=0;
 
         /*!
          * Sets the socket descriptor.

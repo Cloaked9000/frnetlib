@@ -61,18 +61,25 @@ namespace fr
         void shutdown() override;
 
         /*!
-         * Gets the socket descriptor.
-         *
-         * @return The listen socket descriptor
-         */
-        int32_t get_socket_descriptor() const override;
-
-        /*!
          * Sets the socket descriptor.
          *
          * @param descriptor The listen descriptor to use
          */
         void set_socket_descriptor(int32_t descriptor) override;
+
+        /*!
+         * Checks to see if the socket is connected or not
+         *
+         * @return True if connected, false otherwise
+         */
+        bool connected() const noexcept override;
+
+        /*!
+         * Gets the underlying socket descriptor.
+         *
+         * @return The socket descriptor.
+         */
+        int32_t get_socket_descriptor() const noexcept override;
 
     private:
         mbedtls_net_context listen_fd;

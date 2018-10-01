@@ -183,7 +183,7 @@ namespace fr
         is_blocking = should_block;
     }
 
-    int32_t TcpSocket::get_socket_descriptor() const
+    int32_t TcpSocket::get_socket_descriptor() const noexcept
     {
         return socket_descriptor;
     }
@@ -215,5 +215,11 @@ namespace fr
         setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
 #endif
     }
+
+    bool TcpSocket::connected() const noexcept
+    {
+        return socket_descriptor > -1;
+    }
+
 
 }

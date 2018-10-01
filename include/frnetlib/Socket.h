@@ -7,13 +7,14 @@
 
 #include <mutex>
 #include "NetworkEncoding.h"
+#include "SocketDescriptor.h"
 
 #define RECV_CHUNK_SIZE 4096 //How much data to try and recv at once
 namespace fr
 {
     class Packet;
     class Sendable;
-    class Socket
+    class Socket : public SocketDescriptor
     {
     public:
         enum Status
@@ -93,20 +94,6 @@ namespace fr
          * @return The status of the operation, if the socket has disconnected etc. This is dependent on the underlying socket type.
          */
         virtual Status receive_raw(void *data, size_t data_size, size_t &received) = 0;
-
-        /*!
-         * Gets the underlying socket descriptor.
-         *
-         * @return The socket descriptor.
-         */
-        virtual int32_t get_socket_descriptor() const = 0;
-
-        /*!
-         * Checks to see if we're connected to a socket or not
-         *
-         * @return True if it's connected. False otherwise.
-         */
-        virtual bool connected() const =0;
 
         /*!
          * Sets the socket file descriptor. Internally used.

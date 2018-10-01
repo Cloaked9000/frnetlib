@@ -2,6 +2,8 @@
 // Created by fred on 06/12/16.
 //
 
+#include <frnetlib/TcpListener.h>
+
 #include "frnetlib/TcpListener.h"
 
 namespace fr
@@ -118,7 +120,7 @@ namespace fr
         ::shutdown(socket_descriptor, 0);
     }
 
-    int32_t TcpListener::get_socket_descriptor() const
+    int32_t TcpListener::get_socket_descriptor() const noexcept
     {
         return socket_descriptor;
     }
@@ -135,5 +137,10 @@ namespace fr
             closesocket(socket_descriptor);
             socket_descriptor = -1;
         }
+    }
+
+    bool TcpListener::connected() const noexcept
+    {
+        return socket_descriptor > -1;
     }
 }
