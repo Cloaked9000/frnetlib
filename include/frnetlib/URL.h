@@ -124,6 +124,16 @@ namespace fr
          */
         static const std::string &scheme_to_string(Scheme scheme);
 
+        /*!
+         * Comparison operator
+         *
+         * @param o Object to compare against
+         * @return True if equal, false otherwise
+         */
+        inline bool operator==(const URL &o) const
+        {
+            return scheme == o.scheme && host == o.host && port == o.port && path == o.path && query == o.query && fragment == o.fragment;
+        }
     private:
         /*!
          * Converts a string to lower case

@@ -30,14 +30,14 @@ namespace fr
         error = mbedtls_x509_crt_parse_file(&srvcert, pem_path.c_str());
         if(error != 0)
         {
-            throw std::runtime_error("mbedtls_x509_crt_parse_file() returned: " + std::to_string(error));
+            throw std::runtime_error("Error parsing '" + pem_path + "': mbedtls_x509_crt_parse_file() returned " + std::to_string(error));
         }
 
         //Load private key
         error = mbedtls_pk_parse_keyfile(&pkey, private_key_path.c_str(), 0);
         if(error != 0)
         {
-            throw std::runtime_error("mbedtls_pk_parse_keyfile() returned: " + std::to_string(error));
+            throw std::runtime_error("Error parsing '" + private_key_path + "': mbedtls_pk_parse_keyfile() returned " + std::to_string(error));
         }
 
         //Setup data structures and apply settings

@@ -65,3 +65,11 @@ TEST(URLTest, uri_test4)
     fr::URL url("http://example.com:80/?bob=10#frag");
     ASSERT_EQ(url.get_uri(), "/?bob=10#frag");
 }
+
+TEST(URLTest, schema_parse_test)
+{
+    fr::URL url("127.0.0.1:2020");
+    fr::URL url2;
+    url2.parse("127.0.0.1:2020");
+    ASSERT_EQ(url, url2);
+}

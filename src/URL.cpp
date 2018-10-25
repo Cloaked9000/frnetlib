@@ -21,7 +21,6 @@ namespace fr
     };
 
     URL::URL(const std::string &url)
-    : scheme(Scheme::Unknown)
     {
         parse(url);
     }
@@ -29,6 +28,7 @@ namespace fr
 
     void URL::parse(std::string url)
     {
+        scheme = Scheme::Unknown;
         size_t parse_offset = 0;
         size_t pos = 0;
 
