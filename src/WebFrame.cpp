@@ -104,8 +104,7 @@ namespace fr
         auto mask = static_cast<bool>((first_2bytes >> 7) & 0x1);
         if(mask == socket_->is_client())
         {
-            socket->disconnect();
-            return fr::Socket::Disconnected;
+            return fr::Socket::Error;
         }
 
 
@@ -130,7 +129,6 @@ namespace fr
         //Verify that payload length isn't too large
         if(socket->get_max_receive_size() && payload_length > socket->get_max_receive_size())
         {
-            socket->disconnect(); //We're forced to disconnect, otherwise we'll be out of sync with the server
             return Socket::MaxPacketSizeExceeded;
         }
 

@@ -56,8 +56,7 @@ namespace fr
             }
             else if(response < 0)
             {
-                close_socket();
-                return Socket::Status::Disconnected;
+                return Socket::Status::Error;
             }
         }
 
@@ -77,8 +76,7 @@ namespace fr
                     return Socket::Status::WouldBlock;
                 }
 
-                close_socket();
-                return Socket::Status::Disconnected;
+                return Socket::Status::Error;
             }
         }
         else
@@ -97,8 +95,7 @@ namespace fr
                         continue; //try again, interrupted before anything could be received
                     }
 
-                    close_socket();
-                    return Socket::Status::Disconnected;
+                    return Socket::Status::Error;
                 }
                 break;
             } while(true);

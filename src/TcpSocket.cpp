@@ -35,8 +35,7 @@ namespace fr
             }
             else if(errno != EWOULDBLOCK && errno != EAGAIN) //Don't exit if the socket just couldn't block
             {
-                close_socket();
-                return Socket::Status::Disconnected;
+                return Socket::Status::Error;
             }
         }
         return Socket::Status::Success;
@@ -68,8 +67,7 @@ namespace fr
                     continue; //try again, interrupted before anything could be received
                 }
 
-                close_socket();
-                return Socket::Status::Disconnected;
+                return Socket::Status::Error;
             }
             break;
         } while(true);

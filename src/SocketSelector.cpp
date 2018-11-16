@@ -10,8 +10,9 @@
 namespace fr
 {
 #ifndef _WIN32
+
     SocketSelector::SocketSelector()
-    : epoll_fd(-1)
+            : epoll_fd(-1)
     {
         epoll_fd = epoll_create1(O_CLOEXEC);
         if(epoll_fd < 0)
@@ -32,7 +33,8 @@ namespace fr
             throw std::logic_error("Can't add disconnected socket");
         }
 
-        auto add_iter = added_sockets.emplace(socket->get_socket_descriptor(), Opaque(socket->get_socket_descriptor(), socket, opaque));
+        auto add_iter = added_sockets.emplace(socket->get_socket_descriptor(),
+                                              Opaque(socket->get_socket_descriptor(), socket, opaque));
         if(!add_iter.second)
         {
             throw std::logic_error("Can't add duplicate socket: " + std::to_string(socket->get_socket_descriptor()));
@@ -59,17 +61,25 @@ namespace fr
             throw std::runtime_error("epoll_wait returned: " + std::to_string(errno));
         }
 
-        std::vector<std::pair<std::shared_ptr<fr::SocketDescriptor>, void*>> ret;
+        std::vector<std::pair<std::shared_ptr<fr::SocketDescriptor>, void *>> ret;
         for(int a = 0; a < event_count; ++a)
         {
-            auto *opaque = static_cast<Opaque*>(events[a].data.ptr);
+            auto *opaque = static_cast<Opaque *>(events[a].data.ptr);
             ret.emplace_back(opaque->socket, opaque->opaque);
             if(events[a].events & EPOLLERR || events[a].events & EPOLLHUP || events[a].events & EPOLLRDHUP)
             {
                 auto iter = added_sockets.find(opaque->descriptor);
                 if(iter != added_sockets.end())
                 {
+                    epoll_event event = {0};
+                    auto remove_ret = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, opaque->descriptor, &event);
                     added_sockets.erase(opaque->descriptor);
+                    if(remove_ret < 0)
+                    {
+                        throw std::runtime_error(
+                                "Failed to remove socket: " + std::to_string(opaque->descriptor) + ". Errno: " +
+                                std::to_string(errno));
+                    }
                 }
             }
         }
@@ -83,19 +93,23 @@ namespace fr
         {
             throw std::runtime_error("Can't remove disconnected socket");
         }
+
         auto iter = added_sockets.find(descriptor);
-        if(iter != added_sockets.end())
+        if(iter == added_sockets.end())
         {
-            added_sockets.erase(iter);
+            return;
         }
 
+        added_sockets.erase(iter);
         epoll_event event = {0};
         if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, descriptor, &event) < 0)
         {
-            throw std::runtime_error("Failed to remove socket: " + std::to_string(errno));
+            throw std::runtime_error(
+                    "Failed to remove socket: " + std::to_string(descriptor) + ". Errno: " + std::to_string(errno));
         }
-        delete static_cast<Opaque*>(event.data.ptr);
+        delete static_cast<Opaque *>(event.data.ptr);
     }
+
 #endif
 }
 
