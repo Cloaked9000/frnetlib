@@ -57,6 +57,10 @@ namespace fr
         int event_count = epoll_wait(epoll_fd, events, 100, timeout.count());
         if(event_count < 0)
         {
+            if(errno == EINTR)
+            {
+                return {};
+            }
             throw std::runtime_error("epoll_wait returned: " + std::to_string(errno));
         }
 

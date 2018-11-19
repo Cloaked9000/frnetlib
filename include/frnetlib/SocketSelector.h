@@ -39,7 +39,8 @@ namespace fr
          *
          * @throws An std::exception on failure
          * @param timeout The maximum time in milliseconds to wait for. Default/-1 for no timeout.
-         * @return A list of sockets which either are ready, or have disconnected.
+         * @return A list of sockets which either are ready, or have disconnected. This can be empty
+         * if there is a timeout, or the wait is interrupted.
          */
         std::vector<std::pair<std::shared_ptr<fr::SocketDescriptor>, void*>> wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1));
 
