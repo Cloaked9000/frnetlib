@@ -15,6 +15,12 @@ namespace fr
     class Http : public Sendable
     {
     public:
+        enum RequestVersion
+        {
+            V1 = 1,          // HTTP/1.0
+            V1_1 = 2,        // HTTP/1.1
+            VersionCount = 3
+        };
         enum RequestType
         {
             Get = 0,
@@ -225,6 +231,20 @@ namespace fr
         const std::string &get_body() const;
 
         /*!
+         * Sets the HTTP version
+         *
+         * @param version The HTTP version to use
+         */
+        void set_version(RequestVersion version);
+
+        /*!
+         * Gets the HTTP version
+         *
+         * @return The current HTTP version
+         */
+        RequestVersion get_version() const;
+
+        /*!
          * URL Encodes a given string
          *
          * @param str The string to URL encode
@@ -263,7 +283,7 @@ namespace fr
          * @param str The string to convert
          * @return The converted RequestType. Unknown on failure. Or Partial if str is part of a request type.
          */
-        static RequestType string_to_request_type(const std::string &str) ;
+        static RequestType string_to_request_type(const std::string &str);
 
     protected:
         /*!
@@ -298,7 +318,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status send(Socket *socket) const override;
+        Socket::Status send(Socket *socket) const override;
 
         /*!
          * Overrideable receive, to allow
@@ -308,7 +328,7 @@ namespace fr
          * @param socket The socket to send through
          * @return Status indicating if the send succeeded or not.
          */
-        virtual Socket::Status receive(Socket *socket) override;
+        Socket::Status receive(Socket *socket) override;
 
         //Other request info
         std::unordered_map<std::string, std::string> header_data;
@@ -318,8 +338,7 @@ namespace fr
         RequestType request_type;
         std::string uri;
         RequestStatus status;
-
-    private:
+        RequestVersion version;
 
     };
 }

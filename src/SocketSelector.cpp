@@ -12,7 +12,7 @@ namespace fr
 #ifndef _WIN32
 
     SocketSelector::SocketSelector()
-            : epoll_fd(-1)
+    : epoll_fd(-1)
     {
         epoll_fd = epoll_create1(O_CLOEXEC);
         if(epoll_fd < 0)
@@ -33,8 +33,7 @@ namespace fr
             throw std::logic_error("Can't add disconnected socket");
         }
 
-        auto add_iter = added_sockets.emplace(socket->get_socket_descriptor(),
-                                              Opaque(socket->get_socket_descriptor(), socket, opaque));
+        auto add_iter = added_sockets.emplace(socket->get_socket_descriptor(), Opaque(socket->get_socket_descriptor(), socket, opaque));
         if(!add_iter.second)
         {
             throw std::logic_error("Can't add duplicate socket: " + std::to_string(socket->get_socket_descriptor()));

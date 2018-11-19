@@ -62,7 +62,9 @@ namespace fr
     std::string HttpResponse::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string response = "HTTP/1.1 " + std::to_string(status) + " \r\n";
+
+        static_assert(RequestVersion::VersionCount == 3, "Update me");
+        std::string response = ((version == RequestVersion::V1) ? "HTTP/1.0 " : "HTTP/1.1 ") + std::to_string(status) + " \r\n";
 
         //Add the headers to the response
         for(const auto &header : header_data)
@@ -103,6 +105,10 @@ namespace fr
                 return false;
             auto end_pos = header_lines[0].find(' ', status_begin + 1);
             status = (RequestStatus)std::stoi(header_lines[0].substr(status_begin, end_pos - status_begin));
+
+            //Get HTTP version
+            static_assert(RequestVersion::VersionCount == 3, "Update me");
+            version = header_lines[0].compare(0, status_begin, "HTTP/1.0") == 0 ? RequestVersion::V1 : RequestVersion::V1_1;
             line++;
 
             //Read in headers

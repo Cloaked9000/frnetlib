@@ -119,7 +119,9 @@ namespace fr
                     request += "&";
             }
         }
-        request += " HTTP/1.1\r\n";
+
+        static_assert(RequestVersion::VersionCount == 3, "Update me");
+        request += (version == RequestVersion::V1) ? " HTTP/1.0\r\n" : " HTTP/1.1\r\n";
 
         //Add the headers to the request
         for(const auto &header : header_data)
@@ -197,27 +199,32 @@ namespace fr
     void HttpRequest::parse_header_uri(const std::string &str)
     {
         auto uri_begin = str.find('/');
-        auto uri_end = str.find("HTTP") - 1;
-        if(uri_begin != std::string::npos)
+        auto uri_end = str.find("HTTP");
+        if(uri_begin == std::string::npos || uri_end == std::string::npos)
         {
-            //Parse GET variables
-            auto get_begin = str.find('?');
-            if(get_begin != std::string::npos)
-            {
-                auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));
-                for(auto &c : get_vars)
-                {
-                    std::transform(c.first.begin(), c.first.end(), c.first.begin(), ::tolower);
-                    get_data.emplace(std::move(c.first), std::move(c.second));
-                }
-                set_uri(str.substr(uri_begin, get_begin - uri_begin));
-            }
-            else
-            {
-                set_uri(str.substr(uri_begin, uri_end - uri_begin));
-            }
-            return;
+            throw std::invalid_argument("No URI found in: " + str);
         }
-        throw std::invalid_argument("No URI found in: " + str);
+        --uri_end;
+
+        //Parse GET variables
+        auto get_begin = str.find('?');
+        if(get_begin != std::string::npos)
+        {
+            auto get_vars = parse_argument_list(str.substr(get_begin, uri_end - get_begin));
+            for(auto &c : get_vars)
+            {
+                std::transform(c.first.begin(), c.first.end(), c.first.begin(), ::tolower);
+                get_data.emplace(std::move(c.first), std::move(c.second));
+            }
+            set_uri(str.substr(uri_begin, get_begin - uri_begin));
+        }
+        else
+        {
+            set_uri(str.substr(uri_begin, uri_end - uri_begin));
+        }
+
+        //Parse HTTP version. HTTP/1.0 or HTTP/1.1
+        static_assert(RequestVersion::VersionCount == 3, "Update me");
+        version = str.compare(uri_end + 1, 8, "HTTP/1.0") == 0 ? RequestVersion::V1 :  RequestVersion::V1_1;
     }
 }

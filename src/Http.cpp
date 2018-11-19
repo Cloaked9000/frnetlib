@@ -6,6 +6,8 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <frnetlib/Http.h>
+
 #include "frnetlib/Http.h"
 
 namespace fr
@@ -13,7 +15,8 @@ namespace fr
     Http::Http()
     : request_type(Unknown),
       uri("/"),
-      status(Ok)
+      status(Ok),
+      version(V1_1)
     {
 
     }
@@ -1015,5 +1018,15 @@ namespace fr
         } while(state == fr::Socket::NotEnoughData);
 
         return state;
+    }
+
+    void Http::set_version(Http::RequestVersion v)
+    {
+        version = v;
+    }
+
+    Http::RequestVersion Http::get_version() const
+    {
+        return version;
     }
 }

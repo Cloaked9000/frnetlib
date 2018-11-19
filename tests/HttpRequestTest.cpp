@@ -31,6 +31,7 @@ TEST(HttpRequestTest, get_request_parse)
     ASSERT_EQ(request.header_exists("non-existant"), false);
 
     //Check that headers are intact
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     ASSERT_EQ(request.header("Host"), "frednicolson.co.uk");
     ASSERT_EQ(request.header("Content-Type"), "application/x-www-form-urlencoded");
     ASSERT_EQ(request.header("My-Other-Header"), "header2");
@@ -62,6 +63,7 @@ TEST(HttpRequestTest, post_request_parse)
     ASSERT_EQ(request.get_type(), fr::Http::Post);
 
     //Test that URI is intact
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     ASSERT_EQ(request.get_uri(), "/index.html");
 
     //Parse code is the same for GET, so skip header checks. Test if POST data exists.
@@ -77,7 +79,9 @@ TEST(HttpRequestTest, post_request_parse)
 TEST(HttpRequestTest, request_type_parse)
 {
     const std::string get_request = "GET / HTTP/1.1\r\n\r\n";
+    const std::string get_request_v2 = "GET / HTTP/1.0\r\n\r\n";
     const std::string post_request = "POST / HTTP/1.1\r\n\r\n";
+    const std::string post_request_v2 = "POST / HTTP/1.0\r\n\r\n";
     const std::string put_request = "PUT / HTTP/1.1\r\n\r\n";
     const std::string delete_request = "DELETE / HTTP/1.1\r\n\r\n";
     const std::string patch_request = "PATCH / HTTP/1.1\r\n\r\n";
@@ -87,30 +91,47 @@ TEST(HttpRequestTest, request_type_parse)
     fr::HttpRequest request;
     ASSERT_EQ(request.parse(get_request.c_str(), get_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
     ASSERT_EQ(request.parse(post_request.c_str(), post_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
+    request = {};
+
+    ASSERT_EQ(request.parse(get_request_v2.c_str(), get_request_v2.size()), fr::Socket::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1);
+    request = {};
+
+    ASSERT_EQ(request.parse(post_request_v2.c_str(), post_request_v2.size()), fr::Socket::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1);
     request = {};
 
     ASSERT_EQ(request.parse(put_request.c_str(), put_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Put);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
     ASSERT_EQ(request.parse(delete_request.c_str(), delete_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Delete);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
     ASSERT_EQ(request.parse(patch_request.c_str(), patch_request.size()), fr::Socket::Success);
     ASSERT_EQ(request.get_type(), fr::Http::Patch);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
     ASSERT_EQ(request.parse(invalid_request.c_str(), invalid_request.size()), fr::Socket::ParseError);
     ASSERT_EQ(request.get_type(), fr::Http::Unknown);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
     ASSERT_EQ(request.parse(invalid_request2.c_str(), invalid_request2.size()), fr::Socket::ParseError);
     ASSERT_EQ(request.get_type(), fr::Http::Unknown);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 }
 
@@ -119,6 +140,7 @@ TEST(HttpRequestTest, get_request_construction)
     //Create a request
     fr::HttpRequest request;
     ASSERT_EQ(request.get_uri(), "/");
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
 
     request.header("MyHeader") = "header1";
     request.header("MyOther-Header") = "header2";
@@ -126,7 +148,7 @@ TEST(HttpRequestTest, get_request_construction)
     request.get("my_other_get") = "var2";
     request.set_uri("heyo/bobby");
     request.set_type(fr::Http::Get);
-    const std::string constructed_request = request.construct("frednicolson.co.uk");
+    std::string constructed_request = request.construct("frednicolson.co.uk");
 
     //Parse it and check that everything's correct
     request = {};
@@ -137,6 +159,14 @@ TEST(HttpRequestTest, get_request_construction)
     ASSERT_EQ(request.get("my_other_get"), "var2");
     ASSERT_EQ(request.get_uri(), "/heyo/bobby");
     ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
+
+    //Quick v1 test
+    request.set_version(fr::Http::RequestVersion::V1);
+    constructed_request = request.construct("frednicolson.co.uk");
+    request = {};
+    request.parse(constructed_request.c_str(), constructed_request.size());
+    ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1);
 }
 
 TEST(HttpRequestTest, post_request_construction)
