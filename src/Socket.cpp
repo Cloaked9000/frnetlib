@@ -49,7 +49,7 @@ namespace fr
             size_t received = 0;
             auto *arr = (char*)dest;
             Status status = receive_raw(&arr[bytes_read], (size_t)bytes_remaining, received);
-            if(status == fr::Socket::Disconnected)
+            if(status != fr::Socket::WouldBlock && status != fr::Socket::Success)
                 return status;
             bytes_remaining -= received;
             bytes_read += received;
