@@ -89,7 +89,7 @@ namespace fr
         return ret;
     }
 
-    void SocketSelector::remove(const std::shared_ptr<fr::SocketDescriptor> &socket)
+    void *SocketSelector::remove(const std::shared_ptr<fr::SocketDescriptor> &socket)
     {
         auto descriptor = socket->get_socket_descriptor();
         if(!socket->connected())
@@ -97,20 +97,22 @@ namespace fr
             throw std::runtime_error("Can't remove disconnected socket");
         }
 
+
         auto iter = added_sockets.find(descriptor);
         if(iter == added_sockets.end())
         {
-            return;
+            return nullptr;
         }
 
         added_sockets.erase(iter);
         epoll_event event = {0};
         if(epoll_ctl(epoll_fd, EPOLL_CTL_DEL, descriptor, &event) < 0)
         {
-            throw std::runtime_error(
-                    "Failed to remove socket: " + std::to_string(descriptor) + ". Errno: " + std::to_string(errno));
+            throw std::runtime_error("Failed to remove socket: " + std::to_string(descriptor) + ". Errno: " + std::to_string(errno));
         }
+        void *opaque = ((Opaque*)event.data.ptr)->opaque;
         delete static_cast<Opaque *>(event.data.ptr);
+        return opaque;
     }
 
 #endif

@@ -49,8 +49,9 @@ namespace fr
          *
          * @throws An std::exception on failure
          * @param socket The socket to remove. Must not be disconnected.
+         * @return The opaque data passed to add(). Or nullptr if the socket wasn't found.
          */
-        void remove(const std::shared_ptr<fr::SocketDescriptor> &socket);
+        void *remove(const std::shared_ptr<fr::SocketDescriptor> &socket);
     private:
 
 #ifndef _WIN32
