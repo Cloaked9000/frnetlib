@@ -53,6 +53,14 @@ namespace fr
                 continue;
             }
 
+            //Set port re-use option
+#ifndef _WIN32
+            if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
+            {
+                continue;
+            }
+#endif
+
             //If it's an IPv6 interface, attempt to allow IPv4 connections
             if(c->ai_family == AF_INET6)
             {

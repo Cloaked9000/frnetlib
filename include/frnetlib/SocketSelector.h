@@ -46,9 +46,10 @@ namespace fr
 
         /*!
          * Removes a socket from the selector.
+         * Does nothing if the socket isn't a member.
          *
-         * @throws An std::exception on failure
-         * @param socket The socket to remove. Must not be disconnected.
+         * @throws An std::exception if an internal EPOLL error occurs
+         * @param socket The socket to remove. May have been disconnected.
          * @return The opaque data passed to add(). Or nullptr if the socket wasn't found.
          */
         void *remove(const std::shared_ptr<fr::SocketDescriptor> &socket);
@@ -57,18 +58,18 @@ namespace fr
 #ifndef _WIN32
         struct Opaque
         {
-            Opaque(int descriptor_, std::shared_ptr<fr::SocketDescriptor> socket_, void *opaque_)
-            : descriptor(descriptor_),
-              socket(std::move(socket_)),
-              opaque(opaque_)
+            Opaque(std::shared_ptr<fr::SocketDescriptor> socket_, void *opaque_, int32_t descriptor_)
+            : socket(std::move(socket_)),
+              opaque(opaque_),
+              descriptor(descriptor_)
             {}
 
-            int descriptor;
             std::shared_ptr<fr::SocketDescriptor> socket;
             void *opaque;
+            int32_t descriptor;
         };
         int epoll_fd;
-        std::unordered_map<int, Opaque> added_sockets;
+        std::unordered_map<uintptr_t, Opaque> added_sockets;
 #endif
     };
 }
