@@ -47,7 +47,7 @@ namespace fr
 
         if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, descriptor, &event) < 0)
         {
-            delete (Opaque*)event.data.ptr;
+            added_sockets.erase(added_iter.first);
             throw std::runtime_error("Failed to add socket: " + std::to_string(errno));
         }
     }
