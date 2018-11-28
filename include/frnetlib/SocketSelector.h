@@ -9,7 +9,6 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-#include <sys/epoll.h>
 #include "NetworkEncoding.h"
 #include "Socket.h"
 #include "TcpListener.h"

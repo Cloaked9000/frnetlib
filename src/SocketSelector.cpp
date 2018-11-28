@@ -10,6 +10,7 @@
 namespace fr
 {
 #ifndef _WIN32
+#include <sys/epoll.h>
 
     SocketSelector::SocketSelector()
     : epoll_fd(-1)
