@@ -73,7 +73,6 @@ namespace fr
 
         //State
         bool header_ended;
-		int32_t last_parsed_character;
         size_t content_length;
 
     };

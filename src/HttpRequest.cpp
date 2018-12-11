@@ -9,7 +9,6 @@ namespace fr
 {
      HttpRequest::HttpRequest()
     : header_ended(false),
-      last_parsed_character(0),
       content_length(0)
     {
 

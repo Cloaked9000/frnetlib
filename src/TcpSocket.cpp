@@ -18,7 +18,7 @@ namespace fr
 
     }
 
-    TcpSocket::~TcpSocket() noexcept
+    TcpSocket::~TcpSocket()
     {
         close_socket();
     }
