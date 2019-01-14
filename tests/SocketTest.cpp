@@ -8,25 +8,14 @@
 TEST(SocketTest, status_to_string_valid)
 {
     ASSERT_EQ(fr::Socket::status_to_string(fr::Socket::Status::Unknown), "Unknown");
-    ASSERT_EQ(fr::Socket::status_to_string(fr::Socket::Status::HttpBodyTooBig), "HTTP body too big");
+    ASSERT_EQ(fr::Socket::status_to_string(fr::Socket::Status::HttpBodyTooBig), "HTTP Body Too Big");
 }
 
 TEST(SocketTest, status_to_string_invalid)
 {
-    try
-    {
-        auto str = fr::Socket::status_to_string(static_cast<fr::Socket::Status>(-1));
-    }
-    catch(const std::logic_error &)
-    {
-        try
-        {
-            auto str = fr::Socket::status_to_string(static_cast<fr::Socket::Status>(99999));
-        }
-        catch(const std::logic_error &)
-        {
-            return;
-        }
-    }
-    ASSERT_TRUE(false);
+
+    auto str = fr::Socket::status_to_string(static_cast<fr::Socket::Status>(-1));
+    ASSERT_EQ(str, "Unknown");
+    str = fr::Socket::status_to_string(static_cast<fr::Socket::Status>(99999));
+    ASSERT_EQ(str, "Unknown");
 }
