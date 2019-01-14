@@ -91,7 +91,7 @@ namespace fr
 #ifdef _WIN32
         auto wsa_err_to_str = [](int err) -> std::string {
         std::string buff(255, '\0');
-        auto len = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), msgbuf, buff.size(), NULL);
+        auto len = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), &buff[0], buff.size(), NULL);
         if(len == 0)
             return "Unknown";
         buff.resize(len);
