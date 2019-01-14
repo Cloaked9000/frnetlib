@@ -109,7 +109,7 @@ namespace fr
         if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), client_ip, sizeof(client_ip), &ip_len)) != 0)
         {
             free_contexts();
-            return Socket::Error;
+            return Socket::AcceptError;
         }
 
 
@@ -120,7 +120,8 @@ namespace fr
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
                 free_contexts();
-                return Socket::Status::HandshakeFailed;
+                errno = error;
+                return Socket::Status::SSLError;
             }
         }
 

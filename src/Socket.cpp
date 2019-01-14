@@ -6,6 +6,9 @@
 #include <csignal>
 #include <iostream>
 #include <vector>
+#ifdef USE_SSL
+#include <mbedtls/error.h>
+#endif
 #include "frnetlib/NetworkEncoding.h"
 #include "frnetlib/Socket.h"
 #include "frnetlib/Sendable.h"
@@ -83,29 +86,81 @@ namespace fr
         }
     }
 
-    const std::string &Socket::status_to_string(fr::Socket::Status status)
+    std::string Socket::status_to_string(fr::Socket::Status status)
     {
-        static std::vector<std::string> map = {
-            "Unknown",
-            "Success",
-            "Listen Failed",
-            "Bind Failed",
-            "Disconnected",
-            "Error",
-            "Would Block",
-            "Connection Failed",
-            "Handshake Failed",
-            "Verification Failed",
-            "Max packet size exceeded",
-            "Not enough data",
-            "Parse error",
-            "HTTP header too big",
-            "HTTP body too big"
+#ifdef _WIN32
+        auto wsa_err_to_str = [](int err) -> std::string {
+        std::string buff(255, '\0');
+        auto len = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), msgbuf, buff.size(), NULL);
+        if(len == 0)
+            return "Unknown";
+        buff.resize(len);
+        return buff;
         };
+        #define ERR_STR wsa_err_to_str(WSAGetLastError())
+#else
+    #define ERR_STR strerror(errno)
+#endif
 
-        if(status < 0 || status > map.size())
-            throw std::logic_error("Socket::status_to_string(): Invalid status value " + std::to_string(status));
-        return map[status];
+        switch(status)
+        {
+            case Unknown:
+                return "Unknown";
+            case Success:
+                return "Success";
+            case ListenFailed:
+                return std::string("Listen Failed (").append(ERR_STR).append(")");
+            case BindFailed:
+                return std::string("Bind Failed (").append(ERR_STR).append(")");
+            case Disconnected:
+                return "The Socket Is Not Connected";
+            case Error:
+                return "Error";
+            case WouldBlock:
+                return "Would Block";
+            case ConnectionFailed:
+                return "Connection Failed";
+            case HandshakeFailed:
+                return "Handshake Failed";
+            case VerificationFailed:
+                return "Verification Failed";
+            case MaxPacketSizeExceeded:
+                return "Max Packet Size Exceeded";
+            case NotEnoughData:
+                return "Not Enough Data";
+            case ParseError:
+                return "Parse Error";
+            case HttpHeaderTooBig:
+                return "HTTP Header Too Big";
+            case HttpBodyTooBig:
+                return "HTTP Body Too Big";
+            case AddressLookupFailure:
+#ifdef _WIN32
+                return std::string("Address Lookup Failure (").append(wsa_err_to_str(WSAGetLastError())).append(")");
+#else
+                return std::string("Address Lookup Failure (").append(gai_strerror(errno)).append(")");
+#endif
+            case SendError:
+                return std::string("Send Error (").append(ERR_STR).append(")");
+            case ReceiveError:
+                return std::string("Receive Error (").append(ERR_STR).append(")");
+            case AcceptError:
+                return std::string("Accept Error (").append(ERR_STR).append(")");
+            case SSLError:
+            {
+#ifdef USE_SSL
+                char buff[256] = {0};
+                mbedtls_strerror(errno, buff, sizeof(buff));
+                return std::string("SSL Error (").append(buff).append(")");
+#else
+                return "Generic SSL Error";
+#endif
+            }
+            default:
+                return "Unknown";
+        }
+
+        return "Internal Error";
     }
 
     void Socket::disconnect()

@@ -34,6 +34,11 @@ namespace fr
             ParseError = 12,
             HttpHeaderTooBig = 13,
             HttpBodyTooBig = 14,
+            AddressLookupFailure = 15,
+            SendError = 16,
+            ReceiveError = 17,
+            AcceptError = 18,
+            SSLError = 19,
             //Remember to update status_to_string if more are added
         };
 
@@ -50,6 +55,17 @@ namespace fr
         Socket(const Socket &) =delete;
         void operator=(const Socket &) =delete;
         void operator=(Socket &&) =delete;
+
+        /*!
+         * Converts an fr::Socket::Status value to a printable string
+         *
+         * Throws an std::logic_error if status is out of range.
+         *
+         * @note This should be called immediately after the error, as errno is used to help generate the string.
+         * @param status Status value to convert
+         * @return A string form version
+         */
+        static std::string status_to_string(fr::Socket::Status status);
 
         /*!
          * Connects the socket to an address.
@@ -154,16 +170,6 @@ namespace fr
          * @param version Should IPv4, IPv6 be used, or any?
          */
         void set_inet_version(IP version);
-
-        /*!
-         * Converts an fr::Socket::Status value to a printable string
-         *
-         * Throws an std::logic_error if status is out of range.
-         *
-         * @param status Status value to convert
-         * @return A string form version
-         */
-        static const std::string &status_to_string(fr::Socket::Status status);
 
         /*!
          * Ends, and closes the connection.

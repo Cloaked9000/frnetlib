@@ -25,6 +25,7 @@ if(USE_SSL)
     FIND_PACKAGE(MBEDTLS)
     INCLUDE_DIRECTORIES(${MBEDTLS_INCLUDE_DIR})
     set(SOURCE_FILES ${SOURCE_FILES} src/SSLSocket.cpp include/frnetlib/SSLSocket.h src/SSLListener.cpp include/frnetlib/SSLListener.h include/frnetlib/SSLContext.h)
+    ADD_DEFINITIONS(-DUSE_SSL)
 endif()
 
 if(BUILD_WEBSOCK)

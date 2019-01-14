@@ -69,6 +69,7 @@ namespace fr
             if(response.get_status() != Http::SwitchingProtocols)
             {
                 disconnect();
+                errno = EPROTO;
                 return Socket::HandshakeFailed;
             }
 
@@ -77,6 +78,7 @@ namespace fr
             if(derived_key != Base64::encode(Sha1::sha1_digest(websocket_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")))
             {
                 disconnect();
+                errno = EPROTO;
                 return Socket::HandshakeFailed;
             }
 

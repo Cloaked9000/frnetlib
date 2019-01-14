@@ -36,8 +36,9 @@ namespace fr
 
         if(getaddrinfo(nullptr, port.c_str(), &hints, &info) != 0)
         {
-            return Socket::Status::Unknown;
+            return Socket::Status::AddressLookupFailure;
         }
+
         //Try each of the results until we listen successfully
         addrinfo *c = nullptr;
         for(c = info; c != nullptr; c = c->ai_next)
@@ -107,7 +108,7 @@ namespace fr
         socklen_t client_addr_len = sizeof client_addr;
         client_descriptor = ::accept(socket_descriptor, (sockaddr*)&client_addr, &client_addr_len);
         if(client_descriptor == SOCKET_ERROR)
-            return Socket::Unknown;
+            return Socket::AcceptError;
 
         //Get printable address. If we failed then set it as just 'unknown'
         int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), nullptr, 0, NI_NUMERICHOST);

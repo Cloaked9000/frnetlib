@@ -35,7 +35,7 @@ namespace fr
             }
             else if(errno != EWOULDBLOCK && errno != EAGAIN) //Don't exit if the socket just couldn't block
             {
-                return Socket::Status::Error;
+                return Socket::Status::SendError;
             }
         }
         return Socket::Status::Success;
@@ -67,7 +67,7 @@ namespace fr
                     continue; //try again, interrupted before anything could be received
                 }
 
-                return Socket::Status::Error;
+                return Socket::Status::ReceiveError;
             }
             break;
         } while(true);
@@ -104,9 +104,10 @@ namespace fr
         hints.ai_flags = AI_PASSIVE; //Have the IP filled in for us
 
         //Query remote address information
-        if(getaddrinfo(address.c_str(), port.c_str(), &hints, &info) != 0)
+        if((ret = getaddrinfo(address.c_str(), port.c_str(), &hints, &info)) != 0)
         {
-            return Socket::Status::Error;
+            errno = ret;
+            return Socket::Status::AddressLookupFailure;
         }
 
         //Try to connect to results returned by getaddrinfo until we succeed/run out of things

@@ -56,7 +56,8 @@ namespace fr
             }
             else if(response < 0)
             {
-                return Socket::Status::Error;
+                errno = response;
+                return Socket::Status::SSLError;
             }
         }
 
@@ -76,7 +77,8 @@ namespace fr
                     return Socket::Status::WouldBlock;
                 }
 
-                return Socket::Status::Error;
+                errno = static_cast<int>(status);
+                return Socket::Status::SSLError;
             }
         }
         else
@@ -95,7 +97,8 @@ namespace fr
                         continue; //try again, interrupted before anything could be received
                     }
 
-                    return Socket::Status::Error;
+                    errno = static_cast<int>(status);
+                    return Socket::Status::SSLError;
                 }
                 break;
             } while(true);
@@ -131,7 +134,8 @@ namespace fr
         int error = 0;
         if((error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
         {
-            return Socket::Status::Error;
+            errno = error;
+            return Socket::Status::SSLError;
         }
 
         mbedtls_ssl_conf_authmode(&conf, should_verify ? MBEDTLS_SSL_VERIFY_REQUIRED : MBEDTLS_SSL_VERIFY_NONE);
@@ -140,12 +144,14 @@ namespace fr
 
         if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {
-            return Socket::Status::Error;
+            errno = error;
+            return Socket::Status::SSLError;
         }
 
         if((error = mbedtls_ssl_set_hostname(ssl.get(), address.c_str())) != 0)
         {
-            return Socket::Status::Error;
+            errno = error;
+            return Socket::Status::SSLError;
         }
 
         mbedtls_ssl_set_bio(ssl.get(), ssl_socket_descriptor.get(), mbedtls_net_send, mbedtls_net_recv, nullptr);
@@ -155,16 +161,14 @@ namespace fr
         {
             if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                return Socket::Status::HandshakeFailed;
+                errno = error;
+                return Socket::Status::SSLError;
             }
         }
 
         //Verify server certificate
         if(should_verify && ((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0))
         {
-            char verify_buffer[512];
-            mbedtls_x509_crt_verify_info(verify_buffer, sizeof(verify_buffer), "  ! ", flags);
-
             return Socket::Status::VerificationFailed;
         }
 
