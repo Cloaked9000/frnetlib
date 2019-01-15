@@ -52,11 +52,17 @@ namespace fr
 
     Socket::Status TcpSocket::receive_raw(void *data, size_t buffer_size, size_t &received)
     {
+        received = 0;
         ssize_t status = 0;
         do
         {
             status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
-            if(status <= 0)
+            if(status == 0)
+            {
+                return Socket::Status::Disconnected;
+            }
+
+            if(status < 0)
             {
                 if(errno == EWOULDBLOCK || errno == EAGAIN)
                 {
@@ -163,7 +169,7 @@ namespace fr
         //We're done with this now, cleanup
         freeaddrinfo(info);
         if(c == nullptr)
-            return Socket::Status::Error;
+            return Socket::Status::NoRouteToHost;
 
         //Turn back to blocking mode
         if(!set_unix_socket_blocking(socket_descriptor, false, true))

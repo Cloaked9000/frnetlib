@@ -39,6 +39,7 @@ namespace fr
             ReceiveError = 17,
             AcceptError = 18,
             SSLError = 19,
+            NoRouteToHost = 20
             //Remember to update status_to_string if more are added
         };
 

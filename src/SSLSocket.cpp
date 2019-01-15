@@ -70,7 +70,11 @@ namespace fr
         if(receive_timeout == 0)
         {
             status = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
-            if(status <= 0)
+            if(status == 0)
+            {
+                return Socket::Status::Disconnected;
+            }
+            if(status < 0)
             {
                 if(status == MBEDTLS_ERR_SSL_WANT_READ || status == MBEDTLS_ERR_SSL_WANT_WRITE)
                 {

@@ -156,6 +156,9 @@ namespace fr
                 return "Generic SSL Error";
 #endif
             }
+            case NoRouteToHost:
+                return "No Route To Host";
+                break;
             default:
                 return "Unknown";
         }
