@@ -16,6 +16,11 @@ namespace fr
     class SSLContext
     {
     public:
+        SSLContext(SSLContext&)=delete;
+        SSLContext(SSLContext&&)=delete;
+        void operator=(SSLContext&&)=delete;
+        void operator=(const SSLContext&)=delete;
+
         /*!
          * Initialises a new SSL context for use with SSL instances.
          * Will throw a std::runtime_error on failure.
@@ -44,7 +49,8 @@ namespace fr
         }
 
         /*!
-         * Parses a list of x509 crt certificates from a location in memory
+         * Parses a list of x509 crt certificates from a location in memory. May be called
+         * multiple times to add more certificates to the chain.
          *
          * @param ca_certs The certificates to parse
          * @return True on success, false on failure.
@@ -55,7 +61,8 @@ namespace fr
         }
 
         /*!
-         * Parses a list of x509 crt certificates from a location on disk
+         * Parses a list of x509 crt certificates from a location on disk. May be called
+         * multiple times to add more certificates to the chain.
          *
          * @param ca_certs_filepath The certificates to parse
          * @return True on success, false on failure
