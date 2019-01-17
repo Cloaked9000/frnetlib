@@ -29,6 +29,16 @@ TEST(PacketTest, double_range_add)
     ASSERT_EQ(var2, out2);
 }
 
+TEST(PacketTest, pack_vector_bool)
+{
+    std::vector<bool> my_vec{true, false, true};
+    std::vector<bool> my_vec2;
+    fr::Packet packet;
+    packet << my_vec;
+    packet >> my_vec2;
+    ASSERT_EQ(my_vec, my_vec2);
+}
+
 TEST(PacketTest, pack_and_unpack_ints)
 {
     fr::Packet packet;
@@ -168,7 +178,7 @@ TEST(PacketTest, clear)
     a = 20;
     packet << a;
     packet >> b;
-    ASSERT_EQ(b, 20);
+    ASSERT_TRUE(b == 20);
 }
 
 TEST(PacketTest, test_assert_bytes_remaining)
@@ -186,44 +196,44 @@ TEST(PacketTest, test_size)
 {
     uint32_t val = 30;
     fr::Packet packet;
-    ASSERT_EQ(packet.size(), 0);
+    ASSERT_EQ(packet.size(), 0u);
     packet << val;
-    ASSERT_EQ(packet.size(), 4);
+    ASSERT_EQ(packet.size(), 4u);
     packet >> val;
-    ASSERT_EQ(packet.size(), 4);
+    ASSERT_EQ(packet.size(), 4u);
 }
 
 TEST(PacketTest, test_get_bytes_remaining)
 {
     uint32_t val = 30;
     fr::Packet packet;
-    ASSERT_EQ(packet.get_bytes_remaining(), 0);
+    ASSERT_EQ(packet.get_bytes_remaining(), 0u);
     packet << val;
-    ASSERT_EQ(packet.get_bytes_remaining(), 4);
+    ASSERT_EQ(packet.get_bytes_remaining(), 4u);
 
     uint16_t out;
     packet >> out;
-    ASSERT_EQ(packet.get_bytes_remaining(), 2);
+    ASSERT_EQ(packet.get_bytes_remaining(), 2u);
 
     packet.clear();
-    ASSERT_EQ(packet.get_bytes_remaining(), 0);
+    ASSERT_EQ(packet.get_bytes_remaining(), 0u);
 }
 
 TEST(PacketTest, test_get_cursor)
 {
     uint32_t val = 0;
     fr::Packet packet;
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet << val << val;
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet >> val;
-    ASSERT_EQ(packet.get_cursor(), 4);
+    ASSERT_EQ(packet.get_cursor(), 4u);
     packet >> val;
-    ASSERT_EQ(packet.get_cursor(), 8);
+    ASSERT_EQ(packet.get_cursor(), 8u);
     packet.set_cursor(4);
-    ASSERT_EQ(packet.get_cursor(), 4);
+    ASSERT_EQ(packet.get_cursor(), 4u);
     packet.clear();
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
 }
 
 TEST(PacketTest, test_set_cursor)
@@ -231,10 +241,10 @@ TEST(PacketTest, test_set_cursor)
     uint32_t val = 0;
     fr::Packet packet;
     packet.set_cursor(5);
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet << val;
     packet.set_cursor(3);
-    ASSERT_EQ(packet.get_cursor(), 3);
+    ASSERT_EQ(packet.get_cursor(), 3u);
 }
 
 TEST(PacketTest, test_seek_cursor)
@@ -242,16 +252,16 @@ TEST(PacketTest, test_seek_cursor)
     uint32_t val = 0;
     fr::Packet packet;
     packet.seek_cursor(-20);
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet.seek_cursor(20);
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet << val;
     packet.seek_cursor(3);
-    ASSERT_EQ(packet.get_cursor(), 3);
+    ASSERT_EQ(packet.get_cursor(), 3u);
     packet.seek_cursor(-1);
-    ASSERT_EQ(packet.get_cursor(), 2);
+    ASSERT_EQ(packet.get_cursor(), 2u);
     packet.seek_cursor(-10);
-    ASSERT_EQ(packet.get_cursor(), 0);
+    ASSERT_EQ(packet.get_cursor(), 0u);
     packet.seek_cursor(10);
-    ASSERT_EQ(packet.get_cursor(), 4);
+    ASSERT_EQ(packet.get_cursor(), 4u);
 }

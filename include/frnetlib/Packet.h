@@ -136,11 +136,10 @@ namespace fr
             vec.resize(length);
 
             //Now take each of the elements out of the packet
-            for(uint32_t a = 0; a < length; a++)
+            for(auto &&iter : vec)
             {
-                *this >> vec[a];
+                *this >> iter;
             }
-
             return *this;
         }
 
@@ -437,6 +436,7 @@ namespace fr
         template<typename T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
         inline Packet &operator<<(T var)
         {
+            static_assert(sizeof(typename std::underlying_type<T>::type) <= 4, "Enum types must not be larger than 32bits");
             *this << (uint32_t)static_cast<typename std::underlying_type<T>::type>(var);
             return *this;
         }
@@ -452,6 +452,7 @@ namespace fr
         template<typename T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
         inline Packet &operator>>(T &var)
         {
+            static_assert(sizeof(typename std::underlying_type<T>::type) <= 4, "Enum types must not be larger than 32bits");
             uint32_t val;
             *this >> val;
             var = static_cast<T>(val);
@@ -517,17 +518,6 @@ namespace fr
         }
 
         /*
-         * Adds a char array
-         */
-        inline Packet &operator<<(const char *var)
-        {
-            auto len = (uint32_t)strlen(var);
-            *this << len;
-            buffer.append(var, len);
-            return *this;
-        }
-
-        /*
          * Removes a string variable from the packet
          */
         inline Packet&operator>>(std::string &var)
@@ -538,6 +528,29 @@ namespace fr
             var = buffer.substr(buffer_read_index, length);
             buffer_read_index += length;
 
+            return *this;
+        }
+
+        /*
+         * Removes a boolean from the packet into a reference
+         */
+        inline Packet&operator>>(std::vector<bool>::reference &ref)
+        {
+            bool b;
+            *this >> b;
+            ref = b;
+            return *this;
+        }
+
+
+        /*
+         * Adds a char array
+         */
+        inline Packet &operator<<(const char *var)
+        {
+            auto len = (uint32_t)strlen(var);
+            *this << len;
+            buffer.append(var, len);
             return *this;
         }
 
