@@ -13,7 +13,7 @@ namespace fr
     const int no = 0;
 
     TcpListener::TcpListener()
-    : socket_descriptor(-1)
+            : socket_descriptor(-1)
     {
 
     }
@@ -77,14 +77,15 @@ namespace fr
             break;
         }
 
+        //We're done with this now, cleanup
+        freeaddrinfo(info);
+
         //Check that we've actually bound
         if(c == nullptr)
         {
             return Socket::Status::BindFailed;
         }
 
-        //We're done with this now, cleanup
-        freeaddrinfo(info);
 
         //Listen to socket
         if(::listen(socket_descriptor, LISTEN_QUEUE_SIZE) == SOCKET_ERROR)

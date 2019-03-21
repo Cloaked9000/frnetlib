@@ -9,19 +9,47 @@
 #include <mbedtls/net_sockets.h>
 #include <frnetlib/SSLSocket.h>
 
+mbedtls_net_context *net_create()
+{
+    auto *ctx = new mbedtls_net_context;
+    mbedtls_net_init(ctx);
+    return ctx;
+}
+
+mbedtls_ssl_context *ssl_create()
+{
+    auto *ctx = new mbedtls_ssl_context;
+    mbedtls_ssl_init(ctx);
+    return ctx;
+}
+
+void ssl_free(mbedtls_ssl_context *ctx)
+{
+    mbedtls_ssl_free(ctx);
+    delete ctx;
+}
+
+void web_free(mbedtls_net_context *ctx)
+{
+    mbedtls_net_free(ctx);
+    delete ctx;
+}
 
 namespace fr
 {
     SSLSocket::SSLSocket(std::shared_ptr<SSLContext> ssl_context_) noexcept
     :  ssl_context(std::move(ssl_context_)),
+       ssl_socket_descriptor(nullptr, web_free),
+       ssl(nullptr, ssl_free),
        should_verify(true),
-       receive_timeout(0)
+       receive_timeout(0),
+       is_blocking(true)
     {
         //Initialise mbedtls structures
         mbedtls_ssl_config_init(&conf);
     }
 
-    SSLSocket::~SSLSocket() noexcept
+    SSLSocket::~SSLSocket()
     {
         //Close connection if active
         close_socket();
@@ -32,33 +60,34 @@ namespace fr
 
     void SSLSocket::close_socket()
     {
-        if(ssl)
-        {
-            mbedtls_ssl_close_notify(ssl.get());
-            mbedtls_ssl_free(ssl.get());
-        }
-
-        if(ssl_socket_descriptor)
-            mbedtls_net_free(ssl_socket_descriptor.get());
+        ssl = nullptr;
         ssl_socket_descriptor = nullptr;
     }
 
-    Socket::Status SSLSocket::send_raw(const char *data, size_t size)
+    Socket::Status SSLSocket::send_raw(const char *data, size_t size, size_t &sent)
     {
-        int response = 0;
-        size_t data_sent = 0;
-        while(data_sent < size)
+        sent = 0;
+        ssize_t status = 0;
+
+        while(sent < size)
         {
-            response = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data + data_sent, size - data_sent);
-            if(response != MBEDTLS_ERR_SSL_WANT_READ && response != MBEDTLS_ERR_SSL_WANT_WRITE)
+            status = mbedtls_ssl_write(ssl.get(), (const unsigned char *)data + sent, size - sent);
+            if(status < 0)
             {
-                data_sent += response;
-            }
-            else if(response < 0)
-            {
-                errno = response;
+                if(status == MBEDTLS_ERR_SSL_WANT_READ || status == MBEDTLS_ERR_SSL_WANT_WRITE)
+                {
+                    if(is_blocking)
+                    {
+                        continue;
+                    }
+                    return Socket::Status::WouldBlock;
+                }
+
+                errno = status;
                 return Socket::Status::SSLError;
             }
+
+            sent += status;
         }
 
         return Socket::Status::Success;
@@ -69,34 +98,48 @@ namespace fr
         ssize_t status = 0;
         if(receive_timeout == 0)
         {
-            status = mbedtls_ssl_read(ssl.get(), (unsigned char *)data, data_size);
-            if(status == 0)
+            do
             {
-                return Socket::Status::Disconnected;
-            }
-            if(status < 0)
-            {
-                if(status == MBEDTLS_ERR_SSL_WANT_READ || status == MBEDTLS_ERR_SSL_WANT_WRITE)
+                status = mbedtls_ssl_read(ssl.get(), (unsigned char *) data, data_size);
+                if(status == 0)
                 {
-                    return Socket::Status::WouldBlock;
+                    return Socket::Status::Disconnected;
                 }
+                if(status < 0)
+                {
+                    if(status == MBEDTLS_ERR_SSL_WANT_READ || status == MBEDTLS_ERR_SSL_WANT_WRITE)
+                    {
+                        if(is_blocking)
+                        {
+                            return Socket::Status::WouldBlock;
+                        }
+                        continue;
+                    }
 
-                errno = static_cast<int>(status);
-                return Socket::Status::SSLError;
-            }
+                    errno = static_cast<int>(status);
+                    return Socket::Status::SSLError;
+                }
+                break;
+            } while(true);
         }
         else
         {
             do
             {
                 status = mbedtls_net_recv_timeout(ssl.get(), (unsigned char *)data, data_size, receive_timeout);
-                if(status <= 0)
+                if(status == 0)
+                {
+                    return Socket::Status::Disconnected;
+                }
+
+                if(status < 0)
                 {
                     if(status == MBEDTLS_ERR_SSL_TIMEOUT)
                     {
                         return Socket::Status::WouldBlock;
                     }
-                    else if(status == MBEDTLS_ERR_SSL_WANT_READ)
+
+                    if(status == MBEDTLS_ERR_SSL_WANT_READ)
                     {
                         continue; //try again, interrupted before anything could be received
                     }
@@ -117,10 +160,8 @@ namespace fr
     Socket::Status SSLSocket::connect(const std::string &address, const std::string &port, std::chrono::seconds timeout)
     {
         //Initialise mbedtls stuff
-        ssl = std::make_unique<mbedtls_ssl_context>();
-        ssl_socket_descriptor = std::make_unique<mbedtls_net_context>();
-        mbedtls_ssl_init(ssl.get());
-        mbedtls_net_init(ssl_socket_descriptor.get());
+        ssl.reset(ssl_create());
+        ssl_socket_descriptor.reset(net_create());
 
         //Due to mbedtls not supporting connect timeouts, we have to use an fr::TcpSocket to
         //Open the descriptor, and then steal it. This is a hack.
@@ -171,9 +212,12 @@ namespace fr
         }
 
         //Verify server certificate
-        if(should_verify && ((flags = mbedtls_ssl_get_verify_result(ssl.get())) != 0))
+        if(should_verify)
         {
-            return Socket::Status::VerificationFailed;
+            if(mbedtls_ssl_get_verify_result(ssl.get()) != 0)
+            {
+                return Socket::Status::VerificationFailed;
+            }
         }
 
         //Update state
@@ -184,7 +228,7 @@ namespace fr
 
     void SSLSocket::set_ssl_context(std::unique_ptr<mbedtls_ssl_context> context)
     {
-        ssl = std::move(context);
+        ssl.reset(context.release());
     }
 
     void SSLSocket::set_descriptor(void *descriptor)

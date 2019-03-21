@@ -16,10 +16,9 @@
 namespace fr
 {
     Socket::Socket()
-    : is_blocking(true),
-      ai_family(AF_UNSPEC),
-      max_receive_size(0),
-      socket_read_timeout(0)
+    : ai_family(AF_UNSPEC),
+    max_receive_size(0),
+    socket_read_timeout(0)
     {
         init_wsa();
     }
@@ -99,7 +98,7 @@ namespace fr
         };
         #define ERR_STR wsa_err_to_str(WSAGetLastError())
 #else
-    #define ERR_STR strerror(errno)
+#define ERR_STR strerror(errno)
 #endif
 
         switch(status)

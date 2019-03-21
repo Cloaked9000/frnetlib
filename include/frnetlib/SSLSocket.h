@@ -20,7 +20,7 @@ namespace fr
     {
     public:
         explicit SSLSocket(std::shared_ptr<SSLContext> ssl_context) noexcept;
-        virtual ~SSLSocket() noexcept;
+        ~SSLSocket() override;
         SSLSocket(SSLSocket &&) = delete;
         SSLSocket(const SSLSocket &) = delete;
         void operator=(SSLSocket &&)=delete;
@@ -30,11 +30,15 @@ namespace fr
          * Effectively just fr::TcpSocket::send_raw() with encryption
          * added in.
          *
+         * @note If this returns WouldBlock, you must call this function again with the *same* arguments.
          * @param data The data to send.
          * @param size The number of bytes, from data to send. Be careful not to overflow.
-         * @return The status of the operation.
+         * @return The status of the operation:
+         * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or the operation has timed out
+         * 'SSLError' An SSL error has occurred.
+         * 'Success' All the bytes you wanted have been read
          */
-        Socket::Status send_raw(const char *data, size_t size) override;
+        Socket::Status send_raw(const char *data, size_t size, size_t &sent) override;
 
 
         /*!
@@ -47,6 +51,7 @@ namespace fr
          * @return The status of the operation:
          * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or the operation has timed out
          * 'Disconnected' if the socket has disconnected.
+         * 'SSLError' An SSL error has occurred.
          * 'Success' All the bytes you wanted have been read
          */
         Socket::Status receive_raw(void *data, size_t data_size, size_t &received) override;
@@ -109,10 +114,31 @@ namespace fr
          *
          * @note This must be set *WHILST* connected
          * @param should_block True to block, false otherwise.
+         * @return A status code indicating success:
+         * 'SSLError' on failure.
+         * 'Success' on success.
          */
-        inline void set_blocking(bool should_block) override
+        inline fr::Socket::Status set_blocking(bool should_block) override
         {
-            mbedtls_net_set_block(ssl_socket_descriptor.get());
+            int ret = mbedtls_net_set_block(ssl_socket_descriptor.get());
+            if(ret != 0)
+            {
+                errno = ret;
+                return fr::Socket::SSLError;
+            }
+
+            is_blocking = should_block;
+            return fr::Socket::Success;
+        }
+
+        /*!
+         * Checks if the socket is blocking
+         *
+         * @return True if it is, false otherwise
+         */
+        inline bool get_blocking() const override
+        {
+            return is_blocking;
         }
 
         /*!
@@ -134,12 +160,12 @@ namespace fr
         void close_socket() override;
 
         std::shared_ptr<SSLContext> ssl_context;
-        std::unique_ptr<mbedtls_net_context> ssl_socket_descriptor;
-        std::unique_ptr<mbedtls_ssl_context> ssl;
+        std::unique_ptr<mbedtls_net_context, decltype(&mbedtls_net_free)> ssl_socket_descriptor;
+        std::unique_ptr<mbedtls_ssl_context, decltype(&mbedtls_ssl_free)> ssl;
         mbedtls_ssl_config conf;
-        uint32_t flags;
         bool should_verify;
         uint32_t receive_timeout;
+        bool is_blocking;
     };
 }
 

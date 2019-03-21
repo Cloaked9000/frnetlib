@@ -18,6 +18,8 @@ namespace fr
     class WebSocketBase
     {
     public:
+        virtual ~WebSocketBase()=default;
+
         /*!
          * Checks if the socket is the client component or the server component
          *

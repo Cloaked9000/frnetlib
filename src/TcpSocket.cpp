@@ -13,7 +13,8 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-    : socket_descriptor(-1)
+            : socket_descriptor(-1),
+              is_blocking(true)
     {
 
     }
@@ -23,20 +24,27 @@ namespace fr
         close_socket();
     }
 
-    Socket::Status TcpSocket::send_raw(const char *data, size_t size)
+    Socket::Status TcpSocket::send_raw(const char *data, size_t size, size_t &sent)
     {
-        size_t sent = 0;
         while(sent < size)
         {
             int64_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
             if(status > 0)
             {
                 sent += status;
+                continue;
             }
-            else if(errno != EWOULDBLOCK && errno != EAGAIN) //Don't exit if the socket just couldn't block
+
+            if(errno == EWOULDBLOCK)
             {
-                return Socket::Status::SendError;
+                return Socket::Status::WouldBlock;
             }
+            else if(errno == EINTR)
+            {
+                continue; //try again, interrupted before anything could be received
+            }
+
+            return Socket::Status::SendError;
         }
         return Socket::Status::Success;
     }
@@ -64,7 +72,7 @@ namespace fr
 
             if(status < 0)
             {
-                if(errno == EWOULDBLOCK || errno == EAGAIN)
+                if(errno == EWOULDBLOCK)
                 {
                     return Socket::Status::WouldBlock;
                 }
@@ -182,10 +190,12 @@ namespace fr
         return Socket::Status::Success;
     }
 
-    void TcpSocket::set_blocking(bool should_block)
+    Socket::Status TcpSocket::set_blocking(bool should_block)
     {
-        set_unix_socket_blocking(socket_descriptor, is_blocking, should_block);
+        if(!set_unix_socket_blocking(socket_descriptor, is_blocking, should_block))
+            return Status::Error;
         is_blocking = should_block;
+        return Socket::Success;
     }
 
     int32_t TcpSocket::get_socket_descriptor() const noexcept
@@ -224,6 +234,11 @@ namespace fr
     bool TcpSocket::connected() const noexcept
     {
         return socket_descriptor > -1;
+    }
+
+    bool TcpSocket::get_blocking() const
+    {
+        return is_blocking;
     }
 
 

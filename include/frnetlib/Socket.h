@@ -84,8 +84,18 @@ namespace fr
          *
          * @note This must be set *WHILST* connected
          * @param should_block True for blocking (default argument), false otherwise.
+         * @return Status of the operation:
+         * 'Success' on success.
+         * Something else (depending on underlying socket type) on failure.
          */
-        virtual void set_blocking(bool should_block) = 0;
+        virtual fr::Socket::Status set_blocking(bool should_block) = 0;
+
+        /*!
+         * Checks if the socket is blocking
+         *
+         * @return True if it is, false otherwise
+         */
+        virtual bool get_blocking() const=0;
 
         /*!
          * Attempts to send raw data down the socket, without
@@ -94,9 +104,10 @@ namespace fr
          *
          * @param data The data to send.
          * @param size The number of bytes, from data to send. Be careful not to overflow.
-         * @return The status of the operation.
+         * @param sent The number of bytes that could be sent.
+         * @return The status of the operation. Dependent on the underlying socket type.
          */
-        virtual Status send_raw(const char *data, size_t size) = 0;
+        virtual Status send_raw(const char *data, size_t size, size_t &sent) = 0;
 
         /*!
          * Receives raw data from the socket, without any of
@@ -268,7 +279,6 @@ namespace fr
         virtual void reconfigure_socket()=0;
 
         std::string remote_address;
-        bool is_blocking;
         int ai_family;
         uint32_t max_receive_size;
         uint32_t socket_read_timeout;

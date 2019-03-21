@@ -27,7 +27,7 @@ public:
      * @param port The port to bind to
      * @return If the operation was successful
      */
-    virtual Socket::Status listen(const std::string &port) override;
+    Socket::Status listen(const std::string &port) override;
 
     /*!
      * Accepts a new connection.
@@ -35,7 +35,7 @@ public:
      * @param client Where to store the connection information
      * @return True on success. False on failure.
      */
-    virtual Socket::Status accept(Socket &client) override;
+    Socket::Status accept(Socket &client) override;
 
     /*!
      * Calls the shutdown syscall on the socket.

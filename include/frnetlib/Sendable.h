@@ -11,6 +11,8 @@ namespace fr
     class Sendable
     {
     public:
+        virtual ~Sendable()=default;
+
         /*!
          * Overridable send, to allow
          * custom types to be directly sent through

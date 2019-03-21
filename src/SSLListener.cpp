@@ -16,7 +16,7 @@
 namespace fr
 {
     SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &pem_path, const std::string &private_key_path)
-    : ssl_context(std::move(ssl_context_))
+            : ssl_context(std::move(ssl_context_))
     {
         //Initialise SSL objects required
         listen_fd.fd = -1;

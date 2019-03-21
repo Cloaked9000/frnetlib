@@ -7,6 +7,7 @@
 #include <frnetlib/HttpRequest.h>
 #include <frnetlib/URL.h>
 #include <frnetlib/HttpResponse.h>
+#include <frnetlib/TcpListener.h>
 
 int main()
 {
@@ -23,20 +24,23 @@ int main()
         return EXIT_FAILURE;
     }
 
-    //Try to connect to the parsed address
+    fr::Socket::Status err;
     fr::TcpSocket socket;
-    if(socket.connect(parsed_url.get_host(), parsed_url.get_port(), {}) != fr::Socket::Success)
+    fr::TcpListener listener;
+
+    //Try to connect to the parsed address
+    if((err = socket.connect(parsed_url.get_host(), parsed_url.get_port(), {})) != fr::Socket::Success)
     {
-        std::cerr << "Failed to connect to the specified URL" << std::endl;
+        std::cerr << "Failed to connect to the specified URL: " << fr::Socket::status_to_string(err) << std::endl;
         return EXIT_FAILURE;
     }
 
     //Construct a request, requesting the user provided URI
     fr::HttpRequest request;
     request.set_uri(parsed_url.get_uri());
-    if(socket.send(request) != fr::Socket::Success)
+    if((err = socket.send(request)) != fr::Socket::Success)
     {
-        std::cerr << "Failed to send HTTP request" << std::endl;
+        std::cerr << "Failed to send HTTP request: " + fr::Socket::status_to_string(err) << std::endl;
         return EXIT_FAILURE;
     }
 

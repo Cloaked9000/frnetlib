@@ -12,19 +12,21 @@ class SocketDescriptor
 {
 public:
 
+    virtual ~SocketDescriptor()=default;
+
     /*!
      * Checks to see if the socket is connected or not
      *
      * @return True if connected, false otherwise
      */
-    virtual bool connected() const noexcept = 0;
+    virtual bool connected() const = 0;
 
     /*!
      * Gets the underlying socket descriptor.
      *
      * @return The socket descriptor.
      */
-    virtual int32_t get_socket_descriptor() const noexcept = 0;
+    virtual int32_t get_socket_descriptor() const = 0;
 };
 }
 

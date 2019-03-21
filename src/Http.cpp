@@ -996,7 +996,13 @@ namespace fr
     Socket::Status Http::send(Socket *socket) const
     {
         std::string data = construct(socket->get_remote_address());
-        return socket->send_raw(&data[0], data.size());
+        size_t sent = 0;
+        fr::Socket::Status state;
+        do
+        {
+            state = socket->send_raw(&data[0], data.size(), sent);
+        } while(state == fr::Socket::WouldBlock);
+        return state;
     }
 
     Socket::Status Http::receive(Socket *socket)

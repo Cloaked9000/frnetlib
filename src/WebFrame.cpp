@@ -77,7 +77,13 @@ namespace fr
         }
 
         buffer.append(payload);
-        return socket_->send_raw(buffer.c_str(), buffer.size());
+        size_t sent = 0;
+        fr::Socket::Status state;
+        do
+        {
+            state = socket_->send_raw(buffer.c_str(), buffer.size(), sent);
+        } while(state == fr::Socket::WouldBlock);
+        return state;
     }
 
     Socket::Status WebFrame::receive(Socket *socket)

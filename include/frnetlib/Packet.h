@@ -707,7 +707,13 @@ namespace fr
         {
             uint32_t length = htonl((uint32_t)buffer.size() - PACKET_HEADER_LENGTH);
             memcpy(&buffer[0], &length, sizeof(uint32_t));
-            return socket->send_raw(buffer.c_str(), buffer.size());
+            fr::Socket::Status state;
+            size_t sent = 0;
+            do
+            {
+                state = socket->send_raw(&buffer[0], buffer.size(), sent);
+            } while(state == fr::Socket::WouldBlock);
+            return state;
         }
 
         /*!
