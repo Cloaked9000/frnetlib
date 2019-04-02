@@ -29,7 +29,7 @@ namespace fr
         while(sent < size)
         {
             int64_t status = ::send(socket_descriptor, data + sent, size - sent, 0);
-            if(status > 0)
+            if(status >= 0)
             {
                 sent += status;
                 continue;
@@ -37,6 +37,10 @@ namespace fr
 
             if(errno == EWOULDBLOCK)
             {
+                if(is_blocking)
+                {
+                    return Socket::Status::Timeout;
+                }
                 return Socket::Status::WouldBlock;
             }
             else if(errno == EINTR)
@@ -74,6 +78,10 @@ namespace fr
             {
                 if(errno == EWOULDBLOCK)
                 {
+                    if(is_blocking)
+                    {
+                        return Socket::Status::Timeout;
+                    }
                     return Socket::Status::WouldBlock;
                 }
                 else if(errno == EINTR)
@@ -220,6 +228,11 @@ namespace fr
         tv.tv_sec = get_receive_timeout() / 1000;
         tv.tv_usec = (get_receive_timeout() % 1000) * 1000;
         setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
+        //Apply send timeout
+        tv.tv_sec = get_send_timeout() / 1000;
+        tv.tv_usec = (get_send_timeout() % 1000) * 1000;
+        setsockopt(socket_descriptor, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
 #else
         //Disable Nagle's algorithm
         setsockopt(get_socket_descriptor(), IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one));
@@ -228,6 +241,10 @@ namespace fr
         //Apply receive timeout
         DWORD timeout_dword = static_cast<DWORD>(get_receive_timeout());
         setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
+
+        //Apply send timeout
+        timeout_dword = static_cast<DWORD>(get_send_timeout());
+        setsockopt(socket_descriptor, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
 #endif
     }
 

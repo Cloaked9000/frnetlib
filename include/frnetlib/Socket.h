@@ -39,7 +39,8 @@ namespace fr
             ReceiveError = 17,
             AcceptError = 18,
             SSLError = 19,
-            NoRouteToHost = 20
+            NoRouteToHost = 20,
+            Timeout = 21,
             //Remember to update status_to_string if more are added
         };
 
@@ -134,7 +135,7 @@ namespace fr
          * Send a Sendable object through the socket
          *
          * @param obj The object to send
-         * @return The status of the send
+         * @return The status of the send. This is dependant type being sent.
          */
         virtual Status send(const Sendable &obj);
 
@@ -229,9 +230,36 @@ namespace fr
             reconfigure_socket();
         }
 
+        /*!
+         * Gets the socket receive timeout.
+         *
+         * @return Socket timeout in milliseconds. 0 if none.
+         */
         inline uint32_t get_receive_timeout() const
         {
             return socket_read_timeout;
+        }
+
+        /*!
+          * Sets a timeout which applies when sending data.
+          *
+          * @param timeout The maximum number of milliseconds to wait on a socket write before returning. Pass
+          * 0 (default) for no timeout.
+          */
+        inline void set_send_timeout(uint32_t timeout)
+        {
+            socket_write_timeout = timeout;
+            reconfigure_socket();
+        }
+
+        /*!
+         * Gets the socket send timeout.
+         *
+         * @return Socket send timeout in milliseconds. 0 if none.
+         */
+        inline uint32_t get_send_timeout() const
+        {
+            return socket_write_timeout;
         }
 
         /*!
@@ -282,6 +310,7 @@ namespace fr
         int ai_family;
         uint32_t max_receive_size;
         uint32_t socket_read_timeout;
+        uint32_t socket_write_timeout;
     };
 }
 

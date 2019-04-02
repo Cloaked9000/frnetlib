@@ -19,7 +19,7 @@ namespace fr
          * sockets.
          *
          * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
+         * @return Status indicating if the send succeeded or not. This is dependent on the underlying type.
          */
         virtual Socket::Status send(Socket *socket) const = 0;
 
@@ -29,7 +29,7 @@ namespace fr
          * sockets.
          *
          * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
+         * @return Status indicating if the send succeeded or not. This is dependent on the underlying type.
          */
         virtual Socket::Status receive(Socket *socket) = 0;
     };

@@ -17,8 +17,9 @@ namespace fr
 {
     Socket::Socket()
     : ai_family(AF_UNSPEC),
-    max_receive_size(0),
-    socket_read_timeout(0)
+      max_receive_size(0),
+      socket_read_timeout(0),
+      socket_write_timeout(0)
     {
         init_wsa();
     }
@@ -157,7 +158,8 @@ namespace fr
             }
             case NoRouteToHost:
                 return "No Route To Host";
-                break;
+            case Timeout:
+                return "Timeout";
             default:
                 return "Unknown";
         }

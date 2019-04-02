@@ -78,7 +78,7 @@ namespace fr
                 {
                     if(is_blocking)
                     {
-                        continue;
+                        return Socket::Status::Timeout;
                     }
                     return Socket::Status::WouldBlock;
                 }
@@ -111,7 +111,7 @@ namespace fr
                     {
                         if(is_blocking)
                         {
-                            return Socket::Status::WouldBlock;
+                            return Socket::Status::Timeout;
                         }
                         continue;
                     }
