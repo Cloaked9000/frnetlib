@@ -48,14 +48,15 @@ namespace fr
             {
                 continue;
             }
-            //Set address re-use option
+
+#ifndef _WIN32
+            //Set address re-use option if not on Windows (potentially sketchy)
             if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
             {
                 continue;
             }
 
             //Set port re-use option
-#ifndef _WIN32
             if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
             {
                 continue;
