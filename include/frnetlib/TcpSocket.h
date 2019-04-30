@@ -59,7 +59,8 @@ namespace fr
          * @param received Will be filled with the number of bytes actually received, might be less than you requested if in non-blocking mode/error.
          * @return The status of the operation:
          * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or operation has timed out
-         * 'Disconnected' if the socket has disconnected.
+         * 'Timeout' Socket is in blocking mode and it timed out.
+         * 'Disconnected' if the socket has disconnected. (you must now call disconnect())
          * 'ReceiveError' A receive error occurred.
          * 'Success' All the bytes you wanted have been read
          */

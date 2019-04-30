@@ -49,7 +49,8 @@ namespace fr
          * @param data_size The number of bytes to try and receive. Be sure that it's not larger than data.
          * @param received Will be filled with the number of bytes actually received, might be less than you requested.
          * @return The status of the operation:
-         * 'WouldBlock' if no data has been received, and the socket is in non-blocking mode or the operation has timed out
+         * 'WouldBlock' if no data has been received and the socket is nonblockins
+         * 'TimedOut' if the socket is blocking and no data was received in time.
          * 'Disconnected' if the socket has disconnected.
          * 'SSLError' An SSL error has occurred.
          * 'Success' All the bytes you wanted have been read

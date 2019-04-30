@@ -22,13 +22,11 @@ namespace fr
     {
     public:
         Packet() noexcept
-                : buffer(PACKET_HEADER_LENGTH, '0'),
-                  buffer_read_index(PACKET_HEADER_LENGTH)
+        : buffer(PACKET_HEADER_LENGTH, '0'),
+          buffer_read_index(PACKET_HEADER_LENGTH)
         {
 
         }
-
-        virtual ~Packet() = default;
 
         //Nasty constructor to allow things like Packet{1, 2, 3, "bob"}.
         template <typename T, typename ...Args>
@@ -721,8 +719,10 @@ namespace fr
          * custom types to be directly received through
          * sockets.
          *
-         * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
+         * @return Status indicating if the send succeeded or not:
+         * 'Success': All good, object still valid.
+         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
+         * Anything else: Object invalid. Call disconnect().
          */
         Socket::Status receive(Socket *socket) override
         {
@@ -742,11 +742,14 @@ namespace fr
             //Now we've got the length, read the rest of the data in
             if(packet_length + PACKET_HEADER_LENGTH > buffer.size())
                 buffer.resize(packet_length + PACKET_HEADER_LENGTH);
-            status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
-            if(status != Socket::Status::Success)
-                return status;
 
-            return Socket::Status::Success;
+            do
+            {
+                status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
+            } while(status == fr::Socket::WouldBlock);
+            if(status == fr::Socket::Timeout)
+              status = fr::Socket::Disconnected;
+            return status;
         }
 
 

@@ -95,7 +95,6 @@ namespace fr
         Http(const Http&)= default;
         Http &operator=(const Http &)=default;
         Http &operator=(Http &&)=default;
-        virtual ~Http() = default;
 
 
         /*!
@@ -326,7 +325,10 @@ namespace fr
          * sockets.
          *
          * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
+         * @return Status indicating if the send succeeded or not:
+         * 'Success': All good, object still valid.
+         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
+         * Anything else: Object invalid. Call disconnect().
          */
         Socket::Status receive(Socket *socket) override;
 

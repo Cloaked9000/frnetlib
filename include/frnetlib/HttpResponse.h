@@ -21,7 +21,6 @@ namespace fr
         HttpResponse(const HttpResponse&)= default;
         HttpResponse &operator=(const HttpResponse &)=default;
         HttpResponse &operator=(HttpResponse &&)=default;
-        virtual ~HttpResponse() = default;
 
         /*!
          * Parse a raw request or response from a string

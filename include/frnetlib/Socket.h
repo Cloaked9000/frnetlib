@@ -159,10 +159,10 @@ namespace fr
          *
          * @param dest Where to read the data into
          * @param buffer_size The number of bytes to read
-         * @return Operation status:
-         * 'Disconnected' if the socket disconnected
-         * 'Success' if buffer_size bytes could be read successfully
-         * 'WouldBlock' if the socket is in blocking mode and no data could be read, or if the read timed out before any data was received
+         * @return Status indicating if the send succeeded or not:
+         * 'Success': All good, object still valid.
+         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
+         * Anything else: Object invalid. Call disconnect().
          */
         Status receive_all(void *dest, size_t buffer_size);
 

@@ -34,30 +34,25 @@ namespace fr
 
     Socket::Status Socket::receive(Sendable &obj)
     {
-        if(!connected())
-            return Socket::Disconnected;
-
         return obj.receive(this);
     }
 
     Socket::Status Socket::receive_all(void *dest, size_t buffer_size)
     {
-        if(!connected())
-            return Socket::Disconnected;
-
-        auto bytes_remaining = (int32_t) buffer_size;
-        size_t bytes_read = 0;
+        auto bytes_remaining = (ssize_t) buffer_size;
         while(bytes_remaining > 0)
         {
             size_t received = 0;
-            auto *arr = (char*)dest;
-            Status status = receive_raw(&arr[bytes_read], (size_t)bytes_remaining, received);
-            if(status != fr::Socket::WouldBlock && status != fr::Socket::Success)
-                return status;
+            Status status = receive_raw((char*)dest + (buffer_size - bytes_remaining), (size_t)bytes_remaining, received);
             bytes_remaining -= received;
-            bytes_read += received;
-            if(status == fr::Socket::WouldBlock && bytes_read == 0)
-                return status;
+            if(status != Socket::Success)
+            {
+                if((ssize_t)buffer_size == bytes_remaining)
+                    return status;
+                if(status == Socket::WouldBlock)
+                    continue;
+                return Socket::Disconnected;
+            }
         }
 
         return Socket::Status::Success;

@@ -32,7 +32,7 @@ namespace fr
         explicit WebFrame(Opcode type = Text);
 
         /*!
-         * Get's the received payload data. (Data received).
+         * Get's the receied payload data. (Data received).
          *
          * @return The payload
          */
@@ -112,7 +112,10 @@ namespace fr
          *
          * @note If the maximum message length is exceeded, then the connection will be closed
          * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
+         * @return Status indicating if the send succeeded or not:
+         * 'Success': All good, object still valid.
+         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
+         * Anything else: Object invalid. Call disconnect().
          */
         Socket::Status receive(Socket *socket) override;
 

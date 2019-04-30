@@ -1014,10 +1014,16 @@ namespace fr
         do
         {
             //Receive the request
-            Socket::Status status = socket->receive_raw(recv_buffer, RECV_CHUNK_SIZE, received);
+            auto status = socket->receive_raw(recv_buffer, RECV_CHUNK_SIZE, received);
             total_received += received;
-            if(status != Socket::Success && !(status == fr::Socket::WouldBlock && total_received != 0))
-                return status;
+            if(status != Socket::Success)
+            {
+                if(total_received == 0)
+                    return status;
+                if(status == Socket::WouldBlock)
+                    continue;
+                return Socket::Disconnected;
+            }
 
             //Parse it
             state = parse(recv_buffer, received);

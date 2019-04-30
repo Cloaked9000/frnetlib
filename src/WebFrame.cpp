@@ -119,14 +119,24 @@ namespace fr
         if(payload_length == 126) //Length is longer than 7 bit, so read 16bit length
         {
             uint16_t length;
-            status = socket->receive_all(&length, sizeof(length));
+            do
+            {
+                status = socket->receive_all(&length, sizeof(length));
+            } while(status == fr::Socket::WouldBlock);
+            if(status == fr::Socket::Timeout)
+                status = fr::Socket::Disconnected;
             payload_length = ntohs(length);
             if(status != fr::Socket::Success)
                 return status;
         }
         else if(payload_length == 127) //Length is longer than 16 bit, so read 64bit length
         {
-            status = socket->receive_all(&payload_length, sizeof(payload_length));
+            do
+            {
+                status = socket->receive_all(&payload_length, sizeof(payload_length));
+            } while(status == fr::Socket::WouldBlock);
+            if(status == fr::Socket::Timeout)
+                status = fr::Socket::Disconnected;
             payload_length = fr_ntohll(payload_length);
             if(status != fr::Socket::Success)
                 return status;
@@ -146,14 +156,24 @@ namespace fr
         } mask_union{};
         if(mask)
         {
-            status = socket->receive_all(&mask_union.mask_key, 4);
+            do
+            {
+                status = socket->receive_all(&mask_union.mask_key, 4);
+            } while(status == fr::Socket::WouldBlock);
+            if(status == fr::Socket::Timeout)
+                status = fr::Socket::Disconnected;
             if(status != fr::Socket::Success)
                 return status;
         }
 
         //Read payload
         payload.resize(payload_length, '\0');
-        status = socket->receive_all(&payload[0], payload_length);
+        do
+        {
+            status = socket->receive_all(&payload[0], payload_length);
+        } while(status == fr::Socket::WouldBlock);
+        if(status == fr::Socket::Timeout)
+            status = fr::Socket::Disconnected;
         if(status != fr::Socket::Success)
             return status;
 

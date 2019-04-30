@@ -21,7 +21,6 @@ namespace fr
         HttpRequest(const HttpRequest&)= default;
         HttpRequest &operator=(const HttpRequest &)=default;
         HttpRequest &operator=(HttpRequest &&)=default;
-        virtual ~HttpRequest() = default;
 
         /*!
          * Parse a HTTP response.
