@@ -103,7 +103,7 @@ namespace fr
          *
          * @return True if connected, false otherwise
          */
-        bool connected() const noexcept override;
+        bool connected() const override;
 
         /*!
          * Gets the underlying socket descriptor.

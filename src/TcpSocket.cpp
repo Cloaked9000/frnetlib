@@ -248,7 +248,7 @@ namespace fr
 #endif
     }
 
-    bool TcpSocket::connected() const noexcept
+    bool TcpSocket::connected() const
     {
         return socket_descriptor > -1;
     }

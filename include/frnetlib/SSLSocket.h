@@ -103,12 +103,7 @@ namespace fr
          *
          * @return The socket's descriptor. -1 indicates no connection.
          */
-        inline int32_t get_socket_descriptor() const noexcept override
-        {
-            if(!ssl_socket_descriptor)
-                return -1;
-            return ssl_socket_descriptor->fd;
-        }
+        int32_t get_socket_descriptor() const override;
 
         /*!
          * Sets if the socket should block or not.
@@ -119,18 +114,7 @@ namespace fr
          * 'SSLError' on failure.
          * 'Success' on success.
          */
-        inline fr::Socket::Status set_blocking(bool should_block) override
-        {
-            int ret = mbedtls_net_set_block(ssl_socket_descriptor.get());
-            if(ret != 0)
-            {
-                errno = ret;
-                return fr::Socket::SSLError;
-            }
-
-            is_blocking = should_block;
-            return fr::Socket::Success;
-        }
+        fr::Socket::Status set_blocking(bool should_block) override;
 
         /*!
          * Checks if the socket is blocking
@@ -147,10 +131,7 @@ namespace fr
          *
          * @return True if it's connected. False otherwise.
          */
-        inline bool connected() const noexcept final
-        {
-            return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
-        }
+        bool connected() const final;
 
 
     private:

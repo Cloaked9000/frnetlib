@@ -243,6 +243,19 @@ namespace fr
         should_verify = should_verify_;
     }
 
+    fr::Socket::Status SSLSocket::set_blocking(bool should_block)
+    {
+        int ret = mbedtls_net_set_block(ssl_socket_descriptor.get());
+        if(ret != 0)
+        {
+            errno = ret;
+            return fr::Socket::SSLError;
+        }
+
+        is_blocking = should_block;
+        return fr::Socket::Success;
+    }
+
     void SSLSocket::reconfigure_socket()
     {
         if(!connected())
@@ -263,5 +276,17 @@ namespace fr
         DWORD timeout_dword = static_cast<DWORD>(get_receive_timeout());
         setsockopt(get_socket_descriptor(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_dword, sizeof timeout_dword);
 #endif
+    }
+
+    int32_t SSLSocket::get_socket_descriptor() const
+    {
+        if(!ssl_socket_descriptor)
+            return -1;
+        return ssl_socket_descriptor->fd;
+    }
+
+    bool SSLSocket::connected() const
+    {
+        return ssl_socket_descriptor && ssl_socket_descriptor->fd > -1;
     }
 }
