@@ -91,9 +91,9 @@ namespace fr
         //Listen to socket
         if(::listen(socket_descriptor, LISTEN_QUEUE_SIZE) == SOCKET_ERROR)
         {
-            return Socket::ListenFailed;
+            return Socket::Status::ListenFailed;
         }
-        return Socket::Success;
+        return Socket::Status::Success;
     }
 
     Socket::Status TcpListener::accept(Socket &client_)
@@ -110,7 +110,7 @@ namespace fr
         socklen_t client_addr_len = sizeof client_addr;
         client_descriptor = ::accept(socket_descriptor, (sockaddr*)&client_addr, &client_addr_len);
         if(client_descriptor == SOCKET_ERROR)
-            return Socket::AcceptError;
+            return Socket::Status::AcceptError;
 
         //Get printable address. If we failed then set it as just 'unknown'
         int err = getnameinfo((sockaddr*)&client_addr, client_addr_len, client_printable_addr, sizeof(client_printable_addr), nullptr, 0, NI_NUMERICHOST);
@@ -123,7 +123,7 @@ namespace fr
         client.set_descriptor(&client_descriptor);
         client.set_remote_address(client_printable_addr);
 
-        return Socket::Success;
+        return Socket::Status::Success;
     }
 
     void TcpListener::shutdown()
@@ -131,7 +131,7 @@ namespace fr
         ::shutdown(socket_descriptor, 0);
     }
 
-    int32_t TcpListener::get_socket_descriptor() const noexcept
+    int32_t TcpListener::get_socket_descriptor() const
     {
         return socket_descriptor;
     }
@@ -150,7 +150,7 @@ namespace fr
         }
     }
 
-    bool TcpListener::connected() const noexcept
+    bool TcpListener::connected() const
     {
         return socket_descriptor > -1;
     }

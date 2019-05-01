@@ -32,7 +32,7 @@ int main()
     //port multiple times. Each thread should have its own fr::SocketSelector, this will
     //spread connections over multiple workers.
     auto listener = std::make_shared<fr::TcpListener>();
-    if(listener->listen("8080") != fr::Socket::Success)
+    if(listener->listen("8080") != fr::Socket::Status::Success)
     {
         std::cerr << "Failed to bind to port" << std::endl;
         return EXIT_FAILURE;
@@ -53,7 +53,7 @@ int main()
             if(ready_socket.first->get_socket_descriptor() == listener->get_socket_descriptor())
             {
                 auto client = std::make_shared<fr::TcpSocket>(); //Or fr::SSLSocket
-                if(listener->accept(*client) == fr::Socket::Success)
+                if(listener->accept(*client) == fr::Socket::Status::Success)
                 {
                     client->set_blocking(false); //This is important
                     listen_loop_selector.add(client, new SessionState()); //We assign a 'SessionState' object for each connection as opaque data
@@ -69,23 +69,23 @@ int main()
             char data[0x1000];
             size_t received = 0;
             auto recv_status = client->receive_raw(data, sizeof(data), received);
-            if(recv_status == fr::Socket::Success)
+            if(recv_status == fr::Socket::Status::Success)
             {
                 //We received data, so parse it using the partial HTTP request associated with this connection
                 auto parse_status = session->partial_request.parse(data, received);
-                if(parse_status == fr::Socket::Success)
+                if(parse_status == fr::Socket::Status::Success)
                 {
                     //The client has sent a full request, queue it for processing
                     process_complete_request(client, std::move(session->partial_request));
                     session->partial_request = fr::HttpRequest();
                 }
-                else if(parse_status != fr::Socket::NotEnoughData)
+                else if(parse_status != fr::Socket::Status::NotEnoughData)
                 {
                     //HTTP error, disconnect the client. Remove from socket selector, and delete opaque data.
                     delete (SessionState*)listen_loop_selector.remove(client);
                 }
             }
-            else if(recv_status != fr::Socket::WouldBlock)
+            else if(recv_status != fr::Socket::Status::WouldBlock)
             {
                 //Error, disconnect it. Remove from socket selector, and delete opaque data.
                 delete (SessionState*)listen_loop_selector.remove(client);

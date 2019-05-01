@@ -13,10 +13,10 @@
 namespace fr
 {
     Http::Http()
-    : request_type(Unknown),
+    : request_type(Http::RequestType::Unknown),
       uri("/"),
-      status(Ok),
-      version(V1_1)
+      status(Http::RequestStatus::Ok),
+      version(Http::RequestVersion::V1_1)
     {
 
     }
@@ -114,42 +114,6 @@ namespace fr
         else
             uri = '/' + str;
     }
-
-    std::string Http::request_type_to_string(RequestType type)
-    {
-        static_assert(RequestType::RequestTypeCount == 5, "Update request_type_to_string");
-        const static std::string request_type_strings[RequestType::RequestTypeCount] = {"GET",
-                                                                                        "POST",
-                                                                                        "PUT",
-                                                                                        "DELETE",
-                                                                                        "PATCH"};
-
-        if(type >= RequestType::RequestTypeCount)
-            return "UNKNOWN";
-        return request_type_strings[type];
-    }
-
-    Http::RequestType Http::string_to_request_type(const std::string &str)
-    {
-        //Find the request type
-        static_assert(Http::RequestTypeCount == 5, "Update parse_header_type()");
-
-        RequestType type = Http::Unknown;
-        for(size_t a = 0; a < Http::RequestTypeCount; ++a)
-        {
-            std::string type_string = request_type_to_string(static_cast<RequestType>(a));
-            int cmp_ret = str.compare(0, type_string.size(), type_string);
-            if(cmp_ret == 0)
-                return static_cast<RequestType>(a);
-            if(str.size() < type_string.size() && cmp_ret < 0)
-                type = Http::Partial;
-            if(type != Http::Partial && str.size() < type_string.size() && cmp_ret > 0)
-                type = Http::Unknown;
-        }
-
-        return type;
-    }
-
 
     void Http::set_type(Http::RequestType type)
     {
@@ -1001,7 +965,7 @@ namespace fr
         do
         {
             state = socket->send_raw(&data[0], data.size(), sent);
-        } while(state == fr::Socket::WouldBlock);
+        } while(state == fr::Socket::Status::WouldBlock);
         return state;
     }
 
@@ -1016,18 +980,18 @@ namespace fr
             //Receive the request
             auto status = socket->receive_raw(recv_buffer, RECV_CHUNK_SIZE, received);
             total_received += received;
-            if(status != Socket::Success)
+            if(status != Socket::Status::Success)
             {
                 if(total_received == 0)
                     return status;
-                if(status == Socket::WouldBlock)
+                if(status == Socket::Status::WouldBlock)
                     continue;
-                return Socket::Disconnected;
+                return Socket::Status::Disconnected;
             }
 
             //Parse it
             state = parse(recv_buffer, received);
-        } while(state == fr::Socket::NotEnoughData);
+        } while(state == fr::Socket::Status::NotEnoughData);
 
         return state;
     }

@@ -18,7 +18,7 @@ TEST(HttpResponseTest, response_parse_v1)
 
     //Parse response
     fr::HttpResponse test;
-    ASSERT_EQ(test.parse(raw_response.c_str(), raw_response.size()), fr::Socket::Success);
+    ASSERT_EQ(test.parse(raw_response.c_str(), raw_response.size()), fr::Socket::Status::Success);
 
     //Verify it
     ASSERT_EQ(test.get_version(), fr::Http::RequestVersion::V1);
@@ -54,11 +54,11 @@ TEST(HttpResponseTest, response_parse_v2)
 
     //Parse response
     fr::HttpResponse test;
-    ASSERT_EQ(test.parse(raw_response.c_str(), raw_response.size()), fr::Socket::Success);
+    ASSERT_EQ(test.parse(raw_response.c_str(), raw_response.size()), fr::Socket::Status::Success);
 
     //Verify it
     ASSERT_EQ(test.get_version(), fr::Http::RequestVersion::V1_1);
-    ASSERT_EQ(test.get_status(), fr::Http::MovedPermanently);
+    ASSERT_EQ(test.get_status(), fr::Http::RequestStatus::MovedPermanently);
     ASSERT_EQ(test.header("Content-length"), "177");
     ASSERT_EQ(test.get_body(), response_body);
 }
@@ -97,12 +97,12 @@ TEST(HttpResponseTest, response_partial_parse)
 
     //Parse response
     fr::HttpResponse test;
-    ASSERT_EQ(test.parse(raw_response1.c_str(), raw_response1.size()), fr::Socket::NotEnoughData);
-    ASSERT_EQ(test.parse(raw_response2.c_str(), raw_response2.size()), fr::Socket::NotEnoughData);
-    ASSERT_EQ(test.parse(raw_response3.c_str(), raw_response3.size()), fr::Socket::Success);
+    ASSERT_EQ(test.parse(raw_response1.c_str(), raw_response1.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response2.c_str(), raw_response2.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response3.c_str(), raw_response3.size()), fr::Socket::Status::Success);
 
     //Verify it
-    ASSERT_EQ(test.get_status(), fr::Http::MovedPermanently);
+    ASSERT_EQ(test.get_status(), fr::Http::RequestStatus::MovedPermanently);
     ASSERT_EQ(test.header("Content-length"), "177");
     ASSERT_EQ(test.get_body(), response_body);
 }
@@ -113,7 +113,7 @@ TEST(HttpResponseTest, header_length_test)
     std::string buff(MAX_HTTP_HEADER_SIZE + 1, '\0');
     fr::HttpResponse response;
     buff.insert(0, "HTTP");
-    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::HttpHeaderTooBig);
+    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::Status::HttpHeaderTooBig);
     response = {};
 
     //Now try short header but long data, this should work
@@ -122,7 +122,7 @@ TEST(HttpResponseTest, header_length_test)
                     "Content-Length: " + std::to_string(MAX_HTTP_BODY_SIZE - 1) + "\n"
                     "Connection: keep-alive\n"
                     "\n" + std::string(MAX_HTTP_BODY_SIZE - 1, '\0');
-    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::Success);
+    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::Status::Success);
 }
 
 TEST(HttpResponseTest, body_length_test)
@@ -135,14 +135,14 @@ TEST(HttpResponseTest, body_length_test)
             "\n";
     buff += std::string(MAX_HTTP_BODY_SIZE + 1, '\0');
     fr::HttpResponse response;
-    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::HttpBodyTooBig);
+    ASSERT_EQ(response.parse(buff.c_str(), buff.size()), fr::Socket::Status::HttpBodyTooBig);
 }
 
 TEST(HttpResponseTest, HttpResponseConstruction)
 {
     {
         fr::HttpResponse response;
-        response.set_status(fr::Http::ImATeapot);
+        response.set_status(fr::Http::RequestStatus::ImATeapot);
         response.header("bob") = "trob";
         response.set_body("lob");
         auto constructed = response.construct("frednicolson.co.uk");

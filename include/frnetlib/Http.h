@@ -15,13 +15,13 @@ namespace fr
     class Http : public Sendable
     {
     public:
-        enum RequestVersion
+        enum class RequestVersion
         {
             V1 = 1,          // HTTP/1.0
             V1_1 = 2,        // HTTP/1.1
             VersionCount = 3
         };
-        enum RequestType
+        enum class RequestType
         {
             Get = 0,
             Post = 1,
@@ -32,7 +32,7 @@ namespace fr
             Unknown = 6,
             Partial = 7,
         };
-        enum RequestStatus
+        enum class RequestStatus
         {
             Continue = 100,
             SwitchingProtocols = 101,
@@ -274,7 +274,19 @@ namespace fr
          * @param type The RequestType to convert
          * @return The printable version of the enum value
          */
-        static std::string request_type_to_string(RequestType type);
+        static std::string request_type_to_string(RequestType type)
+        {
+            static_assert((uint32_t)RequestType::RequestTypeCount == 5, "Update request_type_to_string");
+            const static std::string request_type_strings[(uint32_t)RequestType::RequestTypeCount] = {"GET",
+                                                                                                      "POST",
+                                                                                                      "PUT",
+                                                                                                      "DELETE",
+                                                                                                      "PATCH"};
+
+            if(type >= RequestType::RequestTypeCount)
+                return "UNKNOWN";
+            return request_type_strings[(uint32_t)type];
+        }
 
         /*!
          * Converts a string value into a 'RequestType' enum value.
@@ -282,7 +294,26 @@ namespace fr
          * @param str The string to convert
          * @return The converted RequestType. Unknown on failure. Or Partial if str is part of a request type.
          */
-        static RequestType string_to_request_type(const std::string &str);
+        static RequestType string_to_request_type(const std::string &str)
+        {
+            //Find the request type
+            static_assert((uint32_t)Http::RequestType::RequestTypeCount == 5, "Update parse_header_type()");
+
+            RequestType type = Http::RequestType::Unknown;
+            for(size_t a = 0; a < (uint32_t)Http::RequestType::RequestTypeCount; ++a)
+            {
+                std::string type_string = request_type_to_string(static_cast<RequestType>(a));
+                int cmp_ret = str.compare(0, type_string.size(), type_string);
+                if(cmp_ret == 0)
+                    return static_cast<RequestType>(a);
+                if(str.size() < type_string.size() && cmp_ret < 0)
+                    type = Http::RequestType::Partial;
+                if(type != Http::RequestType::Partial && str.size() < type_string.size() && cmp_ret > 0)
+                    type = Http::RequestType::Unknown;
+            }
+
+            return type;
+        }
 
     protected:
         /*!

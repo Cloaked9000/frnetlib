@@ -29,7 +29,7 @@ int main()
     fr::TcpListener listener;
 
     //Try to connect to the parsed address
-    if((err = socket.connect(parsed_url.get_host(), parsed_url.get_port(), {})) != fr::Socket::Success)
+    if((err = socket.connect(parsed_url.get_host(), parsed_url.get_port(), {})) != fr::Socket::Status::Success)
     {
         std::cerr << "Failed to connect to the specified URL: " << fr::Socket::status_to_string(err) << std::endl;
         return EXIT_FAILURE;
@@ -38,7 +38,7 @@ int main()
     //Construct a request, requesting the user provided URI
     fr::HttpRequest request;
     request.set_uri(parsed_url.get_uri());
-    if((err = socket.send(request)) != fr::Socket::Success)
+    if((err = socket.send(request)) != fr::Socket::Status::Success)
     {
         std::cerr << "Failed to send HTTP request: " + fr::Socket::status_to_string(err) << std::endl;
         return EXIT_FAILURE;
@@ -46,7 +46,7 @@ int main()
 
     //Now wait for a response
     fr::HttpResponse response;
-    if(socket.receive(response) != fr::Socket::Success)
+    if(socket.receive(response) != fr::Socket::Status::Success)
     {
         std::cerr << "Failed to receive HTTP response" << std::endl;
         return EXIT_FAILURE;

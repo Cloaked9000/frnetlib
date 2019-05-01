@@ -49,7 +49,7 @@ namespace fr
         {
             //Establish a connection using the parent class
             Socket::Status status = SocketType::connect(address, port, timeout);
-            if(status != fr::Socket::Success)
+            if(status != Socket::Status::Success)
                 return status;
 
             //Send an upgrade request header
@@ -60,19 +60,19 @@ namespace fr
             request.header("connection") = "upgrade";
             request.header("upgrade") = "websocket";
             status = SocketType::send(request);
-            if(status != fr::Socket::Success)
+            if(status != Socket::Status::Success)
                 return status;
 
             //Receive the response
             HttpResponse response;
             status = SocketType::receive(response);
-            if(status != fr::Socket::Success)
+            if(status != Socket::Status::Success)
                 return status;
-            if(response.get_status() != Http::SwitchingProtocols)
+            if(response.get_status() != Http::RequestStatus::SwitchingProtocols)
             {
                 disconnect();
                 errno = EPROTO;
-                return Socket::HandshakeFailed;
+                return Socket::Status::HandshakeFailed;
             }
 
             //Verify the sec-websocket-accept header
@@ -81,10 +81,10 @@ namespace fr
             {
                 disconnect();
                 errno = EPROTO;
-                return Socket::HandshakeFailed;
+                return Socket::Status::HandshakeFailed;
             }
 
-            return fr::Socket::Success;
+            return Socket::Status::Success;
         }
 
         /*!
@@ -94,7 +94,7 @@ namespace fr
         void disconnect() override
         {
             WebFrame frame;
-            frame.set_opcode(WebFrame::Disconnect);
+            frame.set_opcode(WebFrame::Opcode::Disconnect);
             if(SocketType::connected())
                 SocketType::send(frame);
             SocketType::close_socket();
@@ -117,16 +117,16 @@ namespace fr
 
             //Initialise connection, receive the handshake
             HttpRequest request;
-            if(SocketType::receive(request) != fr::Socket::Success)
+            if(SocketType::receive(request) != Socket::Status::Success)
                 throw std::runtime_error("Failed to receive WebSock handshake");
 
-            if(request.header("Upgrade") != "websocket" || request.get_type() != fr::Http::Get)
+            if(request.header("Upgrade") != "websocket" || request.get_type() != Http::RequestType::Get)
                 throw std::runtime_error("Client isn't using the WebSock protocol");
 
             //Calculate the derived key, then send back our response
             std::string derived_key = Base64::encode(Sha1::sha1_digest(request.header("sec-websocket-key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"));
             HttpResponse response;
-            response.set_status(fr::Http::SwitchingProtocols);
+            response.set_status(Http::RequestStatus::SwitchingProtocols);
             response.header("Upgrade") = "websocket";
             response.header("Connection") = "Upgrade";
             response.header("Sec-WebSocket-Accept") = derived_key;

@@ -26,7 +26,7 @@ namespace fr
     }
 
 
-    void URL::parse(std::string url)
+    void URL::parse(const std::string &url)
     {
         scheme = Scheme::Unknown;
         size_t parse_offset = 0;
@@ -131,13 +131,6 @@ namespace fr
         if(iter == scheme_string_map.end())
             return URL::Unknown;
         return iter->second;
-    }
-
-    std::string URL::to_lower(const std::string &str)
-    {
-        std::string out = str;
-        std::transform(out.begin(), out.end(), out.begin(), ::tolower);
-        return out;
     }
 
     const std::string &URL::scheme_to_string(URL::Scheme scheme)

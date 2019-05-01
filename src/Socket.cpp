@@ -27,7 +27,7 @@ namespace fr
     Socket::Status Socket::send(const Sendable &obj)
     {
         if(!connected())
-            return Socket::Disconnected;
+            return Socket::Status::Disconnected;
 
         return obj.send(this);
     }
@@ -45,13 +45,13 @@ namespace fr
             size_t received = 0;
             Status status = receive_raw((char*)dest + (buffer_size - bytes_remaining), (size_t)bytes_remaining, received);
             bytes_remaining -= received;
-            if(status != Socket::Success)
+            if(status != Socket::Status::Success)
             {
                 if((ssize_t)buffer_size == bytes_remaining)
                     return status;
-                if(status == Socket::WouldBlock)
+                if(status == Socket::Status::WouldBlock)
                     continue;
-                return Socket::Disconnected;
+                return Socket::Status::Disconnected;
             }
         }
 
@@ -99,49 +99,49 @@ namespace fr
 
         switch(status)
         {
-            case Unknown:
+            case Socket::Status::Unknown:
                 return "Unknown";
-            case Success:
+            case Socket::Status::Success:
                 return "Success";
-            case ListenFailed:
+            case Socket::Status::ListenFailed:
                 return std::string("Listen Failed (").append(ERR_STR).append(")");
-            case BindFailed:
+            case Socket::Status::BindFailed:
                 return std::string("Bind Failed (").append(ERR_STR).append(")");
-            case Disconnected:
+            case Socket::Status::Disconnected:
                 return "The Socket Is Not Connected";
-            case Error:
+            case Socket::Status::Error:
                 return "Error";
-            case WouldBlock:
+            case Socket::Status::WouldBlock:
                 return "Would Block";
-            case ConnectionFailed:
+            case Socket::Status::ConnectionFailed:
                 return "Connection Failed";
-            case HandshakeFailed:
+            case Socket::Status::HandshakeFailed:
                 return "Handshake Failed";
-            case VerificationFailed:
+            case Socket::Status::VerificationFailed:
                 return "Verification Failed";
-            case MaxPacketSizeExceeded:
+            case Socket::Status::MaxPacketSizeExceeded:
                 return "Max Packet Size Exceeded";
-            case NotEnoughData:
+            case Socket::Status::NotEnoughData:
                 return "Not Enough Data";
-            case ParseError:
+            case Socket::Status::ParseError:
                 return "Parse Error";
-            case HttpHeaderTooBig:
+            case Socket::Status::HttpHeaderTooBig:
                 return "HTTP Header Too Big";
-            case HttpBodyTooBig:
+            case Socket::Status::HttpBodyTooBig:
                 return "HTTP Body Too Big";
-            case AddressLookupFailure:
+            case Socket::Status::AddressLookupFailure:
 #ifdef _WIN32
                 return std::string("Address Lookup Failure (").append(wsa_err_to_str(WSAGetLastError())).append(")");
 #else
                 return std::string("Address Lookup Failure (").append(gai_strerror(errno)).append(")");
 #endif
-            case SendError:
+            case Socket::Status::SendError:
                 return std::string("Send Error (").append(ERR_STR).append(")");
-            case ReceiveError:
+            case Socket::Status::ReceiveError:
                 return std::string("Receive Error (").append(ERR_STR).append(")");
-            case AcceptError:
+            case Socket::Status::AcceptError:
                 return std::string("Accept Error (").append(ERR_STR).append(")");
-            case SSLError:
+            case Socket::Status::SSLError:
             {
 #ifdef USE_SSL
                 char buff[256] = {0};
@@ -151,9 +151,9 @@ namespace fr
                 return "Generic SSL Error";
 #endif
             }
-            case NoRouteToHost:
+            case Socket::Status::NoRouteToHost:
                 return "No Route To Host";
-            case Timeout:
+            case Socket::Status::Timeout:
                 return "Timeout";
             default:
                 return "Unknown";

@@ -14,10 +14,10 @@ TEST(HttpRequestTest, get_request_parse)
 
     //Parse it
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Success);
+    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Status::Success);
 
     //Check that the request type is intact
-    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Get);
 
     //Test that URI is intact
     ASSERT_EQ(request.get_uri(), "/index.html");
@@ -57,10 +57,10 @@ TEST(HttpRequestTest, post_request_parse)
 
     //Parse it
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Success);
+    ASSERT_EQ(request.parse(raw_request.c_str(), raw_request.size()), fr::Socket::Status::Success);
 
     //Check that the request type is intact
-    ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Post);
 
     //Test that URI is intact
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
@@ -89,48 +89,48 @@ TEST(HttpRequestTest, request_type_parse)
     const std::string invalid_request2 = "PU / HTTP/1.1\r\n\r\n";
 
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(get_request.c_str(), get_request.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.parse(get_request.c_str(), get_request.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Get);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(post_request.c_str(), post_request.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.parse(post_request.c_str(), post_request.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Post);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(get_request_v2.c_str(), get_request_v2.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.parse(get_request_v2.c_str(), get_request_v2.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Get);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1);
     request = {};
 
-    ASSERT_EQ(request.parse(post_request_v2.c_str(), post_request_v2.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.parse(post_request_v2.c_str(), post_request_v2.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Post);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1);
     request = {};
 
-    ASSERT_EQ(request.parse(put_request.c_str(), put_request.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Put);
+    ASSERT_EQ(request.parse(put_request.c_str(), put_request.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Put);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(delete_request.c_str(), delete_request.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Delete);
+    ASSERT_EQ(request.parse(delete_request.c_str(), delete_request.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Delete);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(patch_request.c_str(), patch_request.size()), fr::Socket::Success);
-    ASSERT_EQ(request.get_type(), fr::Http::Patch);
+    ASSERT_EQ(request.parse(patch_request.c_str(), patch_request.size()), fr::Socket::Status::Success);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Patch);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(invalid_request.c_str(), invalid_request.size()), fr::Socket::ParseError);
-    ASSERT_EQ(request.get_type(), fr::Http::Unknown);
+    ASSERT_EQ(request.parse(invalid_request.c_str(), invalid_request.size()), fr::Socket::Status::ParseError);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Unknown);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 
-    ASSERT_EQ(request.parse(invalid_request2.c_str(), invalid_request2.size()), fr::Socket::ParseError);
-    ASSERT_EQ(request.get_type(), fr::Http::Unknown);
+    ASSERT_EQ(request.parse(invalid_request2.c_str(), invalid_request2.size()), fr::Socket::Status::ParseError);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Unknown);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
     request = {};
 }
@@ -147,7 +147,7 @@ TEST(HttpRequestTest, get_request_construction)
     request.get("my_get") = "var1";
     request.get("my_other_get") = "var2";
     request.set_uri("heyo/bobby");
-    request.set_type(fr::Http::Get);
+    request.set_type(fr::Http::RequestType::Get);
     std::string constructed_request = request.construct("frednicolson.co.uk");
 
     //Parse it and check that everything's correct
@@ -158,7 +158,7 @@ TEST(HttpRequestTest, get_request_construction)
     ASSERT_EQ(request.get("my_get"), "var1");
     ASSERT_EQ(request.get("my_other_get"), "var2");
     ASSERT_EQ(request.get_uri(), "/heyo/bobby");
-    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Get);
     ASSERT_EQ(request.get_version(), fr::Http::RequestVersion::V1_1);
 
     //Quick v1 test
@@ -179,7 +179,7 @@ TEST(HttpRequestTest, post_request_construction)
     request.get("var") = "20";
     request.post("my_post") = "post_data";
     request.post("some_post") = "more_post";
-    request.set_type(fr::Http::Post);
+    request.set_type(fr::Http::RequestType::Post);
     const std::string constructed_request = request.construct("frednicolson.co.uk");
 
     //Parse it
@@ -191,7 +191,7 @@ TEST(HttpRequestTest, post_request_construction)
     ASSERT_EQ(request.get("var"), "20");
     ASSERT_EQ(request.post("my_post"), "post_data");
     ASSERT_EQ(request.post("some_post"), "more_post");
-    ASSERT_EQ(request.get_type(), fr::Http::Post);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Post);
 }
 
 TEST(HttpRequestTest, partial_parse)
@@ -211,13 +211,13 @@ TEST(HttpRequestTest, partial_parse)
 
     //Parse part 1
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(raw_request1.c_str(), raw_request1.size()), fr::Socket::NotEnoughData);
+    ASSERT_EQ(request.parse(raw_request1.c_str(), raw_request1.size()), fr::Socket::Status::NotEnoughData);
 
     //Parse part 2
-    ASSERT_EQ(request.parse(raw_request2.c_str(), raw_request2.size()), fr::Socket::Success);
+    ASSERT_EQ(request.parse(raw_request2.c_str(), raw_request2.size()), fr::Socket::Status::Success);
 
     //Verify it
-    ASSERT_EQ(request.get_type(), fr::Http::Get);
+    ASSERT_EQ(request.get_type(), fr::Http::RequestType::Get);
     ASSERT_EQ(request.header("content-type"), "application/x-www-form-urlencoded");
     ASSERT_EQ(request.header("Cache-Control"), "no-cache");
 }
@@ -230,7 +230,7 @@ TEST(HttpRequestTest, awkward_parse)
             "Test=bob\n"
             "\n";
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Success);
+    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Status::Success);
     ASSERT_EQ(request.get_uri(), "/my/url");
     ASSERT_EQ(request.post("Test"), "bob");
 }
@@ -242,7 +242,7 @@ TEST(HttpRequestTest, awkward_parse2)
             "Test=bob";
 
     fr::HttpRequest request;
-    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Success);
+    ASSERT_EQ(request.parse(request_data.c_str(), request_data.size()), fr::Socket::Status::Success);
     ASSERT_EQ(request.get_uri(), "/my/url");
     ASSERT_EQ(request.get("Bob"), "10");
     ASSERT_EQ(request.post("Test"), "bob");

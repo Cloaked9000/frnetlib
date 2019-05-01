@@ -72,14 +72,14 @@ namespace fr
          *
          * @return True if connected, false otherwise
          */
-        bool connected() const noexcept override;
+        bool connected() const override;
 
         /*!
          * Gets the underlying socket descriptor.
          *
          * @return The socket descriptor.
          */
-        int32_t get_socket_descriptor() const noexcept override;
+        int32_t get_socket_descriptor() const override;
 
     private:
         mbedtls_net_context listen_fd;

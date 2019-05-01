@@ -22,8 +22,8 @@ namespace fr
         if(!header_ended)
         {
             //Verify that it's a valid HTTP header so far
-            if(!body.empty() && Http::string_to_request_type(body) == fr::Http::Unknown)
-                return fr::Socket::ParseError;
+            if(!body.empty() && Http::string_to_request_type(body) == Http::RequestType::Unknown)
+                return fr::Socket::Status::ParseError;
 
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
@@ -38,16 +38,16 @@ namespace fr
             //Ensure that the header doesn't exceed max length
             if((!header_ended && body.size() > MAX_HTTP_HEADER_SIZE) || (header_ended && header_end > MAX_HTTP_HEADER_SIZE))
             {
-                return fr::Socket::HttpHeaderTooBig;
+                return fr::Socket::Status::HttpHeaderTooBig;
             }
 
             //If the header end has not been found, ask for more data.
             if(!header_ended)
-                return fr::Socket::NotEnoughData;
+                return fr::Socket::Status::NotEnoughData;
 
             //Else parse it
             if(!parse_header(header_end))
-                return fr::Socket::ParseError;
+                return fr::Socket::Status::ParseError;
 
             //Leave things after the header intact
             body.erase(0, header_end + header_end_size);
@@ -56,7 +56,7 @@ namespace fr
         //Ensure that body doesn't exceed maximum length
         if(body.size() > MAX_HTTP_BODY_SIZE)
         {
-            return fr::Socket::HttpBodyTooBig;
+            return fr::Socket::Status::HttpBodyTooBig;
         }
 
         //If we've got the whole request, parse the POST if it exists
@@ -64,10 +64,10 @@ namespace fr
         {
             if(request_type == RequestType::Post)
                 parse_post_body();
-            return fr::Socket::Success;
+            return fr::Socket::Status::Success;
         }
 
-        return fr::Socket::NotEnoughData;
+        return fr::Socket::Status::NotEnoughData;
     }
 
     bool HttpRequest::parse_header(int64_t header_end_pos)
@@ -82,7 +82,7 @@ namespace fr
 
             //Parse request type & uri
             request_type = parse_header_type(header_lines[line]);
-            if(request_type > Http::RequestTypeCount)
+            if(request_type > Http::RequestType::RequestTypeCount)
                 return false;
             parse_header_uri(header_lines[line]);
             line++;
@@ -107,7 +107,7 @@ namespace fr
     std::string HttpRequest::construct(const std::string &host) const
     {
         //Add HTTP header
-        std::string request = request_type_to_string(request_type == Http::Unknown ? Http::Get : request_type) + " " + uri;
+        std::string request = request_type_to_string(request_type == Http::RequestType::Unknown ? Http::RequestType::Get : request_type) + " " + uri;
         if(!get_data.empty())
         {
             request += "?";
@@ -119,7 +119,7 @@ namespace fr
             }
         }
 
-        static_assert(RequestVersion::VersionCount == 3, "Update me");
+        static_assert((uint32_t)RequestVersion::VersionCount == 3, "Update me");
         request += (version == RequestVersion::V1) ? " HTTP/1.0\r\n" : " HTTP/1.1\r\n";
 
         //Add the headers to the request
@@ -192,7 +192,7 @@ namespace fr
         {
             return string_to_request_type(str.substr(0, type_end));
         }
-        return Http::Unknown;
+        return Http::RequestType::Unknown;
     }
 
     void HttpRequest::parse_header_uri(const std::string &str)
@@ -223,7 +223,7 @@ namespace fr
         }
 
         //Parse HTTP version. HTTP/1.0 or HTTP/1.1
-        static_assert(RequestVersion::VersionCount == 3, "Update me");
+        static_assert((uint32_t)RequestVersion::VersionCount == 3, "Update me");
         version = str.compare(uri_end + 1, 8, "HTTP/1.0") == 0 ? RequestVersion::V1 :  RequestVersion::V1_1;
     }
 }

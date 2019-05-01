@@ -13,8 +13,8 @@ namespace fr
 {
 
     TcpSocket::TcpSocket() noexcept
-            : socket_descriptor(-1),
-              is_blocking(true)
+    : socket_descriptor(-1),
+      is_blocking(true)
     {
 
     }
@@ -192,7 +192,7 @@ namespace fr
             return Socket::Status::Error;
 
         //Update state now we've got a valid socket descriptor
-        remote_address = address + ":" + port;
+        set_remote_address(address + ":" + port);
         reconfigure_socket();
 
         return Socket::Status::Success;
@@ -203,7 +203,7 @@ namespace fr
         if(!set_unix_socket_blocking(socket_descriptor, is_blocking, should_block))
             return Status::Error;
         is_blocking = should_block;
-        return Socket::Success;
+        return fr::Socket::Status::Success;
     }
 
     int32_t TcpSocket::get_socket_descriptor() const noexcept

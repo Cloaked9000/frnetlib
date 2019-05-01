@@ -14,7 +14,7 @@ namespace fr
     class WebFrame : public fr::Sendable
     {
     public:
-        enum Opcode : uint8_t
+        enum class Opcode : uint8_t
         {
             Continuation = 0,
             Text = 1,
@@ -29,7 +29,7 @@ namespace fr
          *
          * @param type The opcode type. See set_opcode. Text by default.
          */
-        explicit WebFrame(Opcode type = Text);
+        explicit WebFrame(Opcode type = Opcode::Text);
 
         /*!
          * Get's the receied payload data. (Data received).

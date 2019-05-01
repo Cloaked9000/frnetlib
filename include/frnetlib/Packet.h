@@ -710,7 +710,7 @@ namespace fr
             do
             {
                 state = socket->send_raw(&buffer[0], buffer.size(), sent);
-            } while(state == fr::Socket::WouldBlock);
+            } while(state == fr::Socket::Status::WouldBlock);
             return state;
         }
 
@@ -737,7 +737,7 @@ namespace fr
 
             //Check that packet_length doesn't exceed the limit, if any
             if(socket->get_max_receive_size() && packet_length > socket->get_max_receive_size())
-                return fr::Socket::MaxPacketSizeExceeded;
+                return fr::Socket::Status::MaxPacketSizeExceeded;
 
             //Now we've got the length, read the rest of the data in
             if(packet_length + PACKET_HEADER_LENGTH > buffer.size())
@@ -746,9 +746,9 @@ namespace fr
             do
             {
                 status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
-            } while(status == fr::Socket::WouldBlock);
-            if(status == fr::Socket::Timeout)
-              status = fr::Socket::Disconnected;
+            } while(status == fr::Socket::Status::WouldBlock);
+            if(status == fr::Socket::Status::Timeout)
+              status = fr::Socket::Status::Disconnected;
             return status;
         }
 

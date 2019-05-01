@@ -168,10 +168,10 @@ namespace fr
         {
             fr::TcpSocket socket;
             auto ret = socket.connect(address, port, timeout);
-            if(ret != fr::Socket::Success)
+            if(ret != fr::Socket::Status::Success)
                 return ret;
             ssl_socket_descriptor->fd = socket.get_socket_descriptor();
-            remote_address = socket.get_remote_address();
+            set_remote_address(socket.get_remote_address());
             socket.set_descriptor(nullptr);
         }
 
@@ -249,11 +249,11 @@ namespace fr
         if(ret != 0)
         {
             errno = ret;
-            return fr::Socket::SSLError;
+            return fr::Socket::Status::SSLError;
         }
 
         is_blocking = should_block;
-        return fr::Socket::Success;
+        return fr::Socket::Status::Success;
     }
 
     void SSLSocket::reconfigure_socket()

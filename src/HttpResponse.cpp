@@ -16,7 +16,7 @@ namespace fr
         {
             //Verify that it's a valid HTTP response if there's enough data
             if(body.size() >= 4 && body.compare(0, 4, "HTTP") != 0)
-                return fr::Socket::ParseError;
+                return fr::Socket::Status::ParseError;
 
             //Check to see if this request data contains the end of the header
             uint16_t header_end_size = 4;
@@ -31,16 +31,16 @@ namespace fr
             //Ensure that the header doesn't exceed max length
             if((!header_ended && body.size() > MAX_HTTP_HEADER_SIZE) || (header_ended && header_end > MAX_HTTP_HEADER_SIZE))
             {
-                return fr::Socket::HttpHeaderTooBig;
+                return fr::Socket::Status::HttpHeaderTooBig;
             }
 
             //If the header end has not been found, ask for more data.
             if(!header_ended)
-                return fr::Socket::NotEnoughData;
+                return fr::Socket::Status::NotEnoughData;
 
             //Else parse it
             if(!parse_header(header_end))
-                return fr::Socket::ParseError;
+                return fr::Socket::Status::ParseError;
 
             //Leave things after the header intact
             body.erase(0, header_end + header_end_size);
@@ -48,14 +48,14 @@ namespace fr
 
         //Ensure that body doesn't exceed maximum length
         if(body.size() > MAX_HTTP_BODY_SIZE)
-            return fr::Socket::HttpBodyTooBig;
+            return fr::Socket::Status::HttpBodyTooBig;
 
         //Cut off any data if it exceeds content length, todo: potentially an issue, could cut the next request off
         if(body.size() > content_length)
             body.resize(content_length);
         else if(body.size() < content_length)
-            return fr::Socket::NotEnoughData;
-        return fr::Socket::Success;
+            return fr::Socket::Status::NotEnoughData;
+        return fr::Socket::Status::Success;
 
     }
 
@@ -63,8 +63,8 @@ namespace fr
     {
         //Add HTTP header
 
-        static_assert(RequestVersion::VersionCount == 3, "Update me");
-        std::string response = ((version == RequestVersion::V1) ? "HTTP/1.0 " : "HTTP/1.1 ") + std::to_string(status) + " \r\n";
+        static_assert((uint32_t)RequestVersion::VersionCount == 3, "Update me");
+        std::string response = ((version == RequestVersion::V1) ? "HTTP/1.0 " : "HTTP/1.1 ") + std::to_string((uint32_t)status) + " \r\n";
 
         //Add the headers to the response
         for(const auto &header : header_data)
@@ -107,7 +107,7 @@ namespace fr
             status = (RequestStatus)std::stoi(header_lines[0].substr(status_begin, end_pos - status_begin));
 
             //Get HTTP version
-            static_assert(RequestVersion::VersionCount == 3, "Update me");
+            static_assert((uint32_t)RequestVersion::VersionCount == 3, "Update me");
             version = header_lines[0].compare(0, status_begin, "HTTP/1.0") == 0 ? RequestVersion::V1 : RequestVersion::V1_1;
             line++;
 

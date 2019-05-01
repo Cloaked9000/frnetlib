@@ -7,31 +7,31 @@
 
 TEST(HttpTest, test_request_type_to_string)
 {
-    for(size_t a = 0; a < fr::Http::RequestTypeCount; ++a)
+    for(size_t a = 0; a < (uint32_t)fr::Http::RequestType::RequestTypeCount; ++a)
     {
-        ASSERT_EQ(fr::Http::string_to_request_type(fr::Http::request_type_to_string((fr::Http::RequestType)a)), a);
+        ASSERT_EQ((size_t)fr::Http::string_to_request_type(fr::Http::request_type_to_string((fr::Http::RequestType)a)), a);
     }
 
-    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::Partial), "UNKNOWN");
-    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::RequestTypeCount), "UNKNOWN");
-    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::Unknown), "UNKNOWN");
+    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::RequestType::Partial), "UNKNOWN");
+    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::RequestType::RequestTypeCount), "UNKNOWN");
+    ASSERT_EQ(fr::Http::request_type_to_string(fr::Http::RequestType::Unknown), "UNKNOWN");
 }
 
 TEST(HttpTest, test_string_to_request_type)
 {
     std::vector<std::pair<fr::Http::RequestType, std::string>> strings = {
-            {fr::Http::Get, "GET"},
-            {fr::Http::Put, "PUT"},
-            {fr::Http::Delete, "DELETE"},
-            {fr::Http::Patch, "PATCH"},
-            {fr::Http::Patch, "PATCHid-=wa"},
-            {fr::Http::Partial, "PA"},
-            {fr::Http::Partial, "PU"},
-            {fr::Http::Partial, "DELET"},
-            {fr::Http::Unknown, "DELETa"},
-            {fr::Http::Unknown, "U"},
-            {fr::Http::Unknown, "dwaouidhwi"},
-            {fr::Http::Unknown, "get"},
+            {fr::Http::RequestType::Get, "GET"},
+            {fr::Http::RequestType::Put, "PUT"},
+            {fr::Http::RequestType::Delete, "DELETE"},
+            {fr::Http::RequestType::Patch, "PATCH"},
+            {fr::Http::RequestType::Patch, "PATCHid-=wa"},
+            {fr::Http::RequestType::Partial, "PA"},
+            {fr::Http::RequestType::Partial, "PU"},
+            {fr::Http::RequestType::Partial, "DELET"},
+            {fr::Http::RequestType::Unknown, "DELETa"},
+            {fr::Http::RequestType::Unknown, "U"},
+            {fr::Http::RequestType::Unknown, "dwaouidhwi"},
+            {fr::Http::RequestType::Unknown, "get"},
     };
 
     for(auto &str : strings)

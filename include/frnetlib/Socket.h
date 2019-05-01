@@ -17,7 +17,7 @@ namespace fr
     class Socket : public SocketDescriptor
     {
     public:
-        enum Status
+        enum class Status
         {
             Unknown = 0,
             Success = 1,
@@ -44,7 +44,7 @@ namespace fr
             //Remember to update status_to_string if more are added
         };
 
-        enum IP
+        enum class IP
         {
             v4 = 1,
             v6 = 2,
@@ -163,7 +163,7 @@ namespace fr
          * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
          * Anything else: Object invalid. Call disconnect().
          */
-        Status receive_all(void *dest, size_t buffer_size);
+        Socket::Status receive_all(void *dest, size_t buffer_size);
 
         /*!
          * Calls the shutdown syscall on the socket.
@@ -278,9 +278,9 @@ namespace fr
          *
          * @return The string address
          */
-        inline const std::string &get_remote_address() const
+        const std::string &get_remote_address() const
         {
-            return remote_address;
+            return fr_socket_remote_address;
         }
 
         /*!
@@ -290,7 +290,7 @@ namespace fr
          */
         inline void set_remote_address(const std::string &addr)
         {
-            remote_address = addr;
+            fr_socket_remote_address = addr;
         }
     protected:
 
@@ -305,7 +305,7 @@ namespace fr
          */
         virtual void reconfigure_socket()=0;
 
-        std::string remote_address;
+        std::string fr_socket_remote_address;
         int ai_family;
         uint32_t max_receive_size;
         uint32_t socket_read_timeout;

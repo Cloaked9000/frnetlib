@@ -74,14 +74,14 @@ namespace fr
         mbedtls_net_init(&listen_fd);
         fr::TcpListener tcp_listen;
         tcp_listen.set_inet_version(ai_family);
-        if(tcp_listen.listen(port) != fr::Socket::Success)
+        if(tcp_listen.listen(port) != fr::Socket::Status::Success)
         {
-            return Socket::BindFailed;
+            return Socket::Status::BindFailed;
         }
 
         listen_fd.fd = tcp_listen.get_socket_descriptor();
         tcp_listen.set_socket_descriptor(-1); //The socket wont close if it's -1 when we destruct it
-        return Socket::Success;
+        return Socket::Status::Success;
     }
 
     Socket::Status SSLListener::accept(Socket &client_)
@@ -100,7 +100,7 @@ namespace fr
         if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {
             free_contexts();
-            return Socket::Error;
+            return Socket::Status::Error;
         }
 
         //Accept a connection
@@ -109,7 +109,7 @@ namespace fr
         if((error = mbedtls_net_accept(&listen_fd, client_fd.get(), client_ip, sizeof(client_ip), &ip_len)) != 0)
         {
             free_contexts();
-            return Socket::AcceptError;
+            return Socket::Status::AcceptError;
         }
 
 
@@ -144,7 +144,7 @@ namespace fr
         client.set_ssl_context(std::move(ssl));
         client.set_descriptor(client_fd.release());
         client.set_remote_address(client_printable_addr);
-        return Socket::Success;
+        return Socket::Status::Success;
     }
 
     void SSLListener::shutdown()
@@ -152,7 +152,7 @@ namespace fr
         ::shutdown(listen_fd.fd, 0);
     }
 
-    int32_t SSLListener::get_socket_descriptor() const noexcept
+    int32_t SSLListener::get_socket_descriptor() const
     {
         return listen_fd.fd;
     }
@@ -171,7 +171,7 @@ namespace fr
         }
     }
 
-    bool SSLListener::connected() const noexcept
+    bool SSLListener::connected() const
     {
         return listen_fd.fd > -1;
     }

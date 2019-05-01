@@ -20,7 +20,7 @@ namespace fr
     {
         auto *socket = dynamic_cast<WebSocketBase*>(socket_);
         if(!socket)
-            return Socket::Error;
+            return Socket::Status::Error;
 
         uint16_t first_2bytes = 0;
         std::string buffer;
@@ -29,7 +29,7 @@ namespace fr
         first_2bytes |= final << 15;
 
         //Set opcode bit
-        first_2bytes |= opcode << 8;
+        first_2bytes |= (uint8_t)opcode << 8;
 
         //Set mask bit (dependent on is_client flag, only client -> server messages are masked)
         first_2bytes |= socket->is_client() << 7;
@@ -82,7 +82,7 @@ namespace fr
         do
         {
             state = socket_->send_raw(buffer.c_str(), buffer.size(), sent);
-        } while(state == fr::Socket::WouldBlock);
+        } while(state == fr::Socket::Status::WouldBlock);
         return state;
     }
 
@@ -90,13 +90,13 @@ namespace fr
     {
         auto *socket_ = dynamic_cast<WebSocketBase*>(socket);
         if(!socket_)
-            return Socket::Error;
+            return Socket::Status::Error;
         payload.clear();
         Socket::Status status;
 
         uint16_t first_2bytes;
         status = socket->receive_all(&first_2bytes, sizeof(first_2bytes));
-        if(status != fr::Socket::Success)
+        if(status != fr::Socket::Status::Success)
             return status;
         first_2bytes = ntohs(first_2bytes);
 
@@ -110,7 +110,7 @@ namespace fr
         auto mask = static_cast<bool>((first_2bytes >> 7) & 0x1);
         if(mask == socket_->is_client())
         {
-            return fr::Socket::Error;
+            return fr::Socket::Status::Error;
         }
 
 
@@ -122,11 +122,11 @@ namespace fr
             do
             {
                 status = socket->receive_all(&length, sizeof(length));
-            } while(status == fr::Socket::WouldBlock);
-            if(status == fr::Socket::Timeout)
-                status = fr::Socket::Disconnected;
+            } while(status == fr::Socket::Status::WouldBlock);
+            if(status == fr::Socket::Status::Timeout)
+                status = fr::Socket::Status::Disconnected;
             payload_length = ntohs(length);
-            if(status != fr::Socket::Success)
+            if(status != fr::Socket::Status::Success)
                 return status;
         }
         else if(payload_length == 127) //Length is longer than 16 bit, so read 64bit length
@@ -134,18 +134,18 @@ namespace fr
             do
             {
                 status = socket->receive_all(&payload_length, sizeof(payload_length));
-            } while(status == fr::Socket::WouldBlock);
-            if(status == fr::Socket::Timeout)
-                status = fr::Socket::Disconnected;
+            } while(status == fr::Socket::Status::WouldBlock);
+            if(status == fr::Socket::Status::Timeout)
+                status = fr::Socket::Status::Disconnected;
             payload_length = fr_ntohll(payload_length);
-            if(status != fr::Socket::Success)
+            if(status != fr::Socket::Status::Success)
                 return status;
         }
 
         //Verify that payload length isn't too large
         if(socket->get_max_receive_size() && payload_length > socket->get_max_receive_size())
         {
-            return Socket::MaxPacketSizeExceeded;
+            return Socket::Status::MaxPacketSizeExceeded;
         }
 
         //Read masking key if the mask bit is set
@@ -159,10 +159,10 @@ namespace fr
             do
             {
                 status = socket->receive_all(&mask_union.mask_key, 4);
-            } while(status == fr::Socket::WouldBlock);
-            if(status == fr::Socket::Timeout)
-                status = fr::Socket::Disconnected;
-            if(status != fr::Socket::Success)
+            } while(status == fr::Socket::Status::WouldBlock);
+            if(status == fr::Socket::Status::Timeout)
+                status = fr::Socket::Status::Disconnected;
+            if(status != fr::Socket::Status::Success)
                 return status;
         }
 
@@ -171,10 +171,10 @@ namespace fr
         do
         {
             status = socket->receive_all(&payload[0], payload_length);
-        } while(status == fr::Socket::WouldBlock);
-        if(status == fr::Socket::Timeout)
-            status = fr::Socket::Disconnected;
-        if(status != fr::Socket::Success)
+        } while(status == fr::Socket::Status::WouldBlock);
+        if(status == fr::Socket::Status::Timeout)
+            status = fr::Socket::Status::Disconnected;
+        if(status != fr::Socket::Status::Success)
             return status;
 
         //Decode the payload if the mask bit is set
@@ -186,7 +186,7 @@ namespace fr
             }
 
         }
-        return fr::Socket::Success;
+        return fr::Socket::Status::Success;
     }
 
 }

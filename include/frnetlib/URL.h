@@ -6,6 +6,7 @@
 #define FRNETLIB_URLPARSER_H
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 //Note, a URL looks like this:  scheme:[//host[:port]][/path][?query][#fragment]
 namespace fr
@@ -39,7 +40,7 @@ namespace fr
          *
          * @param url The URL to parse
          */
-        void parse(std::string url);
+        void parse(const std::string &url);
 
         /*!
          * Get the URL scheme
@@ -141,7 +142,12 @@ namespace fr
          * @param str The string to convert
          * @return The converted string
          */
-        static std::string to_lower(const std::string &str);
+        static std::string to_lower(const std::string &str)
+        {
+            std::string out = str;
+            std::transform(out.begin(), out.end(), out.begin(), ::tolower);
+            return out;
+        }
 
         //State
         Scheme scheme;

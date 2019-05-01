@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.9)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 project(frnetlib)
 set(FRNETLIB_LINK_LIBRARIES "")
 
@@ -6,7 +7,7 @@ set(FRNETLIB_LINK_LIBRARIES "")
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 
 #User options
-option(USE_SSL "Enable SSL support" OFF)
+option(USE_SSL "Enable SSL support" ON)
 option(BUILD_EXAMPLES "Build frnetlib examples" ON)
 option(BUILD_TESTS "Build frnetlib tests" ON)
 option(BUILD_WEBSOCK "Enable WebSocket support" ON)
