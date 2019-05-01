@@ -17,8 +17,6 @@ class Listener : public SocketDescriptor
             init_wsa();
         }
 
-        virtual ~Listener() = default;
-
         /*!
          * Listens to the given port for connections
          *

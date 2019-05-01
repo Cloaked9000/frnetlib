@@ -52,7 +52,6 @@ namespace fr
         };
 
         Socket();
-        virtual ~Socket() = default;
         Socket(Socket &&) =delete;
         Socket(const Socket &) =delete;
         void operator=(const Socket &) =delete;
