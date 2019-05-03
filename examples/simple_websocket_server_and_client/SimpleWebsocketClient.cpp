@@ -12,7 +12,7 @@ int main()
 {
     //Connect to the WebSocket server
     fr::WebSocket<fr::TcpSocket> socket; //Use an fr::SSLSocket for secure connections
-    if(socket.connect("127.0.0.1", "9091", {}) != fr::Socket::Success)
+    if(socket.connect("127.0.0.1", "9091", {}) != fr::Socket::Status::Success)
     {
         std::cerr << "Failed to connect to server!" << std::endl;
         return EXIT_FAILURE;
@@ -33,7 +33,7 @@ int main()
             }
             else if(message == "ping")
             {
-                frame.set_opcode(fr::WebFrame::Ping);
+                frame.set_opcode(fr::WebFrame::Opcode::Ping);
             }
             frame.set_payload(std::move(message));
             socket.send(frame);
@@ -47,20 +47,20 @@ int main()
     {
         //Receive the next frame
         fr::WebFrame frame;
-        if(socket.receive(frame) != fr::Socket::Success)
+        if(socket.receive(frame) != fr::Socket::Status::Success)
             continue;
 
         //If it's a Ping then we need to send back a frame containing the same payload, but of type Pong.
-        if(frame.get_opcode() == fr::WebFrame::Ping)
+        if(frame.get_opcode() == fr::WebFrame::Opcode::Ping)
         {
             std::cout << "Server sent a ping!" << std::endl;
-            frame.set_opcode(fr::WebFrame::Pong);
+            frame.set_opcode(fr::WebFrame::Opcode::Pong);
             socket.send(frame);
             continue;
         }
 
         //If it's a disconnect message, then we should finish sending across any messages, and then call disconnect
-        if(frame.get_opcode() == fr::WebFrame::Disconnect)
+        if(frame.get_opcode() == fr::WebFrame::Opcode::Disconnect)
         {
             socket.disconnect();
             continue;
@@ -71,9 +71,9 @@ int main()
         //a continuation from a previous message. You can check if it's the final part of the
         //message using fr::WebFrame::is_final().
         std::cout << "Got a new message from the server. It's a ";
-        if(frame.get_opcode() == fr::WebFrame::Text) std::cout << "text";
-        else if(frame.get_opcode() == fr::WebFrame::Binary) std::cout << "binary";
-        else if(frame.get_opcode() == fr::WebFrame::Pong) std::cout << "pong";
+        if(frame.get_opcode() == fr::WebFrame::Opcode::Text) std::cout << "text";
+        else if(frame.get_opcode() == fr::WebFrame::Opcode::Binary) std::cout << "binary";
+        else if(frame.get_opcode() == fr::WebFrame::Opcode::Pong) std::cout << "pong";
         else std::cout << "continuation of a previous";
         std::cout << " message. It is ";
         if(!frame.is_final()) std::cout << "not ";

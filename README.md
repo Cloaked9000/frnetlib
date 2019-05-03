@@ -17,7 +17,7 @@ Frnetlib is tested on both Linux and Windows and currently supports:
 #include <TcpSocket.h>
 
 fr::TcpSocket socket;
-if(socket.connect("127.0.0.1", "8081", std::chrono::seconds(10)) != fr::Socket::Success)
+if(socket.connect("127.0.0.1", "8081", std::chrono::seconds(10)) != fr::Socket::Status::Success)
 {
     //Failed to connect
 }
@@ -33,14 +33,14 @@ Here, we create a new fr::TcpSocket and connect it to an address. Simple. fr::Tc
 fr::TcpListener listener;
 
 //Bind to a port
-if(listener.listen("8081") != fr::Socket::Success)
+if(listener.listen("8081") != fr::Socket::Status::Success)
 {
     //Failed to bind to port
 }
 
 //Accept a connection
 fr::TcpSocket client;
-if(listener.accept(client) != fr::Socket::Success)
+if(listener.accept(client) != fr::Socket::Status::Success)
 {
     //Failed to accept a new connection
 }
@@ -76,7 +76,7 @@ SSLListener accepts a lot more arguments than its unencrypted counterpart, TcpLi
 fr::Packet packet;
 packet << "Hello there, I am" << (float)1.2 << "years old";
 
-if(socket.send(packet) != fr::Socket::Success)
+if(socket.send(packet) != fr::Socket::Status::Success)
 {
     //Failed to send packet
 }
@@ -87,7 +87,7 @@ To send messages using frnetlib's framing, use fr::Packet. Data added to the pac
 
 ```c++
 fr::Packet packet;
-if(client.receive(packet) != fr::Socket::Success)
+if(client.receive(packet) != fr::Socket::Status::Success)
 {
     //Failed to receive packet
 }
@@ -108,7 +108,7 @@ fr::TcpSocket client;                 //fr::TcpSocket for HTTP. fr::SSLSocket fo
 fr::TcpListener listener;             //Use an fr::SSLListener if HTTPS.
 
 //Bind to a port
-if(listener.listen("8081") != fr::Socket::Success)
+if(listener.listen("8081") != fr::Socket::Status::Success)
 {
     //Failed to bind to port
 }
@@ -116,14 +116,14 @@ if(listener.listen("8081") != fr::Socket::Success)
 while(true)
 {
     //Accept a new connection
-    if(listener.accept(client) != fr::Socket::Success)
+    if(listener.accept(client) != fr::Socket::Status::Success)
     {
         //Failed to accept client
     }
 
     //Receive client HTTP request
     fr::HttpRequest request;
-    if(client.receive(request) != fr::Socket::Success)
+    if(client.receive(request) != fr::Socket::Status::Success)
     {
         //Failed to receive request
     }
@@ -133,7 +133,7 @@ while(true)
     response.set_body("<h1>Hello, World!</h1>");
 
     //Send it
-    if(client.send(response) != fr::Socket::Success)
+    if(client.send(response) != fr::Socket::Status::Success)
     {
         //Failed to send response;
     }
@@ -154,7 +154,7 @@ fr::HttpRequest objects are used for dealing with data being sent *to* the serve
 
 //Connect to the website example.com on port 80, with a 10 second connection timeout
 fr::TcpSocket socket;
-if(socket.connect("example.com", "80", std::chrono::seconds(10)) != fr::Socket::Success)
+if(socket.connect("example.com", "80", std::chrono::seconds(10)) != fr::Socket::Status::Success)
 {
     //Failed to connect to site
 }
@@ -167,14 +167,14 @@ request.post("isalive") = "true";
 request["my-header"] = "value";
 
 //Send the request
-if(socket.send(request) != fr::Socket::Success)
+if(socket.send(request) != fr::Socket::Status::Success)
 {
     //Failed to send request
 }
 
 //Wait for a response
 fr::HttpResponse response;
-if(socket.receive(response) != fr::Socket::Success)
+if(socket.receive(response) != fr::Socket::Status::Success)
 {
     //Failed to receive response
 }

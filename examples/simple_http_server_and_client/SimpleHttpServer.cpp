@@ -14,26 +14,26 @@ int main()
     fr::TcpListener listener;
 
     //Bind to a port
-    if((err = listener.listen("8081")) != fr::Socket::Success)
+    if((err = listener.listen("8081")) != fr::Socket::Status::Success)
     {
-        std::cerr << "Failed to bind to port: " << err << std::endl;
+        std::cerr << "Failed to bind to port: " << fr::Socket::status_to_string(err) << std::endl;
         return EXIT_FAILURE;
     }
 
     while(true)
     {
         //Accept a new connection
-        if((err = listener.accept(client)) != fr::Socket::Success)
+        if((err = listener.accept(client)) != fr::Socket::Status::Success)
         {
-            std::cerr << "Failed to accept new connection: " << err << std::endl;
+            std::cerr << "Failed to accept new connection: " << fr::Socket::status_to_string(err) << std::endl;
             continue;
         }
 
         //Receive client HTTP request
         fr::HttpRequest request;
-        if((err = client.receive(request)) != fr::Socket::Success)
+        if((err = client.receive(request)) != fr::Socket::Status::Success)
         {
-            std::cerr << "Failed to receive request from client: " << err << std::endl;
+            std::cerr << "Failed to receive request from client: " << fr::Socket::status_to_string(err) << std::endl;
         }
 
         //Construct a response
@@ -41,9 +41,9 @@ int main()
         response.set_body("<h1>Hello, World!</h1>");
 
         //Send it
-        if((err = client.send(response)) != fr::Socket::Success)
+        if((err = client.send(response)) != fr::Socket::Status::Success)
         {
-            std::cerr << "Failed to send response to client: " << err << std::endl;
+            std::cerr << "Failed to send response to client: " << fr::Socket::status_to_string(err) << std::endl;
         }
 
         //Close connection
