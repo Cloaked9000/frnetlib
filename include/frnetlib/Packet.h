@@ -690,9 +690,6 @@ namespace fr
             return buffer.size() <= PACKET_HEADER_LENGTH ? 0 : buffer.size() - PACKET_HEADER_LENGTH;
         }
 
-    private:
-        friend class Socket;
-
         /*!
          * Overridable send, to allow
          * custom types to be directly sent through
@@ -748,9 +745,12 @@ namespace fr
                 status = socket->receive_all(&buffer[PACKET_HEADER_LENGTH], packet_length);
             } while(status == fr::Socket::Status::WouldBlock);
             if(status == fr::Socket::Status::Timeout)
-              status = fr::Socket::Status::Disconnected;
+                status = fr::Socket::Status::Disconnected;
             return status;
         }
+
+    private:
+        friend class Socket;
 
 
         mutable std::string buffer; //Packet data buffer

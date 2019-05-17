@@ -94,7 +94,6 @@ namespace fr
             final = is_final;
         }
 
-    protected:
         /*!
          * Overridable send, to allow
          * custom types to be directly sent through

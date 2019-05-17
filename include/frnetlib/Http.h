@@ -315,6 +315,29 @@ namespace fr
             return type;
         }
 
+        /*!
+         * Overridable send, to allow
+         * custom types to be directly sent through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not.
+         */
+        Socket::Status send(Socket *socket) const override;
+
+        /*!
+         * Overrideable receive, to allow
+         * custom types to be directly received through
+         * sockets.
+         *
+         * @param socket The socket to send through
+         * @return Status indicating if the send succeeded or not:
+         * 'Success': All good, object still valid.
+         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
+         * Anything else: Object invalid. Call disconnect().
+         */
+        Socket::Status receive(Socket *socket) override;
+
     protected:
         /*!
          * Splits a string by new line. Ignores escaped \n's
@@ -340,28 +363,7 @@ namespace fr
          */
         void parse_header_line(const std::string &str);
 
-        /*!
-         * Overridable send, to allow
-         * custom types to be directly sent through
-         * sockets.
-         *
-         * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not.
-         */
-        Socket::Status send(Socket *socket) const override;
 
-        /*!
-         * Overrideable receive, to allow
-         * custom types to be directly received through
-         * sockets.
-         *
-         * @param socket The socket to send through
-         * @return Status indicating if the send succeeded or not:
-         * 'Success': All good, object still valid.
-         * 'WouldBlock' or 'Timeout': No data received. Object still valid though.
-         * Anything else: Object invalid. Call disconnect().
-         */
-        Socket::Status receive(Socket *socket) override;
 
         //Other request info
         std::unordered_map<std::string, std::string> header_data;
