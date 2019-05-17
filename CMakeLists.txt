@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.9)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 project(frnetlib)
 set(FRNETLIB_LINK_LIBRARIES "")
 
