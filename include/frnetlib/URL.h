@@ -51,11 +51,27 @@ namespace fr
         }
 
         /*
+         * Set the URL host
+         */
+        inline void set_scheme(Scheme scheme_)
+        {
+            scheme = scheme_;
+        }
+
+        /*
          * Get the URL host
          */
         inline const std::string &get_host() const
         {
             return host;
+        }
+
+        /*
+         * Set the URL host
+         */
+        inline void set_host(std::string host_)
+        {
+            host = std::move(host_);
         }
 
         /*
@@ -66,6 +82,14 @@ namespace fr
             return port;
         }
 
+        /*!
+         * Set the port
+         */
+        inline void set_port(std::string port_)
+        {
+            port = std::move(port_);
+        }
+
         /*
          * Get the URL path
          */
@@ -73,6 +97,15 @@ namespace fr
         {
             return path;
         }
+
+        /*!
+         * Set the path
+         */
+        inline void set_path(std::string path_)
+        {
+            path = std::move(path_);
+        }
+
 
         /*
          * Get the URL query
@@ -82,12 +115,28 @@ namespace fr
             return query;
         }
 
+        /*!
+         * Set the query
+         */
+        inline void set_query(std::string query_)
+        {
+            query = std::move(query_);
+        }
+
         /*
          * Get the URL fragment
          */
         inline const std::string &get_fragment() const
         {
             return fragment;
+        }
+
+        /*!
+         * Set the fragment
+         */
+        inline void set_fragment(std::string fragment_)
+        {
+            fragment = std::move(fragment_);
         }
 
         /*!
@@ -100,13 +149,32 @@ namespace fr
         inline std::string get_uri() const
         {
             std::string result;
-            if(!get_path().empty())
-                result += get_path();
+            result += get_path();
             if(!get_query().empty())
                 result += "?" + get_query();
             if(!get_fragment().empty())
                 result += "#" + get_fragment();
             return result;
+        }
+
+        /*!
+         * Gets the *whole* URL, including every single element
+         *
+         * @return Whole URL
+         */
+        inline std::string get_url() const
+        {
+            std::string ret;
+            if(!get_host().empty())
+            {
+                if(scheme != Scheme::Unknown)
+                    ret.append(scheme_to_string(scheme)).append("://");
+                ret.append(get_host());
+                if(!get_port().empty())
+                    ret.append(":").append(port);
+            }
+            ret.append(get_uri());
+            return ret;
         }
 
         /*!

@@ -73,3 +73,19 @@ TEST(URLTest, schema_parse_test)
     url2.parse("127.0.0.1:2020");
     ASSERT_TRUE(url == url2);
 }
+
+TEST(URLTest, get_url_test)
+{
+    ASSERT_EQ(fr::URL("127.0.0.1:2020").get_url(), "127.0.0.1:2020");
+    ASSERT_EQ(fr::URL("https://127.0.0.1:2020").get_url(), "https://127.0.0.1:2020");
+    ASSERT_EQ(fr::URL("https://127.0.0.1").get_url(), "https://127.0.0.1:443");
+    ASSERT_EQ(fr::URL("127.0.0.1/hello.php?x=10").get_url(), "127.0.0.1/hello.php?x=10");
+    ASSERT_EQ(fr::URL("/hello.php").get_url(), "/hello.php");
+}
+
+TEST(URLTest, test_modify_url)
+{
+    fr::URL url("https://example.com:2020");
+    url.set_host("example.co.uk");
+    ASSERT_EQ(url.get_url(), "https://example.co.uk:2020");
+}

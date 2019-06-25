@@ -7,10 +7,10 @@
 #include <algorithm>
 #include "frnetlib/NetworkEncoding.h"
 
-constexpr bool is_little_endian()
+bool is_little_endian()
 {
     unsigned short x=0x0001;
-    auto p = reinterpret_cast<unsigned char*>(&x);
+    auto p = (unsigned char*)(&x);
     return *p != 0;
 }
 
