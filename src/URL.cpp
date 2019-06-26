@@ -61,9 +61,12 @@ namespace fr
             pos = url.find('/', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.find('?', parse_offset);
             pos = (pos != std::string::npos) ? pos : url.find('#', parse_offset);
-            pos = (pos != std::string::npos) ? pos : url.size();
-            host = url.substr(parse_offset, pos - parse_offset);
-            parse_offset = pos + 1;
+            if(pos != std::string::npos || parse_offset != 0)
+            {
+                pos = (pos != std::string::npos) ? pos : url.size();
+                host = url.substr(parse_offset, pos - parse_offset);
+                parse_offset = pos + 1;
+            }
 
             //Guess port based on scheme, if it's not explicitly provided.
             switch(scheme)

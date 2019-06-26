@@ -89,3 +89,27 @@ TEST(URLTest, test_modify_url)
     url.set_host("example.co.uk");
     ASSERT_EQ(url.get_url(), "https://example.co.uk:2020");
 }
+
+TEST(URLTest, test_path_only_parse)
+{
+    {
+        fr::URL url("/bob");
+        ASSERT_TRUE(url.get_host().empty());
+        ASSERT_EQ(url.get_path(), "/bob");
+    }
+    {
+        fr::URL url("bob");
+        ASSERT_TRUE(url.get_host().empty());
+        ASSERT_EQ(url.get_path(), "/bob");
+    }
+    {
+        fr::URL url("http://bob");
+        ASSERT_EQ(url.get_host(), "bob");
+        ASSERT_TRUE(url.get_path().empty());
+    }
+    {
+        fr::URL url("bob.com/trob");
+        ASSERT_EQ(url.get_host(), "bob.com");
+        ASSERT_EQ(url.get_path(), "/trob");
+    }
+}
