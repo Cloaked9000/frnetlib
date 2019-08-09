@@ -15,6 +15,10 @@
 #include "Packetable.h"
 #include "Sendable.h"
 
+#ifdef __cpp_lib_string_view
+#include <string_view>
+#endif
+
 namespace fr
 {
 #define PACKET_HEADER_LENGTH sizeof(uint32_t)
@@ -504,6 +508,36 @@ namespace fr
             return *this;
         }
 
+#ifdef __cpp_lib_string_view
+        /*!
+         * Pack an std::string_view. This will make a copy.
+         * May be extracted as either an std::string or an std::string_view
+         */
+        inline Packet &operator<<(std::string_view view)
+        {
+            //Same as std::string
+            *this << (uint32_t)view.size();
+            buffer.append(view.data(), view.size());
+            return *this;
+        }
+
+        /*!
+         * Extracts a string as an std::string_view.
+         *
+         * @note Be very careful with this. If the packet is destroyed then the string_view will be too!
+         */
+        inline Packet&operator>>(std::string_view &var)
+        {
+            uint32_t length;
+            *this >> length;
+
+            assert_bytes_remaining(length);
+            var = std::string_view(&buffer[buffer_read_index], length);
+            buffer_read_index += length;
+            return *this;
+        }
+#endif
+
         /*
          * Adds a string variable to the packet
          */
@@ -523,7 +557,8 @@ namespace fr
             uint32_t length;
             *this >> length;
 
-            var = buffer.substr(buffer_read_index, length);
+            assert_bytes_remaining(length);
+            var.assign(&buffer[buffer_read_index], length);
             buffer_read_index += length;
 
             return *this;
