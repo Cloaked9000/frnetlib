@@ -137,7 +137,10 @@ namespace fr
             if(++iter != get_data.end())
                 post_string += "&";
         }
-        post_string += "\r\n";
+        if(!post_string.empty())
+        {
+            post_string += "\r\n";
+        }
 
         //Add in required headers if they're missing
         if(header_data.find("Connection") == header_data.end())

@@ -51,7 +51,7 @@ namespace fr
             return fr::Socket::Status::HttpBodyTooBig;
 
         //Cut off any data if it exceeds content length, todo: potentially an issue, could cut the next request off
-        if(body.size() > content_length)
+        if(content_length > 0 && body.size() > content_length)
             body.resize(content_length);
         else if(body.size() < content_length)
             return fr::Socket::Status::NotEnoughData;
@@ -78,7 +78,7 @@ namespace fr
             response += "connection: keep-alive\r\n";
         if(header_data.find("content-type") == header_data.end())
             response += "content-type: text/html\r\n";
-        if(header_data.find("content-length") == header_data.end())
+        if(header_data.find("content-length") == header_data.end() && !body.empty())
             response += "content-length: " + std::to_string(body.size()) + "\r\n";
 
         //Add in space
