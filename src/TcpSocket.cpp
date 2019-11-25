@@ -5,8 +5,6 @@
 #include <iostream>
 #include <frnetlib/SocketSelector.h>
 #include <frnetlib/TcpSocket.h>
-
-#include "frnetlib/TcpSocket.h"
 #define DEFAULT_SOCKET_TIMEOUT 20
 
 namespace fr
@@ -21,7 +19,7 @@ namespace fr
 
     TcpSocket::~TcpSocket()
     {
-        close_socket();
+        TcpSocket::close_socket();
     }
 
     Socket::Status TcpSocket::send_raw(const char *data, size_t size, size_t &sent)

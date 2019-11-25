@@ -27,5 +27,5 @@ else()
 endif()
 
 #Link tests
-target_link_libraries(${FRNETLIB_TEST} frnetlib)
+target_link_libraries(${FRNETLIB_TEST} frnetlib gmock)
 add_test(test1 ${FRNETLIB_TEST})

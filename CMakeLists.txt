@@ -95,6 +95,7 @@ target_link_libraries(frnetlib ${FRNETLIB_LINK_LIBRARIES})
 
 #Build Tests if needbe
 if(BUILD_TESTS)
+    add_definitions(-DENABLE_TESTING)
     set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
     add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
     add_subdirectory(tests)

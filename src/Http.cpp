@@ -26,23 +26,32 @@ namespace fr
         return request_type;
     }
 
-    std::vector<std::string> Http::split_string(const std::string &str)
+    std::vector<std::string> Http::split_string(const std::string &str, char token, bool strip_spacing)
     {
-        char last_character = '\0';
-        size_t line_start = 0;
-        std::vector<std::string> result;
+        std::vector<std::string> ret;
+        std::string buffer;
 
-        for(size_t a = 0; a < str.size(); a++)
+        for(char a : str)
         {
-            if(str[a] == '\n' && last_character != '\\')
+            if(a == token)
             {
-                result.emplace_back(str.substr(line_start, a - line_start));
-                line_start = a + 1;
+                if(!buffer.empty())
+                {
+                    ret.emplace_back(std::move(buffer));
+                }
+                buffer.clear();
             }
-            last_character = str[a];
+            else if(a != ' ' || !strip_spacing)
+            {
+                buffer += a;
+            }
         }
-        result.emplace_back(str.substr(line_start, str.size() - line_start));
-        return result;
+        if(!buffer.empty())
+        {
+            ret.emplace_back(std::move(buffer));
+        }
+
+        return ret;
     }
 
     void Http::set_body(const std::string &body_)
@@ -244,6 +253,18 @@ namespace fr
         std::string header_name = str.substr(0, colon_pos);
         std::string header_value = str.substr(data_begin, data_len);
         std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::tolower);
+
+        //Check if it contains transfer encoding, we store this in a separate set
+        if(header_name == "transfer-encoding")
+        {
+            auto encodings = split_string(header_value, ',', true);
+            for(const auto &enc : encodings)
+            {
+                transfer_encodings.emplace(string_to_transfer_encoding(enc));
+            }
+        }
+
+        //Store header for good
         header_data.emplace(std::move(header_name), std::move(header_value));
     }
 

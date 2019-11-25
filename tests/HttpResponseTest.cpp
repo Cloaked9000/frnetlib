@@ -107,6 +107,72 @@ TEST(HttpResponseTest, response_partial_parse)
     ASSERT_EQ(test.get_body(), response_body);
 }
 
+TEST(HttpResponseTest, parse_chunked_response_test)
+{
+    const std::string raw_response1 =
+                                    "HTTP/1.1 200 OK\r\n"
+                                    "Content-Type: text/plain\r\n"
+                                    "Transfer-Encoding: chunked\r\n"
+                                    "\r\n"
+                                    "7\r\n"
+                                    "Mozilla\r\n"
+                                    "9\r\n"
+                                    "Developer\r\n"
+                                    "7\r\n"
+                                    "Network\r\n"
+                                    "0\r\n"
+                                    "\r\n";
+
+    //Parse response
+    fr::HttpResponse test;
+    ASSERT_EQ(test.parse(raw_response1.c_str(), raw_response1.size()), fr::Socket::Status::Success);
+
+    //Verify it
+    ASSERT_EQ(test.get_status(), fr::Http::RequestStatus::Ok);
+    ASSERT_EQ(test.get_body(), "MozillaDeveloperNetwork");
+}
+
+TEST(HttpResponseTest, parse_partial_chunked_response_test)
+{
+    const std::string raw_response1 =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/plain\r\n"
+            "Transfer-Encoding: chunked\r\n";
+
+    const std::string raw_response2 =
+            "\r\n"
+            "7\r\n"
+            "Mozilla\r\n";
+
+    const std::string raw_response3 =
+            "9\r\n";
+
+    const std::string raw_response4 =
+            "Developer\r\n"
+            "7\r\n"
+            "Netw";
+    const std::string raw_response5 =
+            "ork\r\n"
+            "0\r\n";
+
+    const std::string raw_response6 =
+            "\r\n";
+
+    //Parse response
+    fr::HttpResponse test;
+    ASSERT_EQ(test.parse(raw_response1.c_str(), raw_response1.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response2.c_str(), raw_response2.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response3.c_str(), raw_response3.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response4.c_str(), raw_response4.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response5.c_str(), raw_response5.size()), fr::Socket::Status::NotEnoughData);
+    ASSERT_EQ(test.parse(raw_response6.c_str(), raw_response6.size()), fr::Socket::Status::Success);
+
+    //Verify it
+
+    ASSERT_EQ(test.get_status(), fr::Http::RequestStatus::Ok);
+    ASSERT_EQ(test.get_body(), "MozillaDeveloperNetwork");
+}
+
 TEST(HttpResponseTest, header_length_test)
 {
     //Try data with no header end first

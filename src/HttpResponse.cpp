@@ -50,7 +50,36 @@ namespace fr
         if(body.size() > MAX_HTTP_BODY_SIZE)
             return fr::Socket::Status::HttpBodyTooBig;
 
-        //Cut off any data if it exceeds content length, todo: potentially an issue, could cut the next request off
+        //Check if chunked encoding
+        if(transfer_encodings.find(TransferEncoding::Chunked) != transfer_encodings.end())
+        {
+            //It's chunked, find the length of the chunk in hex!
+            unsigned int chunk_len = 1;
+            while(chunk_len > 0 && chunk_offset < body.size())
+            {
+                auto length_end = body.find("\r\n", chunk_offset);
+                if(length_end == std::string::npos)
+                    return fr::Socket::Status::NotEnoughData;
+                std::string hex_length = body.substr(chunk_offset, length_end - chunk_offset);
+                chunk_len = std::stoul(hex_length, nullptr, 16);
+
+                //If the current chunk hasn't fully been received yet then ask for more data
+                if(body.size() - length_end < chunk_len + 4) //+4 because of the \r\n after the hex value and the chunk end
+                    return fr::Socket::Status::NotEnoughData;
+
+                //Now we have the full chunk, erase the padding \r\n
+                body.erase(chunk_offset + hex_length.size() + chunk_len + 2, 2); //delete \r\n after chunk
+                body.erase(chunk_offset, hex_length.size() + 2); //delete both hex length and following \r\n
+                chunk_offset += chunk_len;
+            }
+
+            //If this chunk is 0, we have everything!
+            if(chunk_len == 0)
+                return fr::Socket::Status::Success;
+            return fr::Socket::Status::NotEnoughData;
+        }
+
+        //Cut off any data if it exceeds content length, provided that a content length is specified
         if(content_length > 0 && body.size() > content_length)
             body.resize(content_length);
         else if(body.size() < content_length)

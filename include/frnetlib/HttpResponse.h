@@ -50,6 +50,7 @@ namespace fr
         //State
         bool header_ended{false};
         size_t content_length{0};
+        size_t chunk_offset{0};
     };
 }
 

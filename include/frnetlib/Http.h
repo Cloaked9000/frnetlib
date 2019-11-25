@@ -7,13 +7,23 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <set>
+#include <iostream>
+#include <algorithm>
 #include "Socket.h"
 #include "Sendable.h"
+
+#ifdef ENABLE_TESTING
+#include <gtest/gtest.h>
+#endif
 
 namespace fr
 {
     class Http : public Sendable
     {
+#ifdef ENABLE_TESTING
+        FRIEND_TEST(HttpTest, test_string_split);
+#endif
     public:
         enum class RequestVersion
         {
@@ -31,6 +41,16 @@ namespace fr
             RequestTypeCount = 5, //Keep me at the end of valid HTTP request types, and updated
             Unknown = 6,
             Partial = 7,
+        };
+        enum class TransferEncoding
+        {
+            None = 0,
+            Chunked = 1,
+            Compress = 2,
+            Deflate = 3,
+            Gzip = 4,
+            Identity = 5,
+            EncodingCount = 6,
         };
         enum class RequestStatus
         {
@@ -268,6 +288,28 @@ namespace fr
         const static std::string &get_mimetype(const std::string &filename);
 
         /*!
+         * Converts a string to a TransferEncoding enum.
+         *
+         * @note case insentive
+         * @param encoding String to convert.
+         * @return The encoding type, or TransferEncoding::None if no match was found
+         */
+        static TransferEncoding string_to_transfer_encoding(std::string encoding)
+        {
+            static_assert((uint32_t)TransferEncoding::EncodingCount == 6, "Update transfer_encoding_to_string");
+            const static std::unordered_map<std::string, TransferEncoding> string_list = {{"none", TransferEncoding::None},
+                                                                                          {"chunked", TransferEncoding::Chunked},
+                                                                                          {"compress", TransferEncoding::Compress},
+                                                                                          {"deflate", TransferEncoding::Deflate},
+                                                                                          {"gzip", TransferEncoding::Gzip},
+                                                                                          {"identity", TransferEncoding::Identity}};
+
+            std::transform(encoding.begin(), encoding.end(), encoding.begin(), tolower);
+            auto iter = string_list.find(encoding);
+            return iter == string_list.end() ? TransferEncoding::None : iter->second;
+        }
+
+        /*!
          * Converts a 'RequestType' enum value to
          * a printable string.
          *
@@ -340,11 +382,13 @@ namespace fr
 
     protected:
         /*!
-         * Splits a string by new line. Ignores escaped \n's
+         * Splits a string by a given token. Allows for escaping.
          *
+         * @param token Token to split by
+         * @param strip_spacing True to remove ALL spacing from entries. False to leave intact.
          * @return The split string
          */
-        static std::vector<std::string> split_string(const std::string &str);
+        static std::vector<std::string> split_string(const std::string &str, char token = '\n', bool strip_spacing = false);
 
         /*!
          * Converts a parameter list to a vector pair.
@@ -369,6 +413,7 @@ namespace fr
         std::unordered_map<std::string, std::string> header_data;
         std::unordered_map<std::string, std::string> post_data;
         std::unordered_map<std::string, std::string> get_data;
+        std::set<TransferEncoding> transfer_encodings;
         std::string body;
         RequestType request_type;
         std::string uri;
