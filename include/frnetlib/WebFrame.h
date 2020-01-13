@@ -121,7 +121,7 @@ namespace fr
     private:
         mutable std::string payload;
         Opcode opcode;
-        bool final;
+        uint8_t final;
         static uint32_t current_mask_key;
     };
 }

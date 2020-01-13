@@ -9,7 +9,7 @@ namespace fr
 {
     fr::Socket::Status HttpResponse::parse(const char *response_data, size_t datasz)
     {
-        body += std::string(response_data, datasz);
+        body.append(response_data, datasz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)

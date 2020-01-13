@@ -16,7 +16,7 @@ namespace fr
 
     fr::Socket::Status HttpRequest::parse(const char *request, size_t requestsz)
     {
-        body += std::string(request, requestsz);
+        body.append(request, requestsz);
 
         //Ensure that the whole header has been parsed first
         if(!header_ended)
@@ -182,8 +182,7 @@ namespace fr
         auto post = parse_argument_list(body.substr(post_begin, body.size() - post_begin - (body.size() - post_end)));
         for(auto &c : post)
         {
-            std::transform(c.first.begin(), c.first.end(), c.first.begin(), ::tolower);
-            post_data.emplace(std::move(c.first), std::move(c.second));
+            this->post(std::move(c.first)) = std::move(c.second);
         }
     }
 

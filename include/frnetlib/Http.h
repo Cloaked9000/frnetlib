@@ -13,17 +13,11 @@
 #include "Socket.h"
 #include "Sendable.h"
 
-#ifdef ENABLE_TESTING
-#include <gtest/gtest.h>
-#endif
-
 namespace fr
 {
     class Http : public Sendable
     {
-#ifdef ENABLE_TESTING
-        FRIEND_TEST(HttpTest, test_string_split);
-#endif
+        friend class HttpTest_test_string_split_Test;
     public:
         enum class RequestVersion
         {
