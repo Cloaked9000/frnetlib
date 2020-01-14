@@ -3,7 +3,6 @@
 //
 
 #include <gtest/gtest.h>
-#include <gmock/gmock-more-matchers.h>
 #include <frnetlib/HttpResponse.h>
 
 TEST(HttpTest, test_request_type_to_string)
