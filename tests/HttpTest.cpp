@@ -67,14 +67,3 @@ TEST(HttpTest, test_string_to_transfer_encoding)
     ASSERT_EQ(fr::Http::string_to_transfer_encoding("ioudhweauidhgiwuyahfiuywhafyuhgwayufhg"), fr::Http::TransferEncoding::None);
     ASSERT_EQ(fr::Http::string_to_transfer_encoding("IDenTITy"), fr::Http::TransferEncoding::Identity);
 }
-
-namespace fr
-{
-    TEST(HttpTest, test_string_split)
-    {
-        ASSERT_THAT(Http::split_string("chunked\nstuff"), ::testing::ElementsAre("chunked", "stuff"));
-        ASSERT_THAT(Http::split_string("chunked\n stuff"), ::testing::ElementsAre("chunked", " stuff"));
-        ASSERT_THAT(Http::split_string("chunked,stuff", ',', false), ::testing::ElementsAre("chunked", "stuff"));
-        ASSERT_THAT(Http::split_string("chunked, stuff", ',', true), ::testing::ElementsAre("chunked", "stuff"));
-    }
-}

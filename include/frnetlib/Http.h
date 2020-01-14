@@ -17,7 +17,6 @@ namespace fr
 {
     class Http : public Sendable
     {
-        friend class HttpTest_test_string_split_Test;
     public:
         enum class RequestVersion
         {
