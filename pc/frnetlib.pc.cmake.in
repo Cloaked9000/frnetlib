@@ -1,0 +1,9 @@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: frnetlib
+Description: Frnetlib, is a cross-platform, small and fast networking library written in C++.
+URL: https://github.com/Cloaked9000/frnetlib
+Version: @FRNETLIB_VERSION_MAJOR@.@FRNETLIB_VERSION_MINOR@.@FRNETLIB_VERSION_PATCH@
+Libs: -L${libdir} @FRNETLIB_LIBFLAGS@
+Cflags: -I${includedir}
