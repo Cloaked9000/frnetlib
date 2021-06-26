@@ -24,9 +24,9 @@ int main()
         return EXIT_FAILURE;
     }
 
-    fr::Socket::Status err;
-    fr::TcpSocket socket;
-    fr::TcpListener listener;
+    fr::Socket::Status	err;
+    fr::TcpSocket		socket;
+    fr::TcpListener		listener;
 
     //Try to connect to the parsed address
     if((err = socket.connect(parsed_url.get_host(), parsed_url.get_port(), {})) != fr::Socket::Status::Success)

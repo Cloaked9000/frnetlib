@@ -1,5 +1,10 @@
 .idea
+.vscode
+.github
+.depend
 cmake-build-debug
 cmake-build-release
 
 CMakeCache\.txt
+*.o
+

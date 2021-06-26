@@ -145,7 +145,7 @@ namespace fr
             {
 #ifdef USE_SSL
                 char buff[256] = {0};
-                mbedtls_strerror(errno, buff, sizeof(buff));
+          //      mbedtls_strerror(errno, buff, sizeof(buff));
                 return std::string("SSL Error (").append(buff).append(")");
 #else
                 return "Generic SSL Error";

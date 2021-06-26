@@ -9,7 +9,8 @@
 #include "NetworkEncoding.h"
 #include "SocketDescriptor.h"
 
-#define RECV_CHUNK_SIZE 4096 //How much data to try and recv at once
+#define RECV_CHUNK_SIZE 512 //How much data to try and recv at once
+
 namespace fr
 {
     class Packet;

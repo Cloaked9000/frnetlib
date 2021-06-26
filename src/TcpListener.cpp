@@ -50,12 +50,15 @@ namespace fr
             }
 
 #ifndef _WIN32
+            //#define SO_REUSEADDR    2
+            #define SO_REUSEPORT    15
+
             //Set address re-use option if not on Windows (potentially sketchy)
             if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
             {
                 continue;
             }
-
+            
             //Set port re-use option
             if(setsockopt(socket_descriptor, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(int)) == SOCKET_ERROR)
             {
@@ -99,7 +102,7 @@ namespace fr
     Socket::Status TcpListener::accept(Socket &client_)
     {
         //Cast to TcpSocket. Will throw bad cast on failure.
-        auto &client = dynamic_cast<TcpSocket&>(client_);
+        auto &client = *(TcpSocket*)&client_;
 
         //Prepare to wait for the client
         sockaddr_storage client_addr{};

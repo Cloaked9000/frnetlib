@@ -5,6 +5,8 @@
 #include <iostream>
 #include <frnetlib/SocketSelector.h>
 #include <frnetlib/TcpSocket.h>
+#include <sys/time.h>
+#include <time.h>
 #define DEFAULT_SOCKET_TIMEOUT 20
 
 namespace fr
@@ -66,7 +68,7 @@ namespace fr
         ssize_t status = 0;
         do
         {
-            status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);
+            status = ::recv(socket_descriptor, (char*)data, buffer_size, 0);                      
             if(status == 0)
             {
                 return Socket::Status::Disconnected;
@@ -129,7 +131,7 @@ namespace fr
             errno = ret;
             return Socket::Status::AddressLookupFailure;
         }
-
+ 
         //Try to connect to results returned by getaddrinfo until we succeed/run out of things
         addrinfo *c;
         for(c = info; c != nullptr; c = c->ai_next)
@@ -158,7 +160,7 @@ namespace fr
             {
                 break;
             }
-
+            
             //Wait for the socket to do something/expire
             timeval tv = {};
             tv.tv_sec = timeout.count() == 0 ? DEFAULT_SOCKET_TIMEOUT : timeout.count();
@@ -192,7 +194,7 @@ namespace fr
         //Update state now we've got a valid socket descriptor
         set_remote_address(address + ":" + port);
         reconfigure_socket();
-
+        
         return Socket::Status::Success;
     }
 

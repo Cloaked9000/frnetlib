@@ -18,6 +18,7 @@ namespace fr
     SSLListener::SSLListener(std::shared_ptr<SSLContext> ssl_context_, const std::string &pem_path, const std::string &private_key_path)
             : ssl_context(std::move(ssl_context_))
     {
+        std::cout << "SSLListener::SSLListener" << std::endl;
         //Initialise SSL objects required
         listen_fd.fd = -1;
         mbedtls_ssl_config_init(&conf);
@@ -87,7 +88,9 @@ namespace fr
     Socket::Status SSLListener::accept(Socket &client_)
     {
         //Cast to SSLSocket. Will throw bad cast on failure.
-        auto &client = dynamic_cast<SSLSocket&>(client_);
+        
+        //auto &client = dynamic_cast<SSLSocket&>(client_);
+        auto &client = *(SSLSocket*)(&client_);
 
         //Initialise mbedtls
         int error = 0;
