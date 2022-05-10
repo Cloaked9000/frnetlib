@@ -143,9 +143,9 @@ namespace fr
         }
 
         //Add in required headers if they're missing
-        if(header_data.find("Connection") == header_data.end())
+        if(header_data.find("connection") == header_data.end())
             request += "Connection: keep-alive\r\n";
-        if(header_data.find("Host") == header_data.end())
+        if(header_data.find("host") == header_data.end())
             request += "Host: " + host + "\r\n";
         if(!body.empty())
             request += "Content-Length: " + std::to_string(body.size() + post_string.size()) + "\r\n";
