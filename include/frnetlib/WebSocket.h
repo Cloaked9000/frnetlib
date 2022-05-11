@@ -43,11 +43,11 @@ namespace fr
          * @param address The address of the socket to connect to
          * @param port The port of the socket to connect to
          * @param path The path of the resource
-         * @param ws_protocole The Websocket-Protocol, nullptr if NA
+         * @param ws_protocols The list of supported Websocket-Protocols.
          * @param timeout The number of seconds to wait before timing the connection attempt out. Pass {} for default.
          * @return A Socket::Status indicating the status of the operation (Success on success, an error type on failure).
          */
-        Socket::Status connect(const std::string &address, const std::string &port, const std::string &path, const std::string &ws_protocol, std::chrono::seconds timeout)
+        Socket::Status connect(const std::string &address, const std::string &port, const std::string &path,  const std::vector<std::string> &ws_protocols, std::chrono::seconds timeout)
         {
             //Establish a connection using the parent class
             Socket::Status status = SocketType::connect(address, port, timeout);
@@ -60,8 +60,11 @@ namespace fr
             request.header("sec-websocket-key") = websocket_key;
             request.header("sec-websocket-version") = "13";
 
-            if(ws_protocol.size())
-                request.header("sec-websocket-protocol") = ws_protocol;
+            if(ws_protocols.size()){
+                request.header("sec-websocket-protocol") = ws_protocols[0];
+                for(int i = 1;  i < ws_protocols.size(); i++)
+                    request.header("sec-websocket-protocol") += ", " + ws_protocols[i];
+            }
 
             request.header("connection") = "upgrade";
             request.header("upgrade") = "websocket";
@@ -107,7 +110,7 @@ namespace fr
          */
         Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override
         {
-            return connect(address, port, "/", nullptr, timeout);
+            return connect(address, port, "/", {}, timeout);
         }
 
         /*!
