@@ -47,7 +47,7 @@ namespace fr
          * @param timeout The number of seconds to wait before timing the connection attempt out. Pass {} for default.
          * @return A Socket::Status indicating the status of the operation (Success on success, an error type on failure).
          */
-        Socket::Status connect(const std::string &address, const std::string &port, const char* path,  const char* ws_protocole, std::chrono::seconds timeout)
+        Socket::Status connect(const std::string &address, const std::string &port, const std::string &path, const std::string &ws_protocol, std::chrono::seconds timeout)
         {
             //Establish a connection using the parent class
             Socket::Status status = SocketType::connect(address, port, timeout);
@@ -60,7 +60,7 @@ namespace fr
             request.header("sec-websocket-key") = websocket_key;
             request.header("sec-websocket-version") = "13";
 
-            if(ws_protocole)
+            if(ws_protocol.size())
                 request.header("sec-websocket-protocol") = ws_protocole;
 
             request.header("connection") = "upgrade";
