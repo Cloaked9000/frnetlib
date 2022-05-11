@@ -60,7 +60,7 @@ namespace fr
             request.header("sec-websocket-key") = websocket_key;
             request.header("sec-websocket-version") = "13";
 
-            if(ws_protocols.size()){
+            if(!ws_protocols.empty()){
                 request.header("sec-websocket-protocol") = ws_protocols[0];
                 for(int i = 1;  i < ws_protocols.size(); i++)
                     request.header("sec-websocket-protocol") += ", " + ws_protocols[i];
