@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.9)
 project(frnetlib)
+include(GNUInstallDirs)
 set(FRNETLIB_LINK_LIBRARIES "")
+set(FRNETLIB_LIBFLAGS "-lfrnetlib")
+
+set(FRNETLIB_VERSION_MAJOR 1)
+set(FRNETLIB_VERSION_MINOR 1)
+set(FRNETLIB_VERSION_PATCH 1)
 
 #Set module path
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
@@ -14,7 +20,7 @@ set(FRNETLIB_BUILD_SHARED_LIBS false CACHE BOOL "Build shared library.")
 set(MAX_HTTP_HEADER_SIZE "0xC800" CACHE STRING "The maximum allowed HTTP header size in bytes")
 set(MAX_HTTP_BODY_SIZE "0xA00000" CACHE STRING "The maximum allowed HTTP body size in bytes")
 set(LISTEN_QUEUE_SIZE "64" CACHE STRING "The listen queue depth for fr::TcpListener/fr::SSLListener")
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 
 #Configure defines based on user options
 add_definitions(-DMAX_HTTP_HEADER_SIZE=${MAX_HTTP_HEADER_SIZE})
@@ -50,11 +56,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CORE_CXX_FLAGS} -g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CORE_CXX_FLAGS} -O2")
 
 if(USE_SSL)
-	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} ${MBEDTLS_LIBRARIES})
+    set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} ${MBEDTLS_LIBRARIES})
+    if( FRNETLIB_BUILD_SHARED_LIBS )
+        set(FRNETLIB_LIBFLAGS "${FRNETLIB_LIBFLAGS} -lmbedcrypto -lmbedx509")
+    endif()
 endif()
 
 if(NOT MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
 # Set the library output directory
@@ -79,16 +88,12 @@ elseif(APPLE)
     set( LIB_PATH "lib" )
 else()
     set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/FRNETLIB" )
-
-    if( LIB_SUFFIX )
-        set( LIB_PATH "lib${LIB_SUFFIX}" )
-    else()
-        set( LIB_PATH "lib" )
-    endif()
+    set( LIB_PATH "${CMAKE_INSTALL_LIBDIR}" )
 endif()
 
 if(WIN32)
-	set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} wsock32 ws2_32)
+    set(FRNETLIB_LINK_LIBRARIES ${FRNETLIB_LINK_LIBRARIES} wsock32 ws2_32)
+    set(FRNETLIB_LIBFLAGS "${FRNETLIB_LIBFLAGS} -lwsock32 -lws2_32")
 endif()
 
 target_link_libraries(frnetlib ${FRNETLIB_LINK_LIBRARIES})
@@ -106,6 +111,16 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
+configure_file(
+               "${CMAKE_SOURCE_DIR}/include/frnetlib/version.h.cmake.in"
+               "${CMAKE_SOURCE_DIR}/include/frnetlib/version.h"
+)
+configure_file(
+               "${CMAKE_SOURCE_DIR}/pc/frnetlib.pc.cmake.in"
+               "${CMAKE_SOURCE_DIR}/pc/frnetlib.pc"
+               @ONLY
+)
+
 install(
         TARGETS frnetlib
         RUNTIME DESTINATION bin COMPONENT bin
@@ -114,6 +129,10 @@ install(
 )
 
 install(
-        DIRECTORY include
-        DESTINATION .
+        DIRECTORY include/frnetlib
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+install(
+        FILES "${CMAKE_CURRENT_SOURCE_DIR}/pc/frnetlib.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/"
 )
