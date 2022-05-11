@@ -77,7 +77,5 @@ namespace fr
         mbedtls_x509_crt cacert;
 
     };
-    
-    std::shared_ptr<SSLContext> GetTheContext();
 }
 #endif //FRNETLIB_SSLCONTEXT_H

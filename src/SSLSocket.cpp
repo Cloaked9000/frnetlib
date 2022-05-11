@@ -9,12 +9,6 @@
 #include <mbedtls/net_sockets.h>
 #include <frnetlib/SSLSocket.h>
 
-std::shared_ptr<fr::SSLContext>  fr::GetTheContext()
-{
-	static std::shared_ptr<fr::SSLContext> ssl_context = std::shared_ptr<fr::SSLContext>();
-	return ssl_context;
-}
-
 mbedtls_net_context *net_create()
 {
     auto *ctx = new mbedtls_net_context;
@@ -180,14 +174,11 @@ namespace fr
             set_remote_address(socket.get_remote_address());
             socket.set_descriptor(nullptr);
         }
-        
 
         //Initialise SSL data structures
         int error = 0;
         if((error = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
         {
-            std::cout << "2" << std::endl;
-        	printf("mbedtls_ssl_config_defaults :  %x  (%d)\n", error, error);
             errno = error;
             return Socket::Status::SSLError;
         }
@@ -198,16 +189,12 @@ namespace fr
 
         if((error = mbedtls_ssl_setup(ssl.get(), &conf)) != 0)
         {
-            std::cout << "4 : ERR = "<< error << std::endl;
-        	printf("mbedtls_ssl_setup :  %x  (%d)\n", error, error);
             errno = error;
             return Socket::Status::SSLError;
         }
-        
 
         if((error = mbedtls_ssl_set_hostname(ssl.get(), address.c_str())) != 0)
         {
-            std::cout << "5" << std::endl;
             errno = error;
             return Socket::Status::SSLError;
         }
@@ -217,18 +204,9 @@ namespace fr
         //Do SSL handshake
         while((error = mbedtls_ssl_handshake(ssl.get())) != 0)
         {
-            if( error != MBEDTLS_ERR_SSL_WANT_READ
-             && error != MBEDTLS_ERR_SSL_WANT_WRITE
-          //   && error != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS
-          //   && error != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS
-             //&& error != MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
-             )
+            if(error != MBEDTLS_ERR_SSL_WANT_READ && error != MBEDTLS_ERR_SSL_WANT_WRITE)
             {
-                printf("mbedtls_ssl_handshake :  %x  (%d)\n", error, error);
-                printf("MBEDTLS_ERR_SSL_WANT_READ :  %x  (%d)\n", MBEDTLS_ERR_SSL_WANT_READ, MBEDTLS_ERR_SSL_WANT_READ);
-                printf("MBEDTLS_ERR_SSL_BAD_INPUT_DATA :  %x  (%d)\n", MBEDTLS_ERR_SSL_BAD_INPUT_DATA, MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
                 errno = error;
-                mbedtls_ssl_session_reset(ssl.get());
                 return Socket::Status::SSLError;
             }
         }
@@ -238,7 +216,6 @@ namespace fr
         {
             if(mbedtls_ssl_get_verify_result(ssl.get()) != 0)
             {
-                std::cout << "8" << std::endl;
                 return Socket::Status::VerificationFailed;
             }
         }

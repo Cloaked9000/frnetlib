@@ -11,16 +11,15 @@ namespace fr
 
     WebFrame::WebFrame(WebFrame::Opcode type)
     : opcode(type),
-      final(true),
-      is_client(true)
+      final(true)
     {
 
     }
 
     fr::Socket::Status WebFrame::send(Socket *socket_) const
     {
-       // auto *socket = (WebSocketBase*)socket_;
-        if(!socket_)
+        auto *socket = dynamic_cast<WebSocketBase*>(socket_);
+        if(!socket)
             return Socket::Status::Error;
 
         uint16_t first_2bytes = 0;
@@ -33,7 +32,7 @@ namespace fr
         first_2bytes |= (uint8_t)opcode << 8;
 
         //Set mask bit (dependent on is_client flag, only client -> server messages are masked)
-        first_2bytes |= is_client << 7;
+        first_2bytes |= socket->is_client() << 7;
 
         //Set payload length
         if(payload.size() <= 125)
@@ -59,7 +58,7 @@ namespace fr
         }
 
         //Add a masking key if we're the client
-        if(is_client)
+        if(socket->is_client())
         {
             union
             {
@@ -89,8 +88,8 @@ namespace fr
 
     Socket::Status WebFrame::receive(Socket *socket)
     {
-  //      auto *socket_ = (WebSocketBase*)socket;
-        if(!socket)
+        auto *socket_ = dynamic_cast<WebSocketBase*>(socket);
+        if(!socket_)
             return Socket::Status::Error;
         payload.clear();
         Socket::Status status;
@@ -109,7 +108,7 @@ namespace fr
 
         //Extract mask, if we're the server then messages should always be masked. Read bit 9
         auto mask = static_cast<bool>((first_2bytes >> 7) & 0x1);
-        if(mask == is_client)
+        if(mask == socket_->is_client())
         {
             return fr::Socket::Status::Error;
         }

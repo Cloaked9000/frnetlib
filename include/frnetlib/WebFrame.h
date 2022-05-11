@@ -117,16 +117,12 @@ namespace fr
          * Anything else: Object invalid. Call disconnect().
          */
         Socket::Status receive(Socket *socket) override;
-        
-        void SetModeSerever() { is_client = false;}
 
     private:
         mutable std::string payload;
         Opcode opcode;
         uint8_t final;
         static uint32_t current_mask_key;
-
-        bool is_client;
     };
 }
 

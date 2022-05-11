@@ -26,7 +26,7 @@ namespace fr
             Sha1 ctx;
             ctx.update(input);
             ctx.final();
-            for(auto &a : ctx.digest)
+            for(unsigned int &a : ctx.digest)
                 a = ntohl(a);
 
             return std::string((char*)&ctx.digest[0], sizeof(ctx.digest));

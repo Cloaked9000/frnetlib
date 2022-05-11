@@ -133,13 +133,13 @@ namespace fr
          */
         bool connected() const final;
 
+
+    private:
+
         /*!
          * Close the connection.
          */
         void close_socket() override;
-
-    private:
-
 
         std::shared_ptr<SSLContext> ssl_context;
         std::unique_ptr<mbedtls_net_context, decltype(&mbedtls_net_free)> ssl_socket_descriptor;

@@ -13,10 +13,6 @@
 #include "Sha1.h"
 #include "WebFrame.h"
 
-#ifdef USE_SSL
-#include "SSLContext.h"
-#endif
-
 namespace fr
 {
     class WebSocketBase
@@ -36,14 +32,9 @@ namespace fr
     class WebSocket : public SocketType, public WebSocketBase
     {
     public:
-
-		WebSocket() : 
-#ifdef USE_SSL
-           SocketType(GetTheContext())
-#else
-		   SocketType()
-#endif
-		   , is_the_client(true)	{}
+        WebSocket()
+                : is_the_client(true)
+        {}
 
         /*!
          * Connects the WebSocket to a WebSocket server. Makes
@@ -56,93 +47,22 @@ namespace fr
          */
         Socket::Status connect(const std::string &address, const std::string &port, std::chrono::seconds timeout) override
         {
-            std::string uri = "/CP123";
-            
             //Establish a connection using the parent class
             Socket::Status status = SocketType::connect(address, port, timeout);
             if(status != Socket::Status::Success)
                 return status;
-            
+
             //Send an upgrade request header
+            std::string websocket_key = Base64::encode(std::to_string(std::time(nullptr)));
             HttpRequest request;
-            
-            std::string websocket_key = Sha1::sha1_digest(uri);
-            websocket_key.resize(16);
-            websocket_key = Base64::encode(websocket_key);
-
-            request.header("sec-webSocket-key") = websocket_key;
-            request.header("sec-webSocket-version") = "13";
-            request.header("sec-webSocket-protocol") = "ocpp2.0.1";
-            request.header("connection") = "Upgrade";
+            request.header("sec-websocket-key") = websocket_key;
+            request.header("sec-websocket-version") = "13";
+            request.header("connection") = "upgrade";
             request.header("upgrade") = "websocket";
-            request.set_uri(uri);
-
             status = SocketType::send(request);
             if(status != Socket::Status::Success)
                 return status;
-            
-            //Receive the response
-            HttpResponse response;
-            status = SocketType::receive(response);
-            if(status != Socket::Status::Success)
-                return status;
-            
-            if(response.get_status() != Http::RequestStatus::SwitchingProtocols)
-            {
-                disconnect();
-                errno = EPROTO;
-                return Socket::Status::HandshakeFailed;
-            }
 
-            //Verify the sec-websocket-accept header
-            std::string derived_key = response.header("sec-websocket-accept");
-            if(derived_key != Base64::encode(Sha1::sha1_digest(websocket_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")))
-            {
-                disconnect();
-                errno = EPROTO;
-                return Socket::Status::HandshakeFailed;
-            }
-
-            return Socket::Status::Success;
-        }
-        /*!
-         * Connects the WebSocket to a WebSocket server. Makes
-         * the connection using the underlying socket, and then handshakes.
-         *
-         * @param address The address of the socket to connect to
-         * @param port The port of the socket to connect to
-         * @param timeout The number of seconds to wait before timing the connection attempt out. Pass {} for default.
-         * @param uri.
-         * @return A Socket::Status indicating the status of the operation (Success on success, an error type on failure).
-         */
-        Socket::Status connect(const std::string &address, const std::string &port, std::string uri, std::chrono::seconds timeout)
-        {
-            //Establish a connection using the parent class
-            Socket::Status status = SocketType::connect(address, port, timeout);
-            if(status != Socket::Status::Success)
-                return status;
-            
-            //Send an upgrade request header
-            HttpRequest request;
-            
-            std::vector<char> buf;
-            buf.resize(16);
-            snprintf(buf.data(), 16, "%s%ld", uri.c_str(), std::time(nullptr));
-
-            std::string websocket_key(buf.begin(), buf.end());
-            websocket_key = Base64::encode(websocket_key);
-
-            request.header("sec-webSocket-key") = websocket_key;
-            request.header("sec-webSocket-version") = "13";
-            request.header("sec-webSocket-protocol") = "ocpp2.0.1";
-            request.header("connection") = "Upgrade";
-            request.header("upgrade") = "websocket";
-            request.set_uri(uri);
-
-            status = SocketType::send(request);
-            if(status != Socket::Status::Success)
-                return status;
-            
             //Receive the response
             HttpResponse response;
             status = SocketType::receive(response);
@@ -173,11 +93,7 @@ namespace fr
          */
         void disconnect() override
         {
-            if(!SocketType::connected())
-                return;
-            
             WebFrame frame;
-            if(!is_client()) frame.SetModeSerever();
             frame.set_opcode(WebFrame::Opcode::Disconnect);
             if(SocketType::connected())
                 SocketType::send(frame);
@@ -230,7 +146,6 @@ namespace fr
 
     private:
         bool is_the_client;
-        
 
     };
 }

@@ -143,8 +143,8 @@ namespace fr
         }
 
         //Add in required headers if they're missing
-        if(header_data.find("connection") == header_data.end())
-            request += "connection: keep-alive\r\n";
+        if(header_data.find("Connection") == header_data.end())
+            request += "Connection: keep-alive\r\n";
         if(header_data.find("Host") == header_data.end())
             request += "Host: " + host + "\r\n";
         if(!body.empty())

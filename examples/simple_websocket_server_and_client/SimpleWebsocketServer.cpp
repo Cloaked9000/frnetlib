@@ -27,7 +27,6 @@ int main()
     auto message_loop = [&socket]() {
         std::string message;
         fr::WebFrame frame;
-        frame.SetModeSerever();
         while(true)
         {
             frame.set_opcode(fr::WebFrame::Opcode::Text);
@@ -61,7 +60,6 @@ int main()
         {
             //Receive the next frame
             fr::WebFrame frame;
-            frame.SetModeSerever();
             if(socket.receive(frame) != fr::Socket::Status::Success)
                 continue;
 
