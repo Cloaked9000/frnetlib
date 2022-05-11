@@ -61,7 +61,7 @@ namespace fr
             request.header("sec-websocket-version") = "13";
 
             if(ws_protocol.size())
-                request.header("sec-websocket-protocol") = ws_protocole;
+                request.header("sec-websocket-protocol") = ws_protocol;
 
             request.header("connection") = "upgrade";
             request.header("upgrade") = "websocket";
