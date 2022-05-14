@@ -15,25 +15,11 @@
 
 namespace fr
 {
-    class WebSocketBase
-    {
-    public:
-        virtual ~WebSocketBase()=default;
-
-        /*!
-         * Checks if the socket is the client component or the server component
-         *
-         * @return True if it's the client component. False otherwise.
-         */
-        virtual bool is_client()=0;
-    };
-
     template<typename SocketType = fr::Socket>
-    class WebSocket : public SocketType, public WebSocketBase
+    class WebSocket : public SocketType
     {
     public:
         WebSocket()
-                : is_the_client(true)
         {}
 
         /*!
@@ -119,7 +105,7 @@ namespace fr
          */
         void disconnect() override
         {
-            WebFrame frame;
+            ClientWebFrame frame;
             frame.set_opcode(WebFrame::Opcode::Disconnect);
             if(SocketType::connected())
                 SocketType::send(frame);
@@ -139,8 +125,6 @@ namespace fr
             if(!descriptor || SocketType::get_socket_descriptor() == -1)
                 return;
 
-            is_the_client = false; //If we're accepting a connection then we're the server
-
             //Initialise connection, receive the handshake
             HttpRequest request;
             if(SocketType::receive(request) != Socket::Status::Success)
@@ -158,21 +142,6 @@ namespace fr
             response.header("Sec-WebSocket-Accept") = derived_key;
             SocketType::send(response);
         }
-
-        /*!
-         * Checks to see if the socket initialised the connection, or
-         * if it was accepted by a listener.
-         *
-         * @return True if accepted by a listener, false otherwise.
-         */
-        inline bool is_client() override
-        {
-            return is_the_client;
-        }
-
-    private:
-        bool is_the_client;
-
     };
 }
 

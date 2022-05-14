@@ -118,11 +118,26 @@ namespace fr
          */
         Socket::Status receive(Socket *socket) override;
 
+        /*!
+         * Checks if the webFrame is used in a client component or in a server component
+         *
+         * @return True if it's the client component. False otherwise.
+         */
+        virtual bool is_client() const = 0;
+
     private:
         mutable std::string payload;
         Opcode opcode;
         uint8_t final;
         static uint32_t current_mask_key;
+    };
+
+    class ClientWebFrame : public fr::WebFrame {
+        bool is_client() const override { return 1;} 
+    };
+
+    class ServerWebFrame : public fr::WebFrame {
+        bool is_client() const override { return 0;} 
     };
 }
 
