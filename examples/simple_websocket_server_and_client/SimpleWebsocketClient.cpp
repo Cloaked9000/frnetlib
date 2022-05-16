@@ -21,7 +21,7 @@ int main()
     //Loop to send messages. Not ideal due to a lack of locking, but should be okay for an example.
     auto message_loop = [&socket]() {
         std::string message;
-        fr::WebFrame frame;
+        fr::ClientWebFrame frame;
         while(socket.connected())
         {
             std::cout << "Message: " << std::endl;
@@ -46,7 +46,7 @@ int main()
     while(socket.connected())
     {
         //Receive the next frame
-        fr::WebFrame frame;
+        fr::ClientWebFrame frame;
         if(socket.receive(frame) != fr::Socket::Status::Success)
             continue;
 
