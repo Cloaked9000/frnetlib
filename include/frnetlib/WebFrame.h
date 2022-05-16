@@ -133,7 +133,7 @@ namespace fr
     };
 
     class ClientWebFrame : public fr::WebFrame {
-        bool is_client() const override { return 1;} 
+        bool is_client() const override { return true;} 
     };
 
     class ServerWebFrame : public fr::WebFrame {
